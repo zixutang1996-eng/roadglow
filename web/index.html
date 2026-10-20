@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>RoadGlow</title><link rel="icon" href="data:,">
+</head>
+<body>
+<div id="map"></div>
+<div id="paper"></div>
+<div id="top">
+  <div id="searchbar">
+    <button id="menuBtn" class="ic" aria-label="menu">☰</button>
+    <input id="q" autocomplete="off" spellcheck="false">
+    <button id="clearBtn" class="ic hidden" aria-label="clear">✕</button>
+    <button id="dirBtn" class="ic" aria-label="directions">➦</button>
+  </div>
+  <div id="suggest" class="card hidden"></div>
+  <div id="chips"></div>
+</div>
+<div id="panel" class="hidden"><div class="grab"></div><div id="panelBody"></div></div>
+<div id="controls">
+  <button class="ctl" id="layersBtn">◩</button>
+  <button class="ctl" id="compassBtn"><span id="needle">➤</span></button>
+  <button class="ctl" id="locBtn">◎</button>
+  <div class="zoomgrp"><button class="ctl" id="zin">＋</button><button class="ctl" id="zout">－</button></div>
+</div>
+<div id="layersPop" class="card hidden"></div>
+<div id="navBanner" class="hidden"></div>
+<div id="scrim" class="hidden"></div>
+<nav id="drawer"></nav>
+<div id="toast" class="hidden"></div>
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>

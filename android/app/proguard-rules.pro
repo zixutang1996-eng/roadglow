@@ -1,0 +1,6 @@
+-keep class org.maplibre.** { *; }
+-keep class com.mapbox.** { *; }
+-keep class io.flutter.** { *; }
+-dontwarn org.maplibre.**
+-dontwarn com.mapbox.**
+-dontwarn com.google.android.play.core.**

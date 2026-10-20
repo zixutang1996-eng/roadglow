@@ -1,0 +1,31 @@
+name: native-builds (manual)
+on:
+  workflow_dispatch:
+jobs:
+  ios-unsigned-ipa:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with: { channel: stable, flutter-version: 3.47.7 }
+      - run: flutter pub get
+      - run: flutter build ios --release --no-codesign
+      - name: Package unsigned IPA (sign with AltStore / Sideloadly)
+        run: |
+          mkdir Payload && cp -R build/ios/iphoneos/Runner.app Payload/
+          zip -qry RoadGlow-unsigned.ipa Payload
+      - uses: actions/upload-artifact@v4
+        with: { name: RoadGlow-ios-unsigned, path: RoadGlow-unsigned.ipa }
+
+  android-apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '21' }
+      - uses: subosito/flutter-action@v2
+        with: { channel: stable, flutter-version: 3.47.7 }
+      - run: flutter build apk --release
+      - uses: actions/upload-artifact@v4
+        with: { name: RoadGlow-android, path: build/app/outputs/flutter-apk/app-release.apk }
+
