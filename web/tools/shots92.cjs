@@ -7,7 +7,7 @@ const R = { reveal: [], search: [] };
     p.on('pageerror', e => console.log(v, 'pageerror', e.message));
     await p.evaluateOnNewDocument((th, md) => { localStorage.setItem('theme', JSON.stringify(th)); localStorage.setItem('mode', JSON.stringify(md)); localStorage.setItem('a2hsSeen', '1'); localStorage.setItem('lang', 'en'); }, th, md);
     await p.goto(BASE + hash, { waitUntil: 'networkidle0', timeout: 90000 }).catch(() => {}); await sl(2500); return p; };
-  const count = p => p.evaluate(() => { const m = window._map, ls = m.getStyle().layers.map(l => l.id).filter(id => /^(rp|tp|poi$)/.test(id)); return m.queryRenderedFeatures({ layers: ls }).length; });
+  const count = p => p.evaluate(() => { const m = window._map, ls = m.getStyle().layers.map(l => l.id).filter(id => /^(rp|tp|mp|poi$)/.test(id)); return m.queryRenderedFeatures({ layers: ls }).length; });
   const idle = p => p.evaluate(() => new Promise(r => { const m = window._map; if (m.loaded() && m.areTilesLoaded()) setTimeout(r, 600); else m.once('idle', () => setTimeout(r, 600)); setTimeout(r, 25000); })).then(() => new Promise(r => setTimeout(r, 2500)));
   if (PART.includes('reveal')) for (const [city, c] of [['calgary', [-114.07, 51.045]], ['vancouver', [-123.12, 49.28]], ['toronto', [-79.38, 43.65]]]) {
     const p = await page('west_light', `#9.75/${c[1]}/${c[0]}`);

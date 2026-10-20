@@ -5,6 +5,7 @@ import './style.css';
 import { ic, iconDefs, catIc } from './uiicons.js';
 import * as AC from './ac.js';
 import * as TP from './tilepoi.js';
+import * as MP from './majorpoi.js';
 import * as ios from './ios.js';
 const AV = '?v=0.9.2'; // asset version: busts caches for styles + important-POI data
 document.body.insertAdjacentHTML('afterbegin', iconDefs());
@@ -101,7 +102,11 @@ function addImportant() {
   for (let i = TPB.length - 1; i >= 0; i--) { const b = TPB[i];
     map.addLayer({ id: TPI[i], type: 'symbol', source: 'tpoi', minzoom: b, filter: ['all', ['>=', ['get', 'rz'], b], ['<', ['get', 'rz'], b + 0.25]],
       layout: lay(b, { 'symbol-sort-key': ['get', 'rz'] }), paint: pnt(b) }, before); }
-  refreshTpoi();
+  if (!map.getSource('mpoi')) map.addSource('mpoi', { type: 'geojson', data: MPOI || { type: 'FeatureCollection', features: [] } });
+  for (const id of MPI) if (map.getLayer(id)) map.removeLayer(id);
+  for (let i = MPB.length - 1; i >= 0; i--) { const b = MPB[i];
+    map.addLayer({ id: MPI[i], type: 'symbol', source: 'mpoi', minzoom: b, maxzoom: 12, filter: ['all', ['>=', ['get', 'rz'], b], ['<', ['get', 'rz'], b + 0.25]], layout: lay(b, { 'symbol-sort-key': ['get', 'rz'] }), paint: pnt(b) }, before); }
+  refreshTpoi(); refreshMpoi();
   for (let i = BANDS.length - 1; i >= 0; i--) {
     const b = BANDS[i], id = IMP[i];
     const op = ['interpolate', ['linear'], ['zoom'], b, 0.55, b + 0.4, 1];
@@ -117,7 +122,14 @@ const baseFilters = {};
 const AB = [[-120, 49], [-110, 49], [-110, 60], [-120, 60], [-120, 49]];
 const TPB = []; for (let b = 12; b <= 16.5; b += 0.25) TPB.push(+b.toFixed(2));
 const TPI = TPB.map(b => 'tp' + String(b).replace('.', '_'));
-let TPOI = null, tpT = 0;
+let TPOI = null, tpT = 0, MPOI = null, mpT = 0;
+const MPB = []; for (let b = 9.75; b <= 11.75; b += 0.25) MPB.push(+b.toFixed(2));
+const MPI = MPB.map(b => 'mp' + String(b).replace('.', '_'));
+async function refreshMpoi() {
+  const z = map.getZoom(); if (z < 9.5 || z >= 12 || !map.getSource('mpoi')) return; const my = ++mpT;
+  const fc = await MP.majorFor(map.getBounds(), c => !inYEG(c)); if (!fc || my !== mpT) return; MPOI = fc; map.getSource('mpoi')?.setData(fc);
+}
+map.on('moveend', refreshMpoi);
 const inYEG = ([x, y]) => x > YEG[0][0] && x < YEG[1][0] && y > YEG[0][1] && y < YEG[2][1];
 async function refreshTpoi() {
   if (map.getZoom() < 11.9 || !map.getSource('tpoi')) return; const my = ++tpT;
@@ -449,7 +461,7 @@ async function share(p) {
 }
 
 // POI click with hit tolerance (any rendered POI / category result)
-const hitLayers = () => ['quests', 'cat', 'saved-dot', ...IMP, ...TPI, 'tp-air', 'poi'].filter(l => map.getLayer(l));
+const hitLayers = () => ['quests', 'cat', 'saved-dot', ...IMP, ...TPI, ...MPI, 'tp-air', 'poi'].filter(l => map.getLayer(l));
 map.on('click', e => {
   if (S.nav?.active || S.picking || S.measuring) return;
   if (S.lpSuppress) { S.lpSuppress = false; return; }
