@@ -32,6 +32,7 @@ export async function initUpdates({ toast, L, store }) {
     const remote = await (await fetch(`${PAGES}bundle/manifest.json?t=${now}`, { cache: 'no-store' })).json();
     const local = await (await fetch('./bundle/manifest.json', { cache: 'no-store' })).json();
     if (remote.app !== 'roadglow' || !(remote.build > local.build) || +remote.minNative > +info.build) return;
+    if (Object.entries(remote.files).every(([p, h]) => local.files[p] === h)) return; // same content
     if ((await Preferences.get({ key: 'lu_bad' })).value?.endsWith(`/live/${remote.build}`)) return; // already rolled back once
     const dir = `live/${remote.build}`; let changed = 0;
     for (const [p, h] of Object.entries(remote.files)) {
