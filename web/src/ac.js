@@ -35,15 +35,15 @@ export function textScore(qn, name, addr = '') {
 export const INTENTS = [
   { id: 'airport', k: ['airport', 'airports', 'aerodrome', 'airfield', 'yeg', 'yyc', 'yvr', 'yyz', '机场', '飞机场', '航站楼'], cls: ['aerodrome'], tag: ['aeroway:aerodrome'], q: ['airport', 'international airport'] },
   { id: 'gas', k: ['gas', 'gas station', 'fuel', 'petrol', 'gas bar', '加油站', '加油', '油站'], cls: ['fuel'], tag: ['amenity:fuel'], q: ['Shell', 'Petro-Canada', 'Esso', 'Chevron', 'Co-op Gas', 'Mobil', '76', 'gas station'] },
-  { id: 'hospital', k: ['hospital', 'hospitals', 'emergency', 'er', '医院', '急诊'], cls: ['hospital'], tag: ['amenity:hospital'], q: ['hospital', 'medical centre'] },
+  { id: 'hospital', k: ['hospital', 'hospitals', 'emergency', 'er', '医院', '急诊'], cls: ['hospital'], sub: ['hospital'], tag: ['amenity:hospital'], q: ['hospital', 'medical centre'] },
   { id: 'coffee', k: ['coffee', 'cafe', 'café', 'coffee shop', '咖啡', '咖啡店', '咖啡馆'], cls: ['cafe'], tag: ['amenity:cafe'], q: ['Tim Hortons', 'Starbucks', 'coffee', 'cafe'] },
   { id: 'pharmacy', k: ['pharmacy', 'drugstore', 'drug store', 'chemist', '药店', '药房'], cls: ['pharmacy', 'chemist'], tag: ['amenity:pharmacy', 'shop:chemist'], q: ['pharmacy', 'Shoppers Drug Mart', 'Rexall', 'London Drugs', 'CVS', 'Walgreens'] },
-  { id: 'grocery', k: ['grocery', 'groceries', 'supermarket', 'grocery store', '超市', '杂货', '杂货店', '菜市场'], cls: ['supermarket', 'grocery'], tag: ['shop:supermarket'], q: ['supermarket', 'Safeway', 'Sobeys', 'Superstore', 'No Frills', 'Save-On-Foods', 'Walmart Supercentre', 'Kroger'] },
+  { id: 'grocery', k: ['grocery', 'groceries', 'supermarket', 'grocery store', '超市', '杂货', '杂货店', '菜市场'], cls: ['supermarket', 'grocery'], sub: ['supermarket', 'greengrocer', 'grocery', 'wholesale'], tag: ['shop:supermarket'], q: ['supermarket', 'Safeway', 'Sobeys', 'Superstore', 'No Frills', 'Save-On-Foods', 'Walmart Supercentre', 'Kroger'] },
   { id: 'train', k: ['train station', 'train', 'railway station', 'station', 'lrt', 'skytrain', 'subway', 'metro', '火车站', '车站', '轻轨', '地铁', '地铁站'], cls: ['railway'], tag: ['railway:station', 'railway:halt'], q: ['station'] },
   { id: 'bus', k: ['bus station', 'bus terminal', 'bus depot', 'transit centre', 'transit center', '汽车站', '巴士站', '公交站', '客运站'], cls: ['bus'], tag: ['amenity:bus_station'], q: ['bus station', 'bus terminal', 'transit centre'] },
   { id: 'ferry', k: ['ferry', 'ferry terminal', '渡口', '码头', '轮渡'], cls: ['ferry_terminal'], tag: ['amenity:ferry_terminal'], q: ['ferry terminal', 'ferry'] },
-  { id: 'uni', k: ['university', 'college', 'campus', '大学', '学院'], cls: ['college', 'university'], tag: ['amenity:university', 'amenity:college'], q: ['university', 'college'] },
-  { id: 'park', k: ['park', 'parks', '公园'], cls: ['park'], tag: ['leisure:park'], q: ['park'] },
+  { id: 'uni', k: ['university', 'college', 'campus', '大学', '学院'], cls: ['college', 'university'], sub: ['university', 'college'], tag: ['amenity:university', 'amenity:college'], q: ['university', 'college'] },
+  { id: 'park', k: ['park', 'parks', '公园'], cls: ['park'], sub: ['park', 'garden', 'nature_reserve'], tag: ['leisure:park'], q: ['park'] },
   { id: 'hotel', k: ['hotel', 'hotels', 'motel', 'inn', 'lodging', '酒店', '宾馆', '旅馆', '住宿'], cls: ['lodging', 'hotel'], tag: ['tourism:hotel', 'tourism:motel'], q: ['hotel', 'inn', 'motel'] },
   { id: 'parking', k: ['parking', 'parking lot', 'car park', '停车场', '停车'], cls: ['parking'], tag: ['amenity:parking'], q: ['parking'] },
 ];
@@ -52,27 +52,28 @@ export function intentOf(q) {
   return INTENTS.find(e => e.k.includes(x)) || (cjk ? INTENTS.find(e => e.k.some(k => /[\u3400-\u9fff]/.test(k) && (k.includes(x) || x.includes(k)))) : null)
     || (x.length >= 3 ? INTENTS.find(e => e.k.some(k => k.length > 3 && (k.startsWith(x) || x === k + 's' || x.startsWith(k + ' ') || x.endsWith(' ' + k)))) : null) || null;
 }
+export const apSc = (n, it) => it?.id !== 'airport' ? 0 : /international|intl/i.test(n || '') ? 150 : /seaplane|heli|water (aerodrome|airport)|harbou?r|air park|airpark/i.test(n || '') ? -60 : 20;
 async function photonTag(q, ctx, it, signal) {
   const c = ctx.c, B = ctx.B, r = Math.max(0.6, B ? (B.getEast() - B.getWest()) * 0.75 : 0.6), ry = r * 0.6;
   const u = new URL('https://photon.komoot.io/api/'); const sp = new URLSearchParams({ q, limit: 10, lat: c.lat, lon: c.lng, location_bias_scale: 0.1, zoom: 12, bbox: [c.lng - r, c.lat - ry, c.lng + r, c.lat + ry].map(v => v.toFixed(4)).join(',') });
   for (const t of it.tag) sp.append('osm_tag', t); u.search = sp;
   const rr = await fetch(u, { signal }); if (!rr.ok) return [];
   return (await rr.json()).features.map(f => { const p = f.properties; return { name: p.name || q, address: [p.street && [p.housenumber, p.street].filter(Boolean).join(' '), p.city, p.state].filter(Boolean).join(', '), category: p.osm_key + '=' + p.osm_value, cls: it.cls[0],
-    lng: f.geometry.coordinates[0], lat: f.geometry.coordinates[1], osm: p.osm_type ? { type: p.osm_type, id: p.osm_id } : null, _cat: 1, sc: /international/i.test(p.name || '') ? 70 : 0 }; }).filter(x => x.name);
+    lng: f.geometry.coordinates[0], lat: f.geometry.coordinates[1], osm: p.osm_type ? { type: p.osm_type, id: p.osm_id } : null, _cat: 1, sc: apSc(p.name, it) }; }).filter(x => x.name);
 }
 let IDX = null, idxP = null;
 const PC = new Map(); // Photon cache by area (0.1 deg) + normalised prefix
 let PFX = null; // 2-char token-prefix -> entries (v0.9 prebuilt in-memory prefix index)
 function buildPfx() { PFX = new Map(); for (const x of IDX) { const ks = new Set(norm(x.name).split(' ').filter(w => w.length >= 2).map(w => w.slice(0, 2))); for (const k of ks) { let a = PFX.get(k); if (!a) PFX.set(k, a = []); a.push(x); } } }
 export function loadIndex(url) { return idxP ||= fetch(url).then(r => r.json()).then(j => { IDX = j.features.filter(f => f.properties.name).map(f => ({ name: f.properties.name, zh: f.properties['name:zh'], cls: f.properties.class, sc: f.properties.sc || 0, lng: f.geometry.coordinates[0], lat: f.geometry.coordinates[1], osm: f.properties.osm ? { type: f.properties.osm[0], id: +f.properties.osm.slice(1) } : null, toks: norm(f.properties.name) })); buildPfx(); return IDX; }).catch(() => (IDX = [])); }
-const tier = (x, ctx) => ctx.B && ctx.B.contains([x.lng, x.lat]) ? 0 : x.dist < 15000 ? 1 : ctx.prov && x.lng >= ctx.prov[0] && x.lng <= ctx.prov[2] && x.lat >= ctx.prov[1] && x.lat <= ctx.prov[3] ? 2 : 3;
-const rank = (x, ctx) => tier(x, ctx) * 300 - x.ts * 40 - (x.sc || 0) * 2 + Math.log10(1 + x.dist) * 15;
+const tier = (x, ctx) => ctx.B && ctx.B.contains([x.lng, x.lat]) ? 0 : x.dist < 15000 ? 1 : x.dist < 60000 || ctx.prov && x.lng >= ctx.prov[0] && x.lng <= ctx.prov[2] && x.lat >= ctx.prov[1] && x.lat <= ctx.prov[3] ? 2 : 3;
+const rank = (x, ctx) => ctx.it ? -x.ts * 40 - (x.ts >= 8 ? x.sc || 0 : 0) * 2 + Math.log10(1 + x.dist) * 60 + (x.dist > 60000 ? Math.min(220, (x.dist - 60000) / 1200) : 0) : tier(x, ctx) * 300 - x.ts * 40 - (x.sc || 0) * 2 + Math.log10(1 + x.dist) * 15 + (x.dist > 60000 ? Math.min(220, (x.dist - 60000) / 1200) : 0);
 const key = x => norm(x.name) + '|' + (+x.lat).toFixed(3) + ',' + (+x.lng).toFixed(3);
 // local instant results
 export function localSuggest(q, ctx, extra = []) {
   const qn = norm(q); if (!qn) return []; const out = [], seen = new Set();
-  const it = intentOf(q), icls = new Set(it?.cls || []);
-  const push = (x, src) => { let ts = Math.max(textScore(qn, x.name, x.address), x.zh ? textScore(qn, x.zh) : -1); if (it && (icls.has(x.cls) || icls.has(x.category) || x._cat)) { if (ts < 0 && haversine(ctx.c, x) > 150000) return; ts = Math.max(ts, 4); } if (ts < 0) return; const k = key(x); if (seen.has(k)) return; seen.add(k);
+  const it = intentOf(q), icls = new Set(it?.cls || []); ctx.it = it;
+  const push = (x, src) => { let ts = Math.max(textScore(qn, x.name, x.address), x.zh ? textScore(qn, x.zh) : -1); if (it && (icls.has(x.cls) || icls.has(x.category) || x._cat)) { if (ts < 0 && haversine(ctx.c, x) > 150000) return; ts = Math.max(ts, 8); } else if (it) ts = Math.min(ts, 4); if (ts < 0) return; const k = key(x); if (seen.has(k)) return; seen.add(k);
     out.push({ ...x, name: ctx.zh && x.zh ? x.zh : x.name, ts: ts + (src === 'saved' ? 2 : src === 'recent' ? 1 : 0), dist: haversine(ctx.c, x), src }); };
   for (const [src, list] of extra) for (const x of list) if (x && x.lat != null) push(x, src);
   const pool = IDX ? (PFX && qn.length >= 2 && !/[\u3400-\u9fff]/.test(qn) ? (PFX.get(qn.slice(0, 2)) || []) : IDX) : [];
@@ -81,8 +82,10 @@ export function localSuggest(q, ctx, extra = []) {
   if (IDX && pool !== IDX && out.filter(o => o.src === 'idx').length < 3) for (const x of IDX) push({ name: x.name, zh: x.zh, address: '', category: x.cls, cls: x.cls, lat: x.lat, lng: x.lng, osm: x.osm, sc: x.sc }, 'idx');
   out.sort((a, b) => rank(a, ctx) - rank(b, ctx)); const dd = [];
   for (const x of out.slice(0, 40)) if (!dd.some(y => norm(y.name) === norm(x.name) && haversine(x, y) < 350)) dd.push(x);   // same place mapped twice (node + area)
-  return dd.slice(0, 8);
+  return farCut(dd).slice(0, 8);
 }
+// drop far-away rows (e.g. the Alberta dataset while viewing Seattle) whenever something nearby matched
+const farCut = L => L.some(x => x.dist < 80000) ? L.filter(x => x.dist < 200000 || x.src === 'saved') : L;
 // full pipeline: calls render(list, phase) with 'local' first (sync), then 'remote' merged with stable ordering
 export async function suggest(q, ctx, extra, render, signal) {
   const t0 = performance.now(); const local = localSuggest(q, ctx, extra); render(local, 'local', performance.now() - t0);
@@ -91,19 +94,20 @@ export async function suggest(q, ctx, extra, render, signal) {
   const addrP = ADDR.parse(q) && ctx.c.lng > -114 && ctx.c.lng < -113 && ctx.c.lat > 53.2 && ctx.c.lat < 53.8 ? ADDR.search(q, 5).catch(() => []) : Promise.resolve([]);
   addrP.then(a => { if (a.length && !signal?.aborted) render([...a, ...local], 'addr', performance.now() - t0, code); });
   const ck = `${ctx.c.lat.toFixed(1)},${ctx.c.lng.toFixed(1)}|${qn}`;
-  const ph = (...a) => { const ts = AbortSignal.timeout(4000), sg = signal && AbortSignal.any ? AbortSignal.any([signal, ts]) : ts; return photon(...a.slice(0, 4), sg, a[4]).catch(() => []); };
-  const reqs = PC.has(ck) ? [Promise.resolve(PC.get(ck))] : [Promise.all([ph(q, ctx.c, 8, ctx.z), prov ? ph(q, ctx.c, 8, Math.min(ctx.z, 9), prov) : []]).then(r => { const f = r.flat(); if (f.length) { PC.set(ck, f); if (PC.size > 300) PC.delete(PC.keys().next().value); } return f; })];
-  const it = intentOf(q);
-  if (it) { const ts = AbortSignal.timeout(4500), sg = signal && AbortSignal.any ? AbortSignal.any([signal, ts]) : ts; const ik = 'i|' + ck.split('|')[0] + '|' + it.id;
-    reqs.push(PC.has(ik) ? Promise.resolve(PC.get(ik)) : Promise.all(it.q.slice(0, 5).map(w => photonTag(w, ctx, it, sg).catch(() => []))).then(r => { const f = r.flat(); if (f.length) PC.set(ik, f); return f; })); }
+  const ph = (...a) => { const ts = AbortSignal.timeout(7000), sg = signal && AbortSignal.any ? AbortSignal.any([signal, ts]) : ts; return photon(...a.slice(0, 4), sg, a[4]).catch(() => []); };
+  const reqs = PC.has(ck) ? [Promise.resolve(PC.get(ck))] : [Promise.all([ph(q, ctx.c, 8, ctx.z), ph(q, ctx.c, 8, ctx.z, [ctx.c.lng - 0.7, ctx.c.lat - 0.45, ctx.c.lng + 0.7, ctx.c.lat + 0.45]), prov ? ph(q, ctx.c, 8, Math.min(ctx.z, 9), prov) : []]).then(r => { const f = r.flat(); if (f.length) { PC.set(ck, f); if (PC.size > 300) PC.delete(PC.keys().next().value); } return f; })];
+  const it = intentOf(q); ctx.it = it;
+  if (it) { const ts = AbortSignal.timeout(7000), sg = signal && AbortSignal.any ? AbortSignal.any([signal, ts]) : ts; const ik = 'i|' + ck.split('|')[0] + '|' + it.id;
+    reqs.push(PC.has(ik) ? Promise.resolve(PC.get(ik)) : Promise.all(it.q.slice(0, 3).map(w => photonTag(w, ctx, it, sg).catch(() => []))).then(r => { const f = r.flat(); if (f.length) PC.set(ik, f); return f; })); }
   const addr = await addrP;
   let remote = (await Promise.all(reqs)).flat().map(x => ({ ...x })); if (signal?.aborted) return;
-  const icl = new Set(it?.cls || []); const score = x => { x.dist = haversine(ctx.c, x); x.ts = Math.max(textScore(qn, x.name, x.address), x._cat || (it && icl.has(String(x.category || '').split('=').pop())) ? 4 : 0.5); return x; };
-  remote = remote.map(score).filter(x => x.ts >= 0.5 && !(it && x.dist > 250000 && x.ts >= 4 && textScore(qn, x.name, x.address) < 0));
+  const icl = new Set(it?.cls || []); const score = x => { x.dist = haversine(ctx.c, x); if (it?.id === 'airport' && x.sc == null && /aerodrome/.test(x.category || '')) x.sc = apSc(x.name, it); const cat = x._cat || (it && icl.has(String(x.category || '').split('=').pop())); x.ts = cat ? 8 : Math.max(Math.min(textScore(qn, x.name, x.address), it ? 4 : 99), 0.5); return x; };
+  remote = remote.map(score).filter(x => x.ts >= 0.5 && !(it && x.dist > 250000));
   if (remote.length + local.length + addr.length < 3) { try { remote.push(...(await nominatim(q, ctx.c, { countrycodes: 'ca', viewbox: prov ? `${prov[0]},${prov[3]},${prov[2]},${prov[1]}` : undefined, signal })).map(score)); } catch {} if (signal?.aborted) return; }
   // stable merge: keep the local rows (and their order) on top; add new remote rows below, sorted by rank; fill to 8
-  local.unshift(...addr); const seen = new Set(local.map(key)); const near = (a, b) => norm(a.name) === norm(b.name) && haversine(a, b) < 350;
+  local.unshift(...addr); const seen = new Set(local.map(key)); const near = (a, b) => norm(a.name) === norm(b.name) && haversine(a, b) < (/airport|aerodrome/i.test(a.name) ? 4000 : 350);
   const add = remote.filter(x => !seen.has(key(x)) && !local.some(l => near(l, x))).sort((a, b) => rank(a, ctx) - rank(b, ctx));
   const dd = []; for (const x of add) if (!dd.some(y => near(x, y))) dd.push(x);
-  render([...local, ...dd].slice(0, Math.max(8, local.length)), 'remote', performance.now() - t0, code);
+  const all = []; for (const x of [...local, ...dd]) if (!all.some(y => near(x, y))) all.push(x); for (const x of all) { if (x.dist == null) x.dist = haversine(ctx.c, x); if (x.ts == null) x.ts = 1; } all.sort((a, b) => rank(a, ctx) - rank(b, ctx));
+  render(farCut(all).slice(0, 8), 'remote', performance.now() - t0, code);
 }

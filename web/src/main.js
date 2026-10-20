@@ -45,7 +45,7 @@ const map = new maplibregl.Map({
   center: hash.length >= 3 && !hash.some(isNaN) ? [hash[2], hash[1]] : [-113.4938, 53.5461], zoom: hash.length >= 3 && !isNaN(hash[0]) ? hash[0] : 12,
   attributionControl: { compact: true }, hash: false, maxPitch: 70, fadeDuration: 150, localIdeographFontFamily: '"PingFang SC","Noto Sans CJK SC","Microsoft YaHei",sans-serif',
 });
-window._map = map; window._sug = () => sugItems.map(r => ({ name: r.name, address: r.address, lat: r.lat, lng: r.lng, sem: !!r.sem, src: r.src, cls: r.cls || r.category }));
+window._map = map; window._sug = () => sugItems.map(r => ({ dbg: [r.ts, r.sc, Math.round(r.dist), r.src].join('/'), name: r.name, address: r.address, lat: r.lat, lng: r.lng, sem: !!r.sem, src: r.src, cls: r.cls || r.category }));
 applyBodyClass();
 const updHash = () => { const c = map.getCenter(); history.replaceState(null, '', `${location.pathname}${location.search}#${map.getZoom().toFixed(2)}/${c.lat.toFixed(5)}/${c.lng.toFixed(5)}`); };
 map.on('moveend', updHash);
@@ -206,8 +206,8 @@ const acExtra = v => [['saved', store.get('saved', [])], ['recent', store.get('r
 function tileFeats(v) {
   const it = AC.intentOf(v), cls = new Set(it?.cls || []), x = AC.norm(v), out = [], seen = new Set();
   const take = (f, cl) => { const n = f.properties[ZH ? 'name:zh' : 'name:en'] || f.properties.name; if (!n) return; const c = f.geometry.coordinates; const k = n + c[1].toFixed(3) + c[0].toFixed(3); if (seen.has(k)) return;
-    const hit = cls.has(cl) || cls.has(f.properties.subclass); if (!hit && !(x.length >= 2 && AC.norm(n).includes(x))) return; seen.add(k);
-    out.push({ name: n, address: catLabel(f.properties.subclass || cl), lat: c[1], lng: c[0], cls: cl, category: cl, _cat: hit ? 1 : 0, sc: cl === 'aerodrome' ? (f.properties.iata ? 80 : 20) : 0 }); };
+    const hit = (cls.has(cl) || cls.has(f.properties.subclass)) && (!it.sub || it.sub.includes(f.properties.subclass) || cl === 'aerodrome'); if (!hit && !(x.length >= 2 && AC.norm(n).includes(x))) return; seen.add(k);
+    out.push({ name: n, address: catLabel(f.properties.subclass || cl), lat: c[1], lng: c[0], cls: cl, category: cl, _cat: hit ? 1 : 0, sc: cl === 'aerodrome' ? AC.apSc(n, it) + (f.properties.iata ? 40 : 0) : 0 }); };
   try { if (map.getSource('omt')) for (const f of map.querySourceFeatures('omt', { sourceLayer: 'aerodrome_label' })) take(f, 'aerodrome');
     for (const f of (TPOI?.features || [])) { if (out.length > 400) break; take(f, f.properties.class); }
     if (map.getZoom() >= 14) for (const f of map.querySourceFeatures('omt', { sourceLayer: 'poi' })) { if (out.length > 400) break; take(f, f.properties.class); } } catch { }
