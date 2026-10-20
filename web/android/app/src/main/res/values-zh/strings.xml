@@ -1,0 +1,6 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">RoadGlow</string>
+    <string name="title_activity_main">RoadGlow</string>
+    <string name="capacitor_background_geolocation_notification_channel_name">导航定位</string>
+</resources>
