@@ -1,0 +1,211 @@
+{
+ "device": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHT",
+ "west_light load→map ready ms": 4278,
+ "west_light render": {
+  "layers": 97,
+  "pois": 34,
+  "canvas": true
+ },
+ "west_light css": {
+  "maskBoxImg": "url(\"https://zixutang1996-eng.github.io/roadglow/tex/torn_m.png\")",
+  "floatFilter": "drop-shadow(rgba(45, 28, 10, 0.38) 0px 6px 10px) drop-shadow(rgba(45, 28, 10, 0.3) 0px 1px 2px)",
+  "sugwFilter": "drop-shadow(rgba(45, 28, 10, 0.38) 0px 6px 10px) drop-shadow(rgba(45, 28, 10, 0.3) 0px 1px 2px)",
+  "clip": "none",
+  "sat": "0px",
+  "topPad": "12px",
+  "webkitMask": true,
+  "maskBorder": true
+ },
+ "west_light ac airport": [
+  "Edmonton International Airport",
+  "Edmonton / Twin Island Airpark",
+  "Villeneuve Airport"
+ ],
+ "west_light ac 机场": [
+  "Edmonton International Airport",
+  "Edmonton / Twin Island Airpark",
+  "Villeneuve Airport"
+ ],
+ "west_light place card": {
+  "open": true,
+  "title": "Edmonton International Airport"
+ },
+ "west_light route drive": {
+  "alts": 1,
+  "txt": "8 min4.5 km ▲ Start"
+ },
+ "west_light route walk": {
+  "alts": 2,
+  "txt": "57 min4.3 km ▲ Start 59 min4.4 km"
+ },
+ "west_light route transit": {
+  "alts": 5,
+  "txt": "24 min1:45 p.m. – 2:09 p.m. · transfers 0 🚶9′ › 🚊 Metro › 🚶6′ 23 min1:45 p.m. – 2:08 p."
+ },
+ "west_light nav started": {
+  "banner": true,
+  "foot": true,
+  "wake": {
+   "want": true,
+   "held": false
+  }
+ },
+ "west_light nav ended": true,
+ "west_light layers open/close(btn)/close(map tap)": [
+  true,
+  true,
+  true
+ ],
+ "west_light menu open / text slider": [
+  true,
+  [
+   "1.75",
+   "175%"
+  ]
+ ],
+ "west_light menu closed": false,
+ "pwa": {
+  "manifest": "./manifest.webmanifest",
+  "ati": "./pwa/icon-180.png",
+  "capable": "yes",
+  "status": "black-translucent",
+  "viewport": "width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover",
+  "sw": true,
+  "swCtl": true
+ },
+ "manifest": {
+  "display": "standalone",
+  "icons": 4,
+  "start": "./",
+  "scope": "./"
+ },
+ "apple-touch-icon status": 200,
+ "west_light console errors": [],
+ "west_dark load→map ready ms": 3264,
+ "west_dark render": {
+  "layers": 97,
+  "pois": 34,
+  "canvas": true
+ },
+ "west_dark css": {
+  "maskBoxImg": "url(\"https://zixutang1996-eng.github.io/roadglow/tex/torn_m.png\")",
+  "floatFilter": "drop-shadow(rgba(0, 0, 0, 0.6) 0px 7px 12px) drop-shadow(rgba(0, 0, 0, 0.5) 0px 1px 3px)",
+  "sugwFilter": "drop-shadow(rgba(45, 28, 10, 0.38) 0px 6px 10px) drop-shadow(rgba(45, 28, 10, 0.3) 0px 1px 2px)",
+  "clip": "none",
+  "sat": "0px",
+  "topPad": "12px",
+  "webkitMask": true,
+  "maskBorder": true
+ },
+ "west_dark ac airport": [
+  "Edmonton International Airport",
+  "Edmonton / Twin Island Airpark",
+  "Villeneuve Airport"
+ ],
+ "west_dark ac 机场": [
+  "Edmonton International Airport",
+  "Edmonton / Twin Island Airpark",
+  "Villeneuve Airport"
+ ],
+ "west_dark place card": {
+  "open": true,
+  "title": "Edmonton International Airport"
+ },
+ "west_dark console errors": [],
+ "neon_light load→map ready ms": 2838,
+ "neon_light render": {
+  "layers": 97,
+  "pois": 36,
+  "canvas": true
+ },
+ "neon_light css": {
+  "maskBoxImg": "none",
+  "floatFilter": "drop-shadow(rgba(0, 0, 0, 0.28) 0px 6px 10px) drop-shadow(rgba(0, 0, 0, 0.22) 0px 1px 3px)",
+  "sugwFilter": "drop-shadow(rgba(0, 0, 0, 0.26) 0px 6px 10px) drop-shadow(rgba(0, 0, 0, 0.2) 0px 1px 3px)",
+  "clip": "polygon(0px 0px, calc(100% - 14px) 0px, 100% 14px, 100% 100%, 14px 100%, 0px calc(100% - 14px))",
+  "sat": "0px",
+  "topPad": "12px",
+  "webkitMask": true,
+  "maskBorder": true
+ },
+ "neon_light ac airport": [
+  "Edmonton International Airport",
+  "Edmonton / Twin Island Airpark",
+  "Villeneuve Airport"
+ ],
+ "neon_light ac 机场": [
+  "Edmonton International Airport",
+  "Edmonton / Twin Island Airpark",
+  "Villeneuve Airport"
+ ],
+ "neon_light place card": {
+  "open": true,
+  "title": "Edmonton International Airport"
+ },
+ "neon_light console errors": [],
+ "neon_dark load→map ready ms": 2804,
+ "neon_dark render": {
+  "layers": 100,
+  "pois": 36,
+  "canvas": true
+ },
+ "neon_dark css": {
+  "maskBoxImg": "none",
+  "floatFilter": "drop-shadow(rgba(0, 0, 0, 0.6) 0px 6px 12px) drop-shadow(rgba(79, 214, 232, 0.12) 0px 0px 5px)",
+  "sugwFilter": "drop-shadow(rgba(0, 0, 0, 0.55) 0px 7px 12px) drop-shadow(rgba(0, 0, 0, 0.45) 0px 1px 3px)",
+  "clip": "polygon(0px 0px, calc(100% - 14px) 0px, 100% 14px, 100% 100%, 14px 100%, 0px calc(100% - 14px))",
+  "sat": "0px",
+  "topPad": "12px",
+  "webkitMask": true,
+  "maskBorder": true
+ },
+ "neon_dark ac airport": [
+  "Edmonton International Airport",
+  "Edmonton / Twin Island Airpark",
+  "Villeneuve Airport"
+ ],
+ "neon_dark ac 机场": [
+  "Edmonton International Airport",
+  "Edmonton / Twin Island Airpark",
+  "Villeneuve Airport"
+ ],
+ "neon_dark place card": {
+  "open": true,
+  "title": "Edmonton International Airport"
+ },
+ "neon_dark route drive": {
+  "alts": 1,
+  "txt": "8 min4.5 km ▲ Start"
+ },
+ "neon_dark route walk": {
+  "alts": 2,
+  "txt": "57 min4.3 km ▲ Start 59 min4.4 km"
+ },
+ "neon_dark route transit": {
+  "alts": 2,
+  "txt": "57 min4.3 km ▲ Start 59 min4.4 km"
+ },
+ "neon_dark nav started": {
+  "banner": true,
+  "foot": true,
+  "wake": {
+   "want": true,
+   "held": false
+  }
+ },
+ "neon_dark nav ended": true,
+ "neon_dark layers open/close(btn)/close(map tap)": [
+  true,
+  true,
+  true
+ ],
+ "neon_dark menu open / text slider": [
+  true,
+  [
+   "1.75",
+   "175%"
+  ]
+ ],
+ "neon_dark menu closed": false,
+ "neon_dark console errors": []
+}

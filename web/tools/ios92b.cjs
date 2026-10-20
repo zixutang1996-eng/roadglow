@@ -1,0 +1,7 @@
+const { webkit, devices } = require('/workspace/pw/node_modules/playwright'); const sl = ms => new Promise(r => setTimeout(r, ms));
+(async () => { const b = await webkit.launch(); const ctx = await b.newContext({ ...devices['iPhone 15'] }); await ctx.addInitScript(() => { localStorage.setItem('theme', '"neon"'); localStorage.setItem('mode', '"dark"'); localStorage.setItem('a2hsSeen', '1'); localStorage.setItem('lang', '"en"'); });
+ const p = await ctx.newPage(); await p.goto('https://zixutang1996-eng.github.io/roadglow/#13/53.5444/-113.4909', { waitUntil: 'load' }); await sl(6000);
+ await p.click('#menuBtn'); await sl(600); await p.mouse.click(380, 420); await sl(600); console.log('menu closed by scrim tap (right edge)', await p.evaluate(() => !document.querySelector('#drawer').classList.contains('open')));
+ await p.evaluate(() => { const a = window._app; a.S.from = { name: 'Downtown', lat: 53.5444, lng: -113.4909 }; a.openDirections({ name: 'UofA', lat: 53.5232, lng: -113.5263 }); }); await sl(3000);
+ await p.click('#modeSeg button[data-m="transit"]'); for (let i = 0; i < 20; i++) { await sl(1000); const t = await p.evaluate(() => document.querySelector('#alts')?.innerText || ''); if (/transfer|Metro|🚌|🚊/.test(t)) { console.log('transit after', i + 1, 's:', t.replace(/\s+/g, ' ').slice(0, 80)); break; } if (i === 19) console.log('transit none:', t.slice(0, 80)); }
+ await p.screenshot({ path: '/workspace/gamenav/screenshots/v092/ios/route_transit_neon_dark.png' }); await b.close(); })();
