@@ -45,16 +45,17 @@ Object.assign(G, {
   museum: 'M12 2l10 5.5H2zM4 9h3v9H4zM10.5 9h3v9h-3zM17 9h3v9h-3zM2 19h20v3H2z',
   shop: 'M4 8h16l-1.2 13H5.2zM8 8V6.5a4 4 0 0 1 8 0V8h-2V6.5a2 2 0 0 0-4 0V8z',
   generic: 'M12 2a7 7 0 0 1 7 7c0 5-7 13-7 13S5 14 5 9a7 7 0 0 1 7-7zm0 4.3a2.7 2.7 0 1 0 0 5.4 2.7 2.7 0 1 0 0-5.4z',
+  airport: 'M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z',
   quest: 'M12 1.5l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 8.7l7.1-.6z',
 });
 // category groups -> badge shape + colour family
 const GROUP = { restaurant: 'food', cafe: 'food', bar: 'food', supermarket: 'shop', shop: 'shop', hospital: 'health', pharmacy: 'health',
-  school: 'edu', library: 'edu', transit: 'trans', ferry: 'trans', fuel: 'trans', parking: 'trans', museum: 'culture', park: 'park',
+  school: 'edu', library: 'edu', transit: 'trans', airport: 'trans', ferry: 'trans', fuel: 'trans', parking: 'trans', museum: 'culture', park: 'park',
   bank: 'service', generic: 'service', hotel: 'lodge', quest: 'quest' };
 // hues per group (light / dark variants per theme); fills auto-darkened until glyph contrast >= 4.5
 const HUE = { // game-inspired palettes (v0.6): neon = muted teal/cyan, warm yellow, magenta-red; west = inked legend: oxblood, sepia, ochre, dusty teal
   neon:  { food: '#b23a5e', shop: '#8c3f86', health: '#c0383f', edu: '#e2b84a', trans: '#1d6f7c', culture: '#7b4aa0', park: '#1f6b5c', service: '#35596a', lodge: '#3c4f86', quest: '#f0c650' },
-  west:  { food: '#7c2e22', shop: '#3f6a66', health: '#6a1e1a', edu: '#a07a2c', trans: '#3b4047', culture: '#5f3a41', park: '#56613b', service: '#5b4630', lodge: '#6e4b2c', quest: '#b08a34' },
+  west:  { food: '#7c3a2a', shop: '#4c5d6a', health: '#8a2e28', edu: '#8c6a2c', trans: '#3f5466', culture: '#664457', park: '#4e6338', service: '#6b5038', lodge: '#7a5a34', quest: '#b08a34' }, // v0.9.2 muted ink-wash: dried-blood, slate, ochre, ink blue-grey, plum, moss, sepia, umber
 };
 // 40x43 viewBox shapes, centre ~ (20,21)
 const SHAPE = {
@@ -71,16 +72,17 @@ const mix = (h, t, k) => '#' + [1, 3, 5].map(i => Math.round(parseInt(h.slice(i,
 const STY = {
   neon_light: { th: 'neon', glyph: '#ffffff', dglyph: '#14161f', edge: '#ffffff', dark: false },
   neon_dark:  { th: 'neon', glyph: '#f1eee2', dglyph: '#101219', edge: '#0d0f16', dark: true },
-  west_light: { th: 'west', glyph: '#efe3c8', dglyph: '#efe3c8', edge: '#241c15', ink: true, dark: false },
-  west_dark:  { th: 'west', glyph: '#efe3c8', dglyph: '#efe3c8', edge: '#8a7350', ink: true, dark: true },  // v0.9.1 warm charcoal ink + parchment-cream glyph  // v0.7: black badge, white glyph, cream rim on dark
+  west_light: { th: 'west', glyph: '#f2e8d0', dglyph: '#2a2118', edge: '#3a2e22', ink: true, dark: false },
+  west_dark:  { th: 'west', glyph: '#f4ead2', dglyph: '#231b12', edge: '#d9c49a', ink: true, dark: true },  // v0.9.1 warm charcoal ink + parchment-cream glyph  // v0.7: black badge, white glyph, cream rim on dark
 };
 export const CONTRAST = {};
 function fillFor(s, grp) {
-  if (s.ink) return [s.dark ? '#4a4036' : '#3a322a', '#efe3c8'];
-  let f = HUE[s.th][grp]; if (s.dark) f = mix(f, s.th === 'neon' ? '#151823' : '#1c1610', 0.3); // muted in dark mode
+  let f = HUE[s.th][grp];
+  if (s.ink && s.dark) f = mix(f, '#e6d3ad', 0.42); // v0.9.2: lifted watercolour tones so icons stand out on the dark map
+  else if (s.dark) f = mix(f, s.th === 'neon' ? '#151823' : '#1c1610', 0.3); // muted in dark mode
   // pick the glyph colour with more contrast; only darken the fill if neither reaches 4.5:1
   let g = cr(f, s.glyph) >= cr(f, s.dglyph) ? s.glyph : s.dglyph;
-  let k = 0; while (cr(f, g) < 4.6 && k++ < 40) f = mix(f, g === s.glyph ? '#000000' : '#ffffff', 0.05);
+  let k = 0; while (cr(f, g) < (s.ink ? 4.0 : 4.6) && k++ < 40) f = mix(f, g === s.glyph ? '#000000' : '#ffffff', 0.05);
   return [f, g];
 }
 function svgFor(name, s, px, key) {
@@ -91,7 +93,7 @@ function svgFor(name, s, px, key) {
     : `<path d="${shape}" fill="none" stroke="${s.ink ? '#8a7350' : glyph}" stroke-width="0.9" opacity="${s.ink ? 0.45 : 0.6}" transform="translate(20 21) scale(.83) translate(-20 -21)"/>`;
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${px}" height="${px * 43 / 40}" viewBox="-2 -1 44 45">
     <defs><filter id="r"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="${name.length}"/><feDisplacementMap in="SourceGraphic" scale="1.4"/></filter><filter id="tx" x="0" y="0" width="1" height="1"><feTurbulence type="fractalNoise" baseFrequency="1.6" numOctaves="3" seed="7"/><feColorMatrix values="0 0 0 0 0.94  0 0 0 0 0.89  0 0 0 0 0.78  0 0 0 1.1 -0.55"/><feComposite in2="SourceGraphic" operator="in"/></filter></defs>
-    <g ${rough}><path d="${shape}" fill="${fill}" stroke="${s.edge}" stroke-width="${s.ink && s.dark ? 1.3 : 2.2}" stroke-opacity="${s.ink && s.dark ? 0.7 : 1}" stroke-linejoin="round"/>${s.ink ? `<path d="${shape}" fill="#000" filter="url(#tx)" opacity="0.10"/>` : ''}${ring}</g>
+    <g ${rough}><path d="${shape}" fill="${fill}" stroke="${s.edge}" stroke-width="${s.ink && s.dark ? 1.3 : 2.2}" stroke-opacity="${s.ink && s.dark ? 0.5 : 1}" stroke-linejoin="round"/>${s.ink ? `<path d="${shape}" fill="#000" filter="url(#tx)" opacity="0.10"/>` : ''}${ring}</g>
     <g transform="translate(20 21) scale(.92) translate(-12 -12)" fill="${glyph}" fill-rule="evenodd"><path d="${G[name]}"/></g></svg>`;
 }
 fs.mkdirSync('public/sprites', { recursive: true });
