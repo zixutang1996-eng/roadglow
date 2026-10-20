@@ -4,8 +4,9 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import './style.css';
 import { ic, iconDefs, catIc } from './uiicons.js';
 import * as AC from './ac.js';
+import * as TP from './tilepoi.js';
 import * as ios from './ios.js';
-const AV = '?v=0.9.1'; // asset version: busts caches for styles + important-POI data
+const AV = '?v=0.9.2'; // asset version: busts caches for styles + important-POI data
 document.body.insertAdjacentHTML('afterbegin', iconDefs());
 for (const [id, k] of [['menuBtn', 'menu'], ['clearBtn', 'close'], ['dirBtn', 'dir'], ['layersBtn', 'layers'], ['locBtn', 'locate']]) { const el = document.getElementById(id); if (el) el.innerHTML = ic(k); }
 import { t, lang, setLang, fmtDist, fmtDur, instruction } from './i18n.js';
@@ -22,12 +23,15 @@ const isDark = () => S.mode === 'dark' || (S.mode === 'auto' && matchMedia('(pre
 const styleKey = () => `${S.theme}_${isDark() ? 'dark' : 'light'}`;
 const base = new URL(import.meta.env.BASE_URL, location.href).href;
 
+let _tj; const tileJSON = () => _tj ||= fetch('https://tiles.openfreemap.org/planet').then(r => r.json()).catch(e => { _tj = null; throw e; });
 async function loadStyle() {
   const st = await (await fetch(`${base}styles/${styleKey()}.json${AV}`)).json();
   st.glyphs = `${base}glyphs/{fontstack}/{range}.pbf`;
   st.sprite = `${base}sprites/${styleKey()}`;
   const nameExpr = lang === 'zh' ? ['coalesce', ['get', 'name:zh-Hans'], ['get', 'name:zh'], ['get', 'name'], ['get', 'name:en']] : ['coalesce', ['get', 'name:en'], ['get', 'name:latin'], ['get', 'name']];
   for (const l of st.layers) if (l.layout?.['text-field']) l.layout['text-field'] = nameExpr;
+  const poi = st.layers.find(l => l.id === 'poi');
+  if (poi) poi.layout['icon-image'] = ['case', ['==', ['get', 'class'], 'aerodrome'], 'airport', poi.layout['icon-image']];
   return st;
 }
 const routeColor = () => ({ neon_dark: '#4fd6e8', neon_light: '#c2309a', west_light: '#9a2a18', west_dark: '#e0a46a' })[styleKey()];
@@ -41,7 +45,7 @@ const map = new maplibregl.Map({
   center: hash.length >= 3 && !hash.some(isNaN) ? [hash[2], hash[1]] : [-113.4938, 53.5461], zoom: hash.length >= 3 && !isNaN(hash[0]) ? hash[0] : 12,
   attributionControl: { compact: true }, hash: false, maxPitch: 70, fadeDuration: 150, localIdeographFontFamily: '"PingFang SC","Noto Sans CJK SC","Microsoft YaHei",sans-serif',
 });
-window._map = map;
+window._map = map; window._sug = () => sugItems.map(r => ({ name: r.name, address: r.address, lat: r.lat, lng: r.lng, sem: !!r.sem, src: r.src, cls: r.cls || r.category }));
 applyBodyClass();
 const updHash = () => { const c = map.getCenter(); history.replaceState(null, '', `${location.pathname}${location.search}#${map.getZoom().toFixed(2)}/${c.lat.toFixed(5)}/${c.lng.toFixed(5)}`); };
 map.on('moveend', updHash);
@@ -83,7 +87,21 @@ function addImportant() {
   const DENY = ['gate', 'bollard', 'lift_gate', 'kerb', 'cycle_barrier', 'bench', 'waste_basket', 'bicycle_parking', 'vending_machine', 'parking_entrance', 'street_lamp', 'fire_hydrant', 'manhole', 'pole', 'shelter', 'entrance', 'recycling', 'drinking_water', 'post_box', 'telephone', 'swimming_pool', 'pitch'];
   const clean = ['all', ['!', ['in', ['get', 'subclass'], ['literal', DENY]]], ['!', ['in', ['get', 'class'], ['literal', DENY]]],
     ['any', ['has', 'name'], ['all', ['>=', ['zoom'], 17], ['in', ['get', 'class'], ['literal', ['toilets', 'atm', 'parking']]]]]];
-  map.setFilter('poi', ['all', ...(f0 ? [f0] : []), clean, ['!', ['within', { type: 'Polygon', coordinates: [YEG] }]]]);
+  const outside = ['!', ['within', { type: 'Polygon', coordinates: [YEG] }]];
+  map.setLayoutProperty('poi', 'visibility', 'none'); // replaced by decoded tile POIs (tpoi bands) outside Edmonton
+  if (!map.getSource('tpoi')) map.addSource('tpoi', { type: 'geojson', data: TPOI || { type: 'FeatureCollection', features: [] }, buffer: 64, tolerance: 0 });
+  for (const id of [...TPI, 'tp-air']) if (map.getLayer(id)) map.removeLayer(id);
+  const before = map.getLayer('saved-dot') ? 'saved-dot' : undefined;
+  const lay = (b, extra) => ({ 'icon-image': poi.layout['icon-image'], 'icon-size': ['interpolate', ['linear'], ['zoom'], 10.75, 0.72, 14, 0.95, 17, 1.05], 'text-field': poi.layout['text-field'], 'text-font': poi.layout['text-font'],
+    'text-size': ['interpolate', ['linear'], ['zoom'], 10.75, 13.5, 14, 16.5, 17, 18], 'text-anchor': 'top', 'text-offset': [0, 1.1], 'text-optional': true, 'text-max-width': 7, 'icon-padding': 0, 'text-padding': 1, ...extra });
+  const pnt = b => { const op = ['interpolate', ['linear'], ['zoom'], b, 0.55, b + 0.4, 1]; return { 'icon-opacity': op, 'text-opacity': op, 'text-color': poi.paint['text-color'], 'text-halo-color': poi.paint['text-halo-color'], 'text-halo-width': poi.paint['text-halo-width'] }; };
+  // airports world-wide from z9.75 (aerodrome_label exists from z8 in the tiles); Alberta airports come from the prebuilt dataset
+  map.addLayer({ id: 'tp-air', type: 'symbol', source: 'omt', 'source-layer': 'aerodrome_label', minzoom: 9.75, filter: ['all', ['has', 'name'], ['any', ['has', 'iata'], ['>=', ['zoom'], 11]], ['!', ['within', { type: 'Polygon', coordinates: [AB] }]]],
+    layout: lay(9.75, { 'icon-image': 'airport', 'symbol-sort-key': 0 }), paint: pnt(9.75) }, before);
+  for (let i = TPB.length - 1; i >= 0; i--) { const b = TPB[i];
+    map.addLayer({ id: TPI[i], type: 'symbol', source: 'tpoi', minzoom: b, filter: ['all', ['>=', ['get', 'rz'], b], ['<', ['get', 'rz'], b + 0.25]],
+      layout: lay(b, { 'symbol-sort-key': ['get', 'rz'] }), paint: pnt(b) }, before); }
+  refreshTpoi();
   for (let i = BANDS.length - 1; i >= 0; i--) {
     const b = BANDS[i], id = IMP[i];
     const op = ['interpolate', ['linear'], ['zoom'], b, 0.55, b + 0.4, 1];
@@ -95,6 +113,26 @@ function addImportant() {
   }
 }
 const baseFilters = {};
+// v0.9.2 reveal zoom for tile POIs: class tier + per-tile rank (OpenMapTiles rank = importance order inside each z14 tile, so the reveal stays evenly spread)
+const AB = [[-120, 49], [-110, 49], [-110, 60], [-120, 60], [-120, 49]];
+const TPB = []; for (let b = 12; b <= 16.5; b += 0.25) TPB.push(+b.toFixed(2));
+const TPI = TPB.map(b => 'tp' + String(b).replace('.', '_'));
+let TPOI = null, tpT = 0;
+const inYEG = ([x, y]) => x > YEG[0][0] && x < YEG[1][0] && y > YEG[0][1] && y < YEG[2][1];
+async function refreshTpoi() {
+  if (map.getZoom() < 11.9 || !map.getSource('tpoi')) return; const my = ++tpT;
+  let tj; try { tj = await tileJSON(); } catch { return; }
+  const fc = await TP.poisFor(map.getBounds(), tj.tiles[0], c => !inYEG(c), 48); if (!fc || my !== tpT) return;
+  TPOI = fc; map.getSource('tpoi')?.setData(fc);
+}
+map.on('moveend', refreshTpoi);
+const TSCORE = ['+', ['case',
+  ['in', ['get', 'subclass'], ['literal', ['mall', 'department_store', 'station', 'aerodrome', 'university', 'stadium', 'zoo', 'theme_park', 'ferry_terminal']]], 12,
+  ['in', ['get', 'class'], ['literal', ['hospital', 'railway', 'college', 'stadium', 'museum', 'zoo', 'town_hall', 'ferry_terminal', 'attraction', 'castle']]], 12,
+  ['in', ['get', 'class'], ['literal', ['grocery', 'supermarket', 'fuel', 'pharmacy', 'library', 'lodging', 'cinema', 'theatre', 'school', 'police', 'fire_station', 'monument', 'campsite']]], 12.5,
+  ['in', ['get', 'class'], ['literal', ['restaurant', 'fast_food', 'cafe', 'bank', 'bar', 'pub', 'park', 'shop', 'place_of_worship', 'post']]], 13,
+  ['==', ['get', 'class'], 'bus'], 14.75, 13.75],
+  ['*', 0.05, ['-', ['min', ['coalesce', ['get', 'rank'], 40], 40], 1]]]; // must match tilepoi.js rzOf
 // custom scale bar with round metric steps
 const scaleEl = document.createElement('div'); scaleEl.id = 'scale'; scaleEl.innerHTML = '<div class="sbar"></div><span></span>'; document.body.appendChild(scaleEl);
 const STEPS = [5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000, 500000, 1000000];
@@ -163,7 +201,18 @@ const q = $('#q'); q.placeholder = t('search');
 let sugTimer, sugItems = [], sugSel = -1, lastQ = '';
 // v0.7 autocomplete: instant local rows on every keystroke, remote rows merged after a 150 ms debounce (stale requests aborted)
 const acCtx = () => ({ c: map.getCenter(), z: map.getZoom(), B: map.getBounds(), zh: ZH });
-const acExtra = v => [['saved', store.get('saved', [])], ['recent', store.get('recents', [])], ['offline', offlineSearch(v)]];
+const acExtra = v => [['saved', store.get('saved', [])], ['recent', store.get('recents', [])], ['offline', offlineSearch(v)], ['tile', tileFeats(v)]];
+// v0.9.2 world-wide instant hits: POIs + airports in the vector tiles already loaded for the current view (no network)
+function tileFeats(v) {
+  const it = AC.intentOf(v), cls = new Set(it?.cls || []), x = AC.norm(v), out = [], seen = new Set();
+  const take = (f, cl) => { const n = f.properties[ZH ? 'name:zh' : 'name:en'] || f.properties.name; if (!n) return; const c = f.geometry.coordinates; const k = n + c[1].toFixed(3) + c[0].toFixed(3); if (seen.has(k)) return;
+    const hit = cls.has(cl) || cls.has(f.properties.subclass); if (!hit && !(x.length >= 2 && AC.norm(n).includes(x))) return; seen.add(k);
+    out.push({ name: n, address: catLabel(f.properties.subclass || cl), lat: c[1], lng: c[0], cls: cl, category: cl, _cat: hit ? 1 : 0, sc: cl === 'aerodrome' ? (f.properties.iata ? 80 : 20) : 0 }); };
+  try { if (map.getSource('omt')) for (const f of map.querySourceFeatures('omt', { sourceLayer: 'aerodrome_label' })) take(f, 'aerodrome');
+    for (const f of (TPOI?.features || [])) { if (out.length > 400) break; take(f, f.properties.class); }
+    if (map.getZoom() >= 14) for (const f of map.querySourceFeatures('omt', { sourceLayer: 'poi' })) { if (out.length > 400) break; take(f, f.properties.class); } } catch { }
+  return out;
+}
 const acPrefix = (v, list) => { const sem = semMatch(v); if (sem) return [{ sem, name: `${L('在此区域搜索', 'Search this area for')}「${sem.t}」`, address: L('附近所有相关地点（含连锁品牌）', 'All matching places nearby, incl. chains') }]; const ce = chainEntry(v, list); return ce ? [ce] : []; };
 window._acLat = [];
 q.addEventListener('input', () => {
@@ -188,7 +237,7 @@ $('#clearBtn').onclick = () => { q.value = ''; $('#clearBtn').classList.add('hid
 // instant local hits: loaded vector-tile POIs + offline index (no network)
 function localHits(v) {
   const x = v.toLowerCase(), c = map.getCenter(), out = [], seen = new Set();
-  for (const f of map.queryRenderedFeatures({ layers: ['poi', ...IMP].filter(l => map.getLayer(l)) })) {
+  for (const f of map.queryRenderedFeatures({ layers: ['poi', ...IMP, ...TPI, 'tp-air'].filter(l => map.getLayer(l)) })) {
     const n = f.properties[ZH ? 'name:zh' : 'name:en'] || f.properties.name; if (!n || !(n.toLowerCase().includes(x) || (f.properties.name || '').toLowerCase().includes(x))) continue;
     const [lng, lat] = f.geometry.coordinates, k = n + lat.toFixed(4); if (seen.has(k)) continue; seen.add(k);
     const id = typeof f.id === 'number' ? f.id : null;
@@ -400,7 +449,7 @@ async function share(p) {
 }
 
 // POI click with hit tolerance (any rendered POI / category result)
-const hitLayers = () => ['quests', 'cat', 'saved-dot', ...IMP, 'poi'].filter(l => map.getLayer(l));
+const hitLayers = () => ['quests', 'cat', 'saved-dot', ...IMP, ...TPI, 'tp-air', 'poi'].filter(l => map.getLayer(l));
 map.on('click', e => {
   if (S.nav?.active || S.picking || S.measuring) return;
   if (S.lpSuppress) { S.lpSuppress = false; return; }
@@ -652,7 +701,7 @@ function semOverpass(e, bb) {
 function semTiles(e) {
   const re = new RegExp([e.name, ...e.brands.map(reEsc)].filter(Boolean).join('|') || '^$', 'i');
   const cls = new Set([...(e.amen || '').split('|'), ...(e.shop || '').split('|'), ...(e.tour || '').split('|'), e.icon]);
-  return map.queryRenderedFeatures({ layers: ['poi'] }).filter(f => (re.source !== '^$' && re.test(f.properties.name || '')) || (!e.cuisine && !e.chain && (cls.has(f.properties.subclass) || cls.has(f.properties.class)))).map(f => {
+  return map.queryRenderedFeatures({ layers: ['poi', ...TPI].filter(l => map.getLayer(l)) }).filter(f => (re.source !== '^$' && re.test(f.properties.name || '')) || (!e.cuisine && !e.chain && (cls.has(f.properties.subclass) || cls.has(f.properties.class)))).map(f => {
     const id = typeof f.id === 'number' ? f.id : null; return { type: id ? ['node', 'node', 'way', 'relation'][id % 10] : 'node', id: id ? Math.floor(id / 10) : 0, lat: f.geometry.coordinates[1], lon: f.geometry.coordinates[0], tags: { name: f.properties.name, amenity: f.properties.subclass } }; });
 }
 async function semanticSearch(e, raw, again = false) {
