@@ -5,12 +5,12 @@ import './style.css';
 import { ic, iconDefs, catIc } from './uiicons.js';
 import * as AC from './ac.js';
 import * as ios from './ios.js';
-const AV = '?v=0.7.1'; // asset version: busts caches for styles + important-POI data
+const AV = '?v=0.9'; // asset version: busts caches for styles + important-POI data
 document.body.insertAdjacentHTML('afterbegin', iconDefs());
 for (const [id, k] of [['menuBtn', 'menu'], ['clearBtn', 'close'], ['dirBtn', 'dir'], ['layersBtn', 'layers'], ['locBtn', 'locate']]) { const el = document.getElementById(id); if (el) el.innerHTML = ic(k); }
 import { t, lang, setLang, fmtDist, fmtDur, instruction } from './i18n.js';
 import { photon, photonReverse, nominatim, osmElement, nearbyCategory, nearbyCategoryNominatim, osrm, photoFor, photosFor, haversine, overpass, photonBox, reverseAddr } from './services.js';
-let placeExtras = null; const tools = {}; let drawerExtra = () => '';
+let placeExtras = null; const tools = {}; let drawerExtra = () => ({ lists: '', tools: '' });
 const ZH = lang === 'zh', L = (zh, en) => ZH ? zh : en;
 
 maplibregl.setWorkerUrl(workerUrl);
@@ -90,7 +90,7 @@ function addImportant() {
     if (map.getLayer(id)) map.removeLayer(id);
     map.addLayer({ id, type: 'symbol', source: 'imp', minzoom: b, filter: ['all', ['>=', ['get', 'rz'], b], ['<', ['get', 'rz'], b + 0.25]],
       layout: { 'icon-image': poi.layout['icon-image'], 'icon-size': ['interpolate', ['linear'], ['zoom'], 10.75, 0.72, 14, 0.95, 17, 1.05], 'text-field': poi.layout['text-field'], 'text-font': poi.layout['text-font'],
-        'text-size': ['interpolate', ['linear'], ['zoom'], 10.75, 13.5, 14, 16.5, 17, 18], 'text-anchor': 'top', 'text-offset': [0, 1.1], 'text-optional': true, 'text-max-width': 7, 'symbol-sort-key': ['-', 200, ['get', 'sc']], 'icon-padding': 2 },
+        'text-size': ['interpolate', ['linear'], ['zoom'], 10.75, 13.5, 14, 16.5, 17, 18], 'text-anchor': 'top', 'text-offset': [0, 1.1], 'text-optional': true, 'text-max-width': 7, 'symbol-sort-key': ['-', 200, ['get', 'sc']], 'icon-padding': 0, 'text-padding': 1 },
       paint: { 'icon-opacity': op, 'text-opacity': op, 'text-color': poi.paint['text-color'], 'text-halo-color': poi.paint['text-halo-color'], 'text-halo-width': poi.paint['text-halo-width'] } }, map.getLayer('saved-dot') ? 'saved-dot' : undefined);
   }
 }
@@ -153,7 +153,7 @@ function addAccLayer() {
 }
 function setMe(pos) {
   S.me = { lat: pos.coords.latitude, lng: pos.coords.longitude, heading: pos.coords.heading ?? S.compassHdg ?? null, speed: pos.coords.speed, acc: pos.coords.accuracy };
-  if (!puck) { const el = document.createElement('div'); el.className = 'puck'; el.innerHTML = puckSvg(); puck = new maplibregl.Marker({ element: el, rotationAlignment: 'map', pitchAlignment: 'map' }).setLngLat(S.me).addTo(map); }
+  if (!puck) { const el = document.createElement('div'); el.className = 'puck'; el.innerHTML = puckSvg(); el.style.cursor = 'pointer'; el.addEventListener('click', ev => { ev.stopPropagation(); showMe(); }); puck = new maplibregl.Marker({ element: el, rotationAlignment: 'map', pitchAlignment: 'map' }).setLngLat(S.me).addTo(map); }
   puck.setLngLat(S.me); if (S.me.heading != null && !isNaN(S.me.heading) && !S.nav?.active) puck.setRotation(S.me.heading); updAcc();
 }
 export const locate = (fly = true) => navigator.geolocation?.getCurrentPosition(p => { setMe(p); fly && map.flyTo({ center: S.me, zoom: Math.max(map.getZoom(), 15) }); }, err => ios.geoHelp(err, openPanel), { enableHighAccuracy: true, timeout: 10000 });
@@ -175,8 +175,9 @@ q.addEventListener('input', () => {
   renderSuggest([...acPrefix(v, local), ...local], false, v); window._acLat.push({ q: v, phase: 'local', ms: +(performance.now() - t0).toFixed(1), n: local.length });
   const ac = new AbortController(); searchAbort = ac;
   sugTimer = setTimeout(() => AC.suggest(v, ctx, acExtra(v), (list, phase, ms, prov) => { if (ac.signal.aborted || lastQ !== v || phase === 'local') return;
-    renderSuggest([...acPrefix(v, list), ...list], false, v); window._acLat.push({ q: v, phase, ms: +(performance.now() - t0).toFixed(0), n: list.length, prov }); }, ac.signal).catch(() => {}), 150);
+    renderSuggest([...acPrefix(v, list), ...list], false, v); window._acLat.push({ q: v, phase, ms: +(performance.now() - t0).toFixed(0), n: list.length, prov }); }, ac.signal).catch(() => {}), 0);
 });
+q.addEventListener('focus', () => { AC.ADDR.loadIndex(); }, { once: true });
 q.addEventListener('focus', () => { if (!q.value) renderSuggest(recentItems()); });
 q.addEventListener('keydown', e => {
   if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { sugSel = Math.max(0, Math.min(sugItems.length - 1, sugSel + (e.key === 'ArrowDown' ? 1 : -1))); renderSuggest(sugItems, true); e.preventDefault(); }
@@ -259,6 +260,16 @@ function pick(p) {
 }
 const panelPadding = () => innerWidth > 700 ? { left: 420 } : { bottom: innerHeight * 0.45 };
 
+// ---------- 'Search this area' pill (v0.9) ----------
+const pill = document.createElement('button'); pill.id = 'areaPill'; pill.className = 'card hidden'; pill.innerHTML = `${ic('search')}<span>${L('搜索此区域', 'Search this area')}</span>`; document.body.appendChild(pill);
+function markSearch(o) { S.lastSearch = { ...o, c: map.getCenter(), z: map.getZoom(), q: q.value.trim() }; hidePill(); }
+function hidePill() { pill.classList.add('hidden'); }
+map.on('moveend', () => { const L0 = S.lastSearch; if (!L0 || S._fitting || !S.catData || S.nav?.active) return;
+  const a = map.project(L0.c), w = map.getContainer().clientWidth, h = map.getContainer().clientHeight, c = map.project(map.getCenter());
+  const moved = Math.abs(a.x - c.x) > 0.3 * w || Math.abs(a.y - c.y) > 0.3 * h, dz = Math.abs(map.getZoom() - L0.z) > 1;
+  pill.classList.toggle('hidden', !(moved || dz)); });
+pill.onclick = () => { const L0 = S.lastSearch; hidePill(); if (!L0) return; if (L0.type === 'sem') semanticSearch(L0.e, L0.raw, true); else { const b = document.querySelector(`.chip[data-k="${L0.k}"]`); if (b) runChip(b); } };
+q.addEventListener('input', () => { if (S.lastSearch && q.value.trim() !== S.lastSearch.q) hidePill(); });
 // ---------- chips (category search via Overpass in current view) ----------
 const CATS = [['restaurant', '["amenity"~"^(restaurant|fast_food)$"]', 'restaurant'], ['cafe', '["amenity"="cafe"]', 'cafe'], ['supermarket', '["shop"~"^(supermarket|convenience|greengrocer)$"]', 'supermarket'],
   ['fuel', '["amenity"="fuel"]', 'fuel'], ['hotel', '["tourism"~"^(hotel|motel|hostel|guest_house)$"]', 'hotel'], ['park', '["leisure"="park"]', 'park'],
@@ -267,8 +278,12 @@ $('#chips').innerHTML = CATS.map(([k]) => `<button class="chip" data-k="${k}">${
 $('#chips').addEventListener('click', async e => {
   const b = e.target.closest('.chip'); if (!b) return;
   if (b.classList.contains('on')) { clearCat(); closePanel(); return; }
+  runChip(b);
+});
+async function runChip(b) {
   document.querySelectorAll('.chip').forEach(c => c.classList.toggle('on', c === b));
   const [k, filter, icon] = CATS.find(c => c[0] === b.dataset.k);
+  markSearch({ type: 'chip', k });
   openPanel(`<div class="list"><div class="row">${t('searching')}</div></div>`, t(k));
   try {
     if (map.getZoom() < 12.5) await new Promise(r => { map.once('moveend', r); map.easeTo({ zoom: 13.5 }); });
@@ -280,10 +295,11 @@ $('#chips').addEventListener('click', async e => {
     map.getSource('cat')?.setData(S.catData); S.catItems = items;
     openPanel(`<div class="list"><div class="dh">${t(k)} · ${items.length}</div>${items.map((it, i) => `<div class="it" data-i="${i}"><div>${esc(it.name)}</div><div class="s">${esc(it.address || it.tags.cuisine || '')}${hoursBadgeSync(it.tags)}</div></div>`).join('') || `<div class="row">${t('noresults')}</div>`}</div>`, `${t(k)} · ${items.length}`);
     $('#panelBody').querySelector('.list').onclick = ev => { const it = ev.target.closest('.it'); if (it) { const p = S.catItems[+it.dataset.i]; map.easeTo({ center: [p.lng, p.lat], zoom: 17, padding: panelPadding() }); showPlace(p); } };
-    hydrateBadges();
+    hydrateBadges(); markSearch({ type: 'chip', k });
   } catch (err) { openPanel(`<div class="row">${t('err')}: ${esc(err.message)}</div>`); }
-});
-function clearCat() { document.querySelectorAll('.chip').forEach(c => c.classList.remove('on')); S.catData = null; map.getSource('cat')?.setData({ type: 'FeatureCollection', features: [] }); }
+}
+function clearCat() { hidePill(); S.lastSearch = null; clearCat0(); }
+function clearCat0() { document.querySelectorAll('.chip').forEach(c => c.classList.remove('on')); S.catData = null; map.getSource('cat')?.setData({ type: 'FeatureCollection', features: [] }); }
 let OH = null; const ohLib = () => OH ??= import('opening_hours').then(m => m.default);
 const hoursBadgeSync = tags => tags.opening_hours ? ` · <span class="ohb" data-oh="${esc(tags.opening_hours)}"></span>` : '';
 async function hydrateBadges() { const lib = await ohLib(); document.querySelectorAll('.ohb').forEach(el => { const r = ohStatus(lib, el.dataset.oh); if (r) el.outerHTML = r.badge; }); }
@@ -324,7 +340,7 @@ function drawPin() {
 }
 const catLabel = c => (c || '').replace(/^(amenity|shop|tourism|leisure|place|building|highway|office|craft)=/, '').replace(/_/g, ' ');
 async function showPlace(p) {
-  S.place = p; drawPin(); addRecent(p);
+  S.place = p; drawPin(); if (!p.me) addRecent(p);
   renderPlace(p, p.tags || null, null);
   let tags = p.tags;
   if (!tags && p.osm) { try { const el = await osmElement(p.osm.type, p.osm.id); tags = el?.tags || {}; } catch { tags = {}; } if (S.place !== p) return; p.tags = tags; renderPlace(p, tags, null); }
@@ -334,6 +350,8 @@ async function showPlace(p) {
     renderPlace(p, tags, { oh: lib && ohStatus(lib, tags.opening_hours), photo });
   }
 }
+const fold = (k, d) => (store.get('fold', {})[k] ?? d);
+document.addEventListener('toggle', e => { const d = e.target; if (d.dataset?.fold) { const o = store.get('fold', {}); o[d.dataset.fold] = d.open ? 1 : 0; store.set('fold', o); } }, true);
 function renderPlace(p, tags, extra) {
   tags = tags || {};
   const saved = store.get('saved', []).some(s => Math.abs(s.lat - p.lat) < 1e-5 && Math.abs(s.lng - p.lng) < 1e-5);
@@ -341,7 +359,7 @@ function renderPlace(p, tags, extra) {
   const cat = catLabel(tags.amenity ? 'amenity=' + tags.amenity : tags.shop ? 'shop=' + tags.shop : tags.tourism ? 'tourism=' + tags.tourism : tags.leisure ? 'leisure=' + tags.leisure : p.category);
   const web = tags.website || tags['contact:website'], tel = tags.phone || tags['contact:phone'];
   openPanel(`<div class="pc">
-    ${extra?.photo?.length ? galleryHtml(extra.photo) : ''}
+    ${extra?.photo?.length ? `<details class="fold gfold" data-fold="gal"${fold('gal', 1) ? ' open' : ''}><summary class="fsum">${ic('info')}${L('照片', 'Photos')} · ${extra.photo.length}</summary>${galleryHtml(extra.photo)}</details>` : ''}
     <h2>${esc(tags[lang === 'zh' ? 'name:zh' : 'name:en'] || p.name)}</h2><div class="cat">${esc(cat)}${tags.cuisine ? ' · ' + esc(tags.cuisine.replace(/;/g, ', ')) : ''}</div>
     <div class="acts">
       <button class="act primary" data-a="dir"><span class="b">${ic('dir')}</span>${t('directions')}</button>
@@ -350,11 +368,11 @@ function renderPlace(p, tags, extra) {
       <button class="act" data-a="share"><span class="b">${ic('share')}</span>${t('share')}</button>
       ${p.dropped ? `<button class="act" data-a="measure"><span class="b">${ic('measure')}</span>${L('从这里测距', 'Measure from here')}</button>` : ''}
     </div>
-    ${tags.opening_hours ? `<div class="row"><span class="i">${ic('clock')}</span><div>${extra?.oh ? extra.oh.badge : esc(tags.opening_hours)}${extra?.oh ? `<div class="hrs">${esc(extra.oh.table)}</div>` : ''}</div></div>` : ''}
+    ${tags.opening_hours ? `<div class="row"><span class="i">${ic('clock')}</span><div style="flex:1">${extra?.oh ? `<details class="fold" data-fold="hrs"${fold('hrs', 0) ? ' open' : ''}><summary>${extra.oh.badge}</summary><div class="hrs">${esc(extra.oh.table)}</div></details>` : esc(tags.opening_hours)}</div></div>` : ''}
     ${p.desc ? `<div class="desc">${esc(p.desc)}</div>` : ''}
     ${p.quest ? `<div class="row"><span class="i">${ic('quest')}</span><div><button class="btn${questDone().includes(p.quest.id) ? ' ghost' : ''}" id="qDone">${questDone().includes(p.quest.id) ? L('✔ 已完成（点按取消）', '✔ Completed (tap to undo)') : L('标记为已完成', 'Mark as completed')}</button><div style="font-size:13px;color:var(--muted);margin-top:4px"><a href="https://www.wikidata.org/wiki/${p.quest.id}" target="_blank" rel="noopener">Wikidata ${p.quest.id}</a></div></div></div>` : ''}
     <div id="wx"></div>
-    <div class="row" id="addrRow"><span class="i">${ic('pin')}</span><div style="flex:1"><div id="addrTx">${esc(fmtAddr(tags) || p.address || tags._display || '')}</div><div id="addrNote" style="font-size:calc(13px * var(--ts,1));color:var(--muted)">${p._approx ? L('大致地址（按坐标反查）', 'Approx. address (from coordinates)') : ''}</div></div><button class="btn ghost" id="copyAddr" style="flex:none;padding:6px 12px">${L('复制', 'Copy')}</button></div>
+    <div class="row" id="addrRow"><span class="i">${ic('pin')}</span><div style="flex:1"><div id="addrTx">${esc(fmtAddr(tags) || p.address || tags._display || '')}</div><div id="addrNote" style="font-size:calc(13px * var(--ts,1));color:var(--muted)">${p._note || (p._approx ? L('大致地址（按坐标反查）', 'Approx. address (from coordinates)') : '')}</div></div><button class="btn ghost" id="copyAddr" style="flex:none;padding:6px 12px">${L('复制', 'Copy')}</button></div>
     ${tel ? `<div class="row"><span class="i">${ic('phone')}</span><a href="tel:${esc(tel)}">${esc(tel)}</a></div>` : ''}
     ${web ? `<div class="row"><span class="i">${ic('web')}</span><a href="${esc(web.startsWith('http') ? web : 'https://' + web)}" target="_blank" rel="noopener">${esc(web.replace(/^https?:\/\//, ''))}</a></div>` : ''}
     ${tags.wheelchair ? `<div class="row"><span class="i">${ic('access')}</span><div>${esc(tags.wheelchair)}</div></div>` : ''}
@@ -432,6 +450,8 @@ let dropMarker = null;
 function pinSvg() { return S.theme === 'west'
   ? `<svg width="40" height="52" viewBox="0 0 40 52"><path d="M20 50C17 40 5 30 5 18a15 15 0 0 1 30 0c0 12-12 22-15 32z" fill="#f3e7cb" stroke="#20150b" stroke-width="2.4"/><path d="M14 12l12 12M26 12 14 24" stroke="#7c2e22" stroke-width="3.2" stroke-linecap="round"/></svg>`
   : `<svg width="40" height="52" viewBox="0 0 40 52" style="overflow:visible"><path d="M20 50 20 36" stroke="#4fd6e8" stroke-width="2"/><path d="M20 2 34 18 20 36 6 18Z" fill="#e0457a" stroke="#ffd25a" stroke-width="2"/><path d="M20 11 27 18 20 27 13 18Z" fill="#ffd25a"/></svg>`; }
+function showMe() { if (!S.me) return; showPlace({ name: L('我的位置', 'My location'), address: '', lat: S.me.lat, lng: S.me.lng, me: true, tags: {} }); }
+window._showMe = () => showMe();
 function dropPin(ll) {
   const p = { name: t('dropped'), address: '', lat: ll.lat, lng: ll.lng, dropped: true, tags: {} };
   showPlace(p);
@@ -449,7 +469,7 @@ function attachAC(input, onPick) {
   input.addEventListener('input', () => { clearTimeout(tm); acA?.abort(); sel = -1; const v = input.value.trim(); if (v.length < 1) return render(extra());
     const top = extra().slice(0, 2), ctx = acCtx(), local = AC.localSuggest(v, ctx, acExtra(v)); render([...top, ...local]);
     const ac = new AbortController(); acA = ac;
-    tm = setTimeout(() => AC.suggest(v, ctx, acExtra(v), (list, ph) => { if (!ac.signal.aborted && ph === 'remote' && input.value.trim() === v) render([...top, ...list]); }, ac.signal).catch(() => {}), 150); });
+    tm = setTimeout(() => AC.suggest(v, ctx, acExtra(v), (list, ph) => { if (!ac.signal.aborted && ph === 'remote' && input.value.trim() === v) render([...top, ...list]); }, ac.signal).catch(() => {}), 0); });
   input.addEventListener('keydown', e => { const rows = box.querySelectorAll('.sug'); if (!rows.length) return;
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { sel = Math.max(0, Math.min(rows.length - 1, sel + (e.key === 'ArrowDown' ? 1 : -1))); rows.forEach((r, i) => r.classList.toggle('sel', i === sel)); e.preventDefault(); }
     if (e.key === 'Enter' && items[sel >= 0 ? sel : (items[0]?.gps || items[0]?.pickMap ? 2 : 0)]) { e.preventDefault(); box.classList.add('hidden'); input.blur(); onPick(items[sel >= 0 ? sel : (items[0]?.gps || items[0]?.pickMap ? 2 : 0)]); } });
@@ -547,22 +567,24 @@ function renderLayersPop() {
 function renderDrawer() {
   const saved = store.get('saved', []), rec = store.get('recents', []);
   const li = (arr, k) => arr.slice(0, 6).map((p, i) => `<div class="di" data-${k}="${i}"><span class="i">${k === 's' ? ic('star') : ic('clock')}</span><div>${esc(p.name)}<div class="s" style="font-size:12px;color:var(--muted)">${esc(p.address || '')}</div></div></div>`).join('') || `<div class="sub">${t('empty')}</div>`;
-  $('#drawer').innerHTML = `<div class="dh"><span>RoadGlow</span><button class="xbig" data-close="1" aria-label="close">✕</button></div>
-   <div class="ds"><div class="di" data-sq="1"><span class="i">${ic('quest')}</span><div><b>${L('支线任务', 'Side quests')}</b><div class="s" style="font-size:13.5px;color:var(--muted)">${L('鬼镇、废墟、奇特景点、观景台', 'Ghost towns, ruins, oddities, viewpoints')} · ${questDone().length} ✔</div></div></div></div>
-   ${drawerExtra()}
-   <div class="ds"><div class="di"><span class="i">${ic('star')}</span><b>${t('saved')}</b></div>${li(saved, 's')}</div>
-   <div class="ds"><div class="di"><span class="i">${ic('clock')}</span><b>${t('recents')}</b></div>${li(rec, 'r')}${rec.length ? `<div class="di" data-clear="1"><span class="i">${ic('trash')}</span>${t('clear_history')}</div>` : ''}</div>
-   <div class="ds"><div class="di"><span class="i">${ic('layers')}</span><b>${t('styles')}</b></div>
-     <div style="padding:0 22px 10px 58px"><div class="seg">${['neon', 'west'].map(th => `<button data-th="${th}" class="${S.theme === th ? 'on' : ''}">${t(th)}</button>`).join('')}</div>
-     <div class="seg" style="margin-top:8px">${['auto', 'light', 'dark'].map(m => `<button data-md="${m}" class="${S.mode === m ? 'on' : ''}">${t(m)}</button>`).join('')}</div></div></div>
-   <div class="ds"><div class="di"><span class="i">${ic('offline')}</span><b>${t('offline')}</b></div><div class="sub">${t('offline_soon')}</div></div>
-   <div class="ds"><div class="di"><span class="i">${ic('settings')}</span><b>${t('settings')}</b></div>
-     <div style="padding:0 22px 10px 58px"><div style="font-size:13px;color:var(--muted);margin-bottom:6px">${t('language')}</div><div class="seg">
-     <button data-lang="" class="${!localStorage.getItem('lang') ? 'on' : ''}">${t('lang_auto')}</button><button data-lang="zh" class="${localStorage.getItem('lang') === 'zh' ? 'on' : ''}">中文</button><button data-lang="en" class="${localStorage.getItem('lang') === 'en' ? 'on' : ''}">English</button></div></div></div>
-   <div class="ds"><div class="di"><span class="i">${ic('size')}</span><b>${L('文字与图标大小', 'Text & icon size')}</b></div><div style="padding:0 22px 12px 58px">${sizeHtml()}</div></div>
-   <div class="ds"><div class="di"><span class="i">${ic('voice')}</span><b>${L('导航语音包', 'Voice pack')}</b></div><div style="padding:0 22px 12px 58px" id="voiceBox">${voiceHtml()}</div></div>
-   <div class="ds"><div class="di"><span class="i">${ic('info')}</span><b>${t('about')}</b></div><div class="sub">${t('about_text')}</div></div>`;
+  const sub = (icn, title, inner) => `<div class="ds"><div class="di"><span class="i">${ic(icn)}</span><b>${title}</b></div>${inner}</div>`;
+  const pad = h => `<div style="padding:0 22px 10px 58px">${h}</div>`;
+  const X = drawerExtra(), open = store.get('drawerOpen', { mine: 1 });
+  const sec = (id, icn, title, inner) => `<section class="dsec${open[id] ? ' open' : ''}" data-sec="${id}"><button class="dsh" data-sech="${id}" aria-expanded="${!!open[id]}"><span class="i">${ic(icn)}</span><b>${title}</b><span class="chev"></span></button><div class="dsb"><div class="dsi">${inner}</div></div></section>`;
+  $('#drawer').innerHTML = `<div class="dh"><span>RoadGlow</span><button class="xbig xbtn" data-close="1" aria-label="close">${ic('close')}</button></div>
+   ${sec('mine', 'star', L('我的地点', 'My places'), sub('star', t('saved'), li(saved, 's')) + X.lists + sub('clock', t('recents'), li(rec, 'r') + (rec.length ? `<div class="di" data-clear="1"><span class="i">${ic('trash')}</span>${t('clear_history')}</div>` : '')))}
+   ${sec('explore', 'quest', L('探索', 'Explore'), `<div class="ds"><div class="di" data-sq="1"><span class="i">${ic('quest')}</span><div><b>${L('支线任务', 'Side quests')}</b><div class="s" style="font-size:13.5px;color:var(--muted)">${L('鬼镇、废墟、奇特景点、观景台', 'Ghost towns, ruins, oddities, viewpoints')} · ${questDone().length} ✔</div></div></div>
+     <div class="di" data-tool="transit"><span class="i">${ic('dir')}</span><div><b>${L('公共交通', 'Transit')}</b><div class="s" style="font-size:13.5px;color:var(--muted)">${L('Transitous 社区数据（含 ETS）', 'Transitous community data (incl. ETS)')}</div></div></div>
+     <div class="di" data-tool="weather"><span class="i">${ic('info')}</span><div><b>${L('天气（地图中心）', 'Weather (map centre)')}</b><div class="s" style="font-size:13.5px;color:var(--muted)">Open-Meteo</div></div></div></div>`)}
+   ${sec('tools', 'measure', L('工具', 'Tools'), X.tools)}
+   ${sec('settings', 'settings', t('settings'), sub('layers', t('styles'), pad(`<div class="seg">${['neon', 'west'].map(th => `<button data-th="${th}" class="${S.theme === th ? 'on' : ''}">${t(th)}</button>`).join('')}</div>
+     <div class="seg" style="margin-top:8px">${['auto', 'light', 'dark'].map(m => `<button data-md="${m}" class="${S.mode === m ? 'on' : ''}">${t(m)}</button>`).join('')}</div>`))
+     + sub('voice', L('导航语音包', 'Voice pack'), `<div style="padding:0 22px 12px 58px" id="voiceBox">${voiceHtml()}</div>`)
+     + sub('size', L('文字与图标大小', 'Text & icon size'), pad(sizeHtml()))
+     + sub('settings', t('language'), pad(`<div class="seg"><button data-lang="" class="${!localStorage.getItem('lang') ? 'on' : ''}">${t('lang_auto')}</button><button data-lang="zh" class="${localStorage.getItem('lang') === 'zh' ? 'on' : ''}">中文</button><button data-lang="en" class="${localStorage.getItem('lang') === 'en' ? 'on' : ''}">English</button></div>`)))}
+   ${sec('about', 'info', t('about'), `<div class="sub">${t('about_text')}</div>`)}`;
   $('#drawer').onclick = e => {
+    const h = e.target.closest('[data-sech]'); if (h) { const o = store.get('drawerOpen', { mine: 1 }), id = h.dataset.sech, sc = h.parentElement; o[id] = sc.classList.toggle('open') ? 1 : 0; h.setAttribute('aria-expanded', !!o[id]); store.set('drawerOpen', o); return; }
     const el = e.target.closest('[data-s],[data-r],[data-th],[data-md],[data-lang],[data-clear],[data-close],[data-sq],[data-tool],[data-vp],[data-vtest],[data-szreset]'); if (!el) return;
     if (el.dataset.close) return closeDrawer();
     if (el.dataset.szreset) { store.set('textScale', 1); store.set('iconScale', 1); applySizes(); return renderDrawer(); }
@@ -633,8 +655,8 @@ function semTiles(e) {
   return map.queryRenderedFeatures({ layers: ['poi'] }).filter(f => (re.source !== '^$' && re.test(f.properties.name || '')) || (!e.cuisine && !e.chain && (cls.has(f.properties.subclass) || cls.has(f.properties.class)))).map(f => {
     const id = typeof f.id === 'number' ? f.id : null; return { type: id ? ['node', 'node', 'way', 'relation'][id % 10] : 'node', id: id ? Math.floor(id / 10) : 0, lat: f.geometry.coordinates[1], lon: f.geometry.coordinates[0], tags: { name: f.properties.name, amenity: f.properties.subclass } }; });
 }
-async function semanticSearch(e, raw) {
-  $('#suggest').classList.add('hidden'); q.blur(); clearCat();
+async function semanticSearch(e, raw, again = false) {
+  $('#suggest').classList.add('hidden'); q.blur(); if (again) clearCat0(); else clearCat();
   openPanel(`<div class="list"><div class="row">${t('searching')}</div></div>`, e.t);
   if (map.getZoom() < 12.5) await new Promise(r => { map.once('moveend', r); map.easeTo({ zoom: 13 }); });
   const B = map.getBounds(), bb = `${B.getSouth()},${B.getWest()},${B.getNorth()},${B.getEast()}`;
@@ -660,7 +682,7 @@ async function semanticSearch(e, raw) {
   map.getSource('cat')?.setData(S.catData); S.catItems = items;
   openPanel(`<div class="list"><div style="font-size:13px;color:var(--muted);padding:6px 18px">${L('当前地图范围内 · 按距离排序 · 数据', 'In current map view · nearest first · data')}: ${src} / OSM</div>${items.map((it, i) => `<div class="it" data-i="${i}"><div>${esc(it.name)}</div><div class="s">${fmtDist(haversine(c, it))}${it.address ? ' · ' + esc(it.address) : ''}${it._t.cuisine ? ' · ' + esc(it._t.cuisine.replace(/;/g, ', ')) : ''}${hoursBadgeSync(it._t)}</div></div>`).join('') || `<div class="row">${t('noresults')}</div>`}</div>`, `${e.t} · ${items.length}`);
   $('#panelBody').querySelector('.list').onclick = ev => { const it = ev.target.closest('.it'); if (it) { const p = S.catItems[+it.dataset.i]; map.easeTo({ center: [p.lng, p.lat], zoom: 17, padding: panelPadding() }); showPlace(p); } };
-  hydrateBadges();
+  hydrateBadges(); S._fitting = true; setTimeout(() => { S._fitting = false; markSearch({ type: 'sem', e, raw }); }, 1500);
   if (items.length) { const bx = new maplibregl.LngLatBounds([items[0].lng, items[0].lat], [items[0].lng, items[0].lat]); items.slice(0, 25).forEach(i => bx.extend([i.lng, i.lat])); if (!B.contains(bx.getNorthEast()) || !B.contains(bx.getSouthWest())) map.fitBounds(bx, { padding: 60, maxZoom: 15 }); }
 }
 let lastNomS = 0; const nomWait = async () => { const w = Math.max(0, lastNomS + 1100 - Date.now()); await new Promise(r => setTimeout(r, w)); lastNomS = Date.now(); };
@@ -683,12 +705,16 @@ async function fillAddress(p, tags) {
   try {
     let extra = null;
     if (has && p.osm && !tags._display) { const el = await osmElement(p.osm.type, p.osm.id); extra = el?.tags; }
-    if (!extra || !fmtAddr({ ...extra, ...tags })) extra = { ...(await reverseAddr(p)), _approx: !has };
+    let coe = null;
+    if (!has && p.lat > 53.38 && p.lat < 53.72 && p.lng > -113.75 && p.lng < -113.2) { const r = await AC.ADDR.reverse(p.lat, p.lng).catch(() => null); if (r && r.dist < (p.me ? 60 : 40)) { const [, hn, st] = r.name.match(/^(\S+) (.+)$/); coe = r; extra = { 'addr:housenumber': hn, 'addr:street': st, 'addr:city': 'Edmonton' }; } }
+    if (!coe && (!extra || !fmtAddr({ ...extra, ...tags }))) extra = { ...(await reverseAddr(p)), _approx: !has, _nom: !has };
+    if (coe) p._note = L(`最近的门牌（埃德蒙顿市政府地址点，约 ${Math.round(coe.dist)} 米）`, `Nearest address point (City of Edmonton, ~${Math.round(coe.dist)} m)`);
+    if (!coe && extra._nom) p._note = L('大致地址（Nominatim 按坐标反查）', 'Approx. address (Nominatim reverse geocode)');
     if (extra._approx) p._approx = true;
     if (S.place !== p || !$('#addrTx')) return;
     const merged = { ...extra, ...Object.fromEntries(Object.entries(tags).filter(([, v]) => v)) }; Object.assign(tags, Object.fromEntries(Object.entries(merged).filter(([k]) => k.startsWith('_n:') || !tags[k])));
     $('#addrTx').textContent = fmtAddr(has ? merged : extra) || $('#addrTx').textContent;
-    if (extra._approx) $('#addrNote').textContent = L('大致地址（按坐标反查）', 'Approx. address (from coordinates)');
+    if (p._note || extra._approx) $('#addrNote').textContent = p._note || L('大致地址（按坐标反查）', 'Approx. address (from coordinates)');
   } catch {}
 }
 // ---------- photo gallery (scroll-snap = native smooth swipe) ----------
@@ -881,10 +907,11 @@ function chooseList(p, after) {
 drawerExtra = () => {
   const saved = store.get('saved', []), ls = [...new Set([...lists(), ...saved.map(s => s.list).filter(Boolean)])];
   const off = store.get('offline', []);
-  return `<div class="ds"><div class="di"><span class="i">${ic('list')}</span><b>${L('我的列表', 'My lists')}</b></div>${ls.map(l => { const n = saved.filter(s => (s.list || lists()[0]) === l).length; return `<div class="di" data-tool="list" data-arg="${esc(l)}"><span class="i">▸</span>${esc(l)} <span style="color:var(--muted)">· ${n}</span></div>`; }).join('')}</div>
-   <div class="ds"><div class="di" data-tool="measure"><span class="i">${ic('measure')}</span><b>${L('测量距离', 'Measure distance')}</b></div>
-   <div class="di" data-tool="offline"><span class="i">${ic('offline')}</span><div><b>${L('下载当前区域（离线）', 'Download this area (offline)')}</b><div class="s" style="font-size:13.5px;color:var(--muted)">${off.length ? L(`已下载 ${off.length} 个区域`, `${off.length} area(s) downloaded`) : L('地图 + 地点，可离线查看和搜索', 'Map + places, view & search offline')}</div></div></div></div>`;
+  return { lists: `<div class="ds"><div class="di"><span class="i">${ic('list')}</span><b>${L('我的列表', 'My lists')}</b></div>${ls.map(l => { const n = saved.filter(s => (s.list || lists()[0]) === l).length; return `<div class="di" data-tool="list" data-arg="${esc(l)}"><span class="i">▸</span>${esc(l)} <span style="color:var(--muted)">· ${n}</span></div>`; }).join('')}</div>`, tools: `<div class="ds"><div class="di" data-tool="measure"><span class="i">${ic('measure')}</span><b>${L('测量距离', 'Measure distance')}</b></div>
+   <div class="di" data-tool="offline"><span class="i">${ic('offline')}</span><div><b>${L('下载当前区域（离线）', 'Download this area (offline)')}</b><div class="s" style="font-size:13.5px;color:var(--muted)">${off.length ? L(`已下载 ${off.length} 个区域`, `${off.length} area(s) downloaded`) : L('地图 + 地点，可离线查看和搜索', 'Map + places, view & search offline')}</div></div></div></div>` };
 };
+tools.transit = () => { S.travel = 'transit'; toast(L('已切换为公交模式：选择目的地后点“路线”', 'Transit mode on: pick a destination, then Directions'), 3500); q.focus(); };
+tools.weather = () => { const c = map.getCenter(); showPlace({ name: L('地图中心', 'Map centre'), address: `${c.lat.toFixed(4)}, ${c.lng.toFixed(4)}`, lat: c.lat, lng: c.lng }); };
 tools.list = name => {
   const items = store.get('saved', []).filter(s => (s.list || lists()[0]) === name);
   openPanel(`<div class="list">${items.map((it, i) => `<div class="it" data-i="${i}"><div>${ic('star')} ${esc(it.name)}</div><div class="s">${esc(it.address || '')}</div></div>`).join('') || `<div class="row">${t('empty')}</div>`}</div>`, `${name} · ${items.length}`);

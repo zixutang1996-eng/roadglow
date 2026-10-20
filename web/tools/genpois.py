@@ -23,7 +23,7 @@ def denied(t):
     if t.get('amenity') in DENY_A: return True
     if t.get('leisure') == 'swimming_pool' and t.get('access') not in (None, 'yes', 'public', 'permissive'): return True
     if t.get('leisure') in ('picnic_table', 'firepit', 'outdoor_seating', 'pitch', 'track'): return True
-    return not any(k in t for k in ('amenity', 'shop', 'tourism', 'leisure', 'railway', 'aeroway', 'historic', 'public_transport', 'landuse')) or any(k in t and k not in ('highway',) for k in DENY_K if k != 'highway') and not t.get('amenity') and not t.get('shop')
+    return not any(k in t for k in ('amenity', 'shop', 'tourism', 'leisure', 'railway', 'aeroway', 'historic', 'public_transport', 'landuse', 'office', 'healthcare', 'craft', 'building', 'club')) or any(k in t and k not in ('highway',) for k in DENY_K if k != 'highway') and not t.get('amenity') and not t.get('shop')
 def classify(t):
     if denied(t): return None
     a, sh, tour, le, rw = t.get('amenity'), t.get('shop'), t.get('tourism'), t.get('leisure'), t.get('railway')
@@ -46,6 +46,12 @@ def classify(t):
     if le in ('playground', 'dog_park'): return 'playground', 'playground'
     if le in ('sports_centre', 'ice_rink', 'swimming_pool', 'water_park', 'golf_course', 'fitness_centre'): return 'generic', 'generic'
     if t.get('historic') in ('monument', 'memorial', 'castle', 'building', 'heritage'): return 'monument', 'attraction'
+    # v0.9 catch-all so street-level zooms are not empty: any other named shop/amenity/office/healthcare/craft/landmark building (low weight)
+    if t.get('healthcare') in ('clinic', 'doctor', 'dentist', 'physiotherapist', 'optometrist', 'centre'): return 'doctors', 'generic'
+    if sh and sh not in ('vacant', 'no', 'yes'): return 'shop', 'generic'
+    if a and a not in ('parking_space', 'loading_dock', 'grit_bin', 'fountain', 'clock', 'hunting_stand', 'smoking_area'): return 'generic', 'generic'
+    if t.get('office') or t.get('craft') or t.get('club'): return 'generic', 'generic'
+    if t.get('building') and len(t) >= 4 and not t.get('addr:housenumber') or t.get('building') and (t.get('wikidata') or t.get('building:levels', '0').isdigit() and int(t.get('building:levels', '0')) >= 12): return 'generic', 'generic'
     return None
 class H(osmium.SimpleHandler):
     def __init__(s): super().__init__(); s.out = []; s.unnamed = []
@@ -89,22 +95,36 @@ for f in h.out:
 F = sorted(best.values(), key=lambda f: -f['properties']['sc'])
 # reveal zoom: (1) global score quantile floor spread continuously over Z0..Z1, (2) density thinning: per ~CELLpx grid cell at zoom z
 # only the top NCELL(z) by score may be visible; rz = max(floor, first z at which the feature makes its cell's cut).
-Z0, Z1, STEP, CELL = 10.8, 17.0, 0.05, 72
+# v0.9 reveal: screen-density quota. Target on-screen count N(z) = 25 * 6^((z - Z0) / (Z1 - Z0)) on a 390x844 viewport (geometric growth,
+# ~7.4% per 0.25 zoom). Grid cell size c(z) = K * sqrt(A / N(z)); each cell may hold one revealed feature. Inside a cell the pick maximises
+# score minus a penalty for categories already visible in the 3x3 neighbourhood, so variety (hospital, transit, mall, food, park, school,
+# hotel, fuel...) is present from the first zoom. A mild score floor keeps trivial places from appearing at city scale.
+Z0, Z1, STEP, K, A = 10.75, 17.0, 0.05, 0.62, 390 * 844
+GRP = {'restaurant': 'food', 'fast_food': 'food', 'cafe': 'cafe', 'ice_cream': 'cafe', 'bar': 'food', 'pub': 'food', 'supermarket': 'grocery', 'grocery': 'grocery',
+       'hospital': 'health', 'doctors': 'health', 'dentist': 'health', 'pharmacy': 'health', 'railway': 'transit', 'bus': 'transit', 'school': 'edu', 'college': 'edu',
+       'university': 'edu', 'kindergarten': 'edu', 'library': 'edu', 'park': 'park', 'garden': 'park', 'playground': 'park', 'lodging': 'lodge', 'fuel': 'fuel',
+       'museum': 'culture', 'attraction': 'culture', 'theatre': 'culture', 'cinema': 'culture', 'art_gallery': 'culture', 'monument': 'culture', 'bank': 'service', 'parking': 'parking'}
 n = len(F)
-for i, f in enumerate(F): f['properties']['_fl'] = Z0 + (Z1 - Z0 - 0.4) * (i / n) ** 0.85
+for i, f in enumerate(F): f['properties']['_fl'] = Z0 - 0.3 + 2.6 * (i / n) ** 1.6
+G = [GRP.get(f['properties']['class'], 'shop' if f['properties']['class'] in ('shop', 'clothing_store', 'shoe', 'furniture', 'florist', 'mobile_phone', 'jewelry', 'optician', 'alcohol_shop', 'hardware', 'books', 'gift', 'car') else 'other') for f in F]
 def mercx(lon, z): return (lon + 180) / 360 * 256 * 2 ** z
 def mercy(lat, z): r = math.radians(lat); return (1 - math.log(math.tan(r) + 1 / math.cos(r)) / math.pi) / 2 * 256 * 2 ** z
-rz = {}
-z = Z0
+rz = {}; z = Z0 - 0.3
 while z <= Z1 + 1e-9:
-    cnt = defaultdict(int); ncell = 1; cpx = 96 * (36 / 96) ** ((z - Z0) / (Z1 - Z0))   # cells shrink smoothly (96px -> 36px): on-screen count grows ~6-8% per 0.25 zoom, no step jumps
-    for i, f in enumerate(F):          # score order: earlier = more important
+    Nz = 25 * 6 ** ((z - Z0) / (Z1 - Z0)); cpx = (K - 0.2 * max(0, z - 13) / 4) * math.sqrt(A / Nz)
+    occ = defaultdict(list); cand = defaultdict(list)
+    for i, f in enumerate(F):
         x, y = f['geometry']['coordinates']; cell = (int(mercx(x, z) // cpx), int(mercy(y, z) // cpx))
-        if i in rz: cnt[cell] += 1; continue
-        if f['properties']['_fl'] <= z and cnt[cell] < ncell: rz[i] = round(z, 2); cnt[cell] += 1
+        if i in rz: occ[cell].append(G[i])
+        elif f['properties']['_fl'] <= z: cand[cell].append(i)
+    for cell, lst in cand.items():
+        if occ.get(cell): continue
+        cx, cy = cell; seen = Counter(g for dx in (-1, 0, 1) for dy in (-1, 0, 1) for g in occ.get((cx + dx, cy + dy), ()))
+        best = max(lst[:40], key=lambda i: F[i]['properties']['sc'] - 28 * seen[G[i]])
+        rz[best] = round(max(z, Z0), 2); occ[cell].append(G[best])
     z += STEP
 for i, f in enumerate(F):
-    p = f['properties']; p['rz'] = rz.get(i, 17.5); del p['_fl']
+    p = f['properties']; p['rz'] = rz.get(i, 16.75 if p['name'] else 17.0); del p['_fl']
 out = [f for f in F if f['properties']['rz'] <= 17.5] + h.unnamed
 json.dump({'type': 'FeatureCollection', 'features': out}, open('public/pois_yeg.geojson', 'w'), ensure_ascii=False, separators=(',', ':'))
 hist = Counter(min(17.5, math.floor(f['properties']['rz'] * 4) / 4) for f in out)

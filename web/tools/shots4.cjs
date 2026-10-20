@@ -37,7 +37,7 @@ const only = process.argv.slice(2);
       await p.screenshot({ path: `${out}icons_${th}_${md}_z${z}.png` }); } await p.close(); } };
   T.quests = async () => { for (const [vn, vp] of [['mobile', M], ['desktop', D]]) { const p = await page(vp, { theme: 'west', mode: 'light', hash: '#9/53.5418/-113.4935' });
     await p.click('#menuBtn'); await sleep(500); await p.screenshot({ path: `${out}${vn}_menu_side_quests_entry.png` });
-    await p.click('[data-sq]'); await sleep(4000); await idle(p);
+    await p.evaluate(() => document.querySelectorAll('.dsec').forEach(s => s.classList.add('open'))); await sleep(250); await p.click('[data-sq]'); await sleep(4000); await idle(p);
     await p.screenshot({ path: `${out}${vn}_side_quests_list.png` });
     console.log(vn, 'quests list', await p.$$eval('.sq .t', e => e.slice(0, 5).map(x => x.textContent + ' / ' + x.nextSibling.textContent)));
     const withImg = await p.$$eval('.sq', e => e.findIndex(x => x.querySelector('img')));

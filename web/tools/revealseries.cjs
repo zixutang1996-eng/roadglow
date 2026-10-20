@@ -5,7 +5,7 @@ const th = process.env.TH || 'west', md = process.env.MD || 'light';
 (async () => { const b = await puppeteer.launch({ executablePath: '/usr/bin/google-chrome', args: ['--no-sandbox', '--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'], headless: 'new' });
   const p = await b.newPage(); await p.setViewport({ width: 390, height: 844, deviceScaleFactor: 1, isMobile: true, hasTouch: true }); p.on('pageerror', e => console.log('ERR', e.message));
   await p.evaluateOnNewDocument((th, md) => { localStorage.setItem('theme', JSON.stringify(th)); localStorage.setItem('mode', JSON.stringify(md)); localStorage.setItem('a2hsSeen', '1'); }, th, md);
-  await p.goto(BASE + '#10.5/53.5410/-113.5000', { waitUntil: 'networkidle0', timeout: 90000 }); await sleep(3000);
+  await p.goto(BASE + '#10.5/' + (process.env.C || '53.5418/-113.4935') + '', { waitUntil: 'networkidle0', timeout: 90000 }); await sleep(3000);
   const res = []; let i = 0;
   for (let z = 10.5; z <= 17.001; z += 0.25) {
     await p.evaluate(z => window._map.jumpTo({ zoom: z }), z);

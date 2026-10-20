@@ -227,3 +227,39 @@ button,.chip,.ctl,.act,.di,.sug,.ic,#controls,#navFoot,#chips,.uic{-webkit-user-
 #iosGuide .uic{width:30px;height:30px}#iosGuide .x{position:absolute;right:8px;top:8px;z-index:3}#iosGuide b:first-of-type{display:block;padding-right:52px}
 #iosGuide:after{content:"";position:absolute;left:50%;bottom:-10px;margin-left:-10px;border:10px solid transparent;border-bottom:0;border-top-color:var(--bg)}
 .iosnote{font-size:calc(14px * var(--ts,1));color:var(--muted);margin-top:6px}
+/* v0.9 'Search this area' pill: top-centre below chips, never over the right-side controls */
+#areaPill{position:absolute;left:50%;top:calc(132px + var(--sat));transform:translateX(-50%);z-index:4;display:flex;align-items:center;gap:8px;padding:8px 18px;border:0;font-size:calc(16px * var(--ts,1));font-weight:700;color:var(--fg);background:var(--bg);box-shadow:var(--shadow);animation:pillin .18s ease-out}
+#areaPill .uic{width:24px;height:24px}@keyframes pillin{from{opacity:0;transform:translate(-50%,-6px)}to{opacity:1;transform:translate(-50%,0)}}
+body.neon #areaPill{clip-path:polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px);box-shadow:inset 0 0 0 1px var(--line2)}
+@media (max-width:700px){#areaPill{max-width:calc(100% - 140px)}}
+/* v0.9 collapsible drawer sections (grid-rows + transform/opacity, ~200ms) */
+.dsec{border-top:1px solid var(--line)}.dsh{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:14px;width:100%;padding:14px 20px;cursor:pointer;font-size:calc(17px * var(--ts,1));color:var(--fg)}
+.dsh .i{display:inline-flex}.dsh .chev{margin-left:auto;width:9px;height:9px;border-right:2.5px solid currentColor;border-bottom:2.5px solid currentColor;transform:rotate(-45deg);transition:transform .2s ease}
+.dsec.open .chev{transform:rotate(45deg)}
+.dsb{display:grid;grid-template-rows:0fr;transition:grid-template-rows .2s ease}.dsec.open .dsb{grid-template-rows:1fr}
+.dsi{overflow:hidden;min-height:0;opacity:0;transform:translateY(-6px);transition:opacity .2s ease,transform .2s ease}.dsec.open .dsi{opacity:1;transform:none}
+.dsh:focus-visible{outline:2px solid var(--accent)}
+details.fold>summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:8px}details.fold>summary::-webkit-details-marker{display:none}
+details.fold>summary::after{content:'';width:8px;height:8px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(-45deg);transition:transform .2s;margin-left:auto}
+details.fold[open]>summary::after{transform:rotate(45deg)}details.fold[open]>:not(summary){animation:foldin .2s ease}@keyframes foldin{from{opacity:0;transform:translateY(-4px)}}
+/* ===== v0.9 theme shapes: every close button / round control follows the theme (west ink stamp + hand-drawn X, neon cut corners) ===== */
+:root{--xmask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5.2 4.6c2.3 1.9 4.6 4.3 6.9 6.6 2.4-2.6 4.4-4.6 6.6-6.9.5-.4 1.3.2.9.8-1.9 2.4-4 4.6-6.4 7 2.2 2.3 4.4 4.6 6.4 7.1.4.6-.4 1.2-.9.8-2.4-2-4.6-4.3-6.9-6.6-2.4 2.4-4.4 4.6-6.6 6.8-.6.5-1.4-.2-.9-.8 1.9-2.4 4-4.6 6.3-6.9C8.4 10.2 6.4 7.9 4.4 5.5c-.4-.6.3-1.3.8-.9z'/%3E%3C/svg%3E")}
+:is(.xbig,.xbtn,#navX,.sugx,#clearBtn,#panelX,.gx,.popx){font-size:0 !important;position:relative}
+:is(.xbig,.xbtn,#navX,.sugx,#clearBtn,#panelX,.gx,.popx)>.uic{display:none}
+:is(.xbig,.xbtn,#navX,.sugx,#clearBtn,#panelX,.gx,.popx)::before{content:'';position:absolute;inset:0;margin:auto;width:58%;height:58%;background:currentColor;-webkit-mask:var(--xmask) center/contain no-repeat;mask:var(--xmask) center/contain no-repeat}
+/* west: irregular ink-stamped square, parchment X */
+body.west :is(.xbig,.xbtn,#navX,.gx,.popx,#panelX){border-radius:0 !important;border:0 !important;background:#1c120a !important;color:#f1e4c4 !important;box-shadow:0 1px 3px rgba(40,25,10,.45) !important;
+  clip-path:polygon(3% 6%,22% 1%,48% 4%,77% 0,97% 4%,100% 30%,96% 55%,99% 83%,95% 98%,70% 95%,45% 100%,20% 96%,2% 99%,4% 72%,0 45%,3% 22%)}
+body.west.dark :is(.xbig,.xbtn,#navX,.gx,.popx,#panelX){background:#efdcb4 !important;color:#1c120a !important}
+body.west :is(.sugx,#clearBtn){border-radius:0}
+body.west :is(.ic,.act .b,.garr,.swap,.gidx,.tl,.opt,.opt img,.vsel,.dir input,.acl,.seg,#toast,.prog,.sq img,.sq .ph0){border-radius:2px !important}
+body.west .act .b{border:1.5px solid var(--fg);clip-path:polygon(3% 5%,30% 1%,70% 3%,97% 0,100% 35%,97% 70%,99% 97%,65% 99%,30% 96%,1% 100%,3% 60%,0 25%)}
+body.west .garr{clip-path:polygon(4% 4%,50% 0,96% 5%,100% 50%,95% 96%,50% 100%,4% 95%,0 50%);background:#1c120a;border:0}
+body.west .lpring{border-radius:3px}body.west .grab{border-radius:0;height:3px}
+/* neon: cut corners for every remaining round thing */
+body.neon :is(.xbtn,#navX,.gx,.popx,#panelX,.garr,.swap,.ic,.sugx,#clearBtn){border-radius:0 !important;clip-path:polygon(0 0,calc(100% - 9px) 0,100% 9px,100% 100%,9px 100%,0 calc(100% - 9px))}
+body.neon :is(.xbtn,#navX,.gx,.popx,#panelX){border:0;box-shadow:inset 0 0 0 1.5px var(--line2) !important;color:var(--accent)}
+body.neon :is(.gidx,.tl,.opt,.opt img,.vsel,.dir input,.acl,.seg,#toast,.prog,.sq img,.sq .ph0,.grab){border-radius:0 !important}
+body.neon :is(.opt,.vsel,.dir input,#toast){clip-path:polygon(0 0,calc(100% - 7px) 0,100% 7px,100% 100%,7px 100%,0 calc(100% - 7px))}
+.dsec .dsh{border-radius:0}
+.gfold>summary.fsum{padding:8px 18px;font-weight:600;color:var(--muted)}.fsum .uic{width:20px;height:20px}

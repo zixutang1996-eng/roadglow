@@ -18,7 +18,7 @@ const BASE = 'http://127.0.0.1:18781/'; const sleep = ms => new Promise(r => set
     await sleep(7000); await idle(p); await p.screenshot({ path: `${out}desktop_bike.png` }); console.log('bike', (await txt(p)).slice(0, 200));
     await p.evaluate(() => { window._app.S.travel = 'drive'; document.querySelector('[data-m=drive]').click(); }); await sleep(5000); console.log('drive again', (await txt(p)).slice(0, 120)); await p.close(); };
   T.measure = async () => { const p = await page(M, { theme: 'neon', mode: 'light' });
-    await p.click('#menuBtn'); await sleep(400); await p.click('[data-tool=measure]'); await sleep(400);
+    await p.click('#menuBtn'); await sleep(400); await p.evaluate(() => document.querySelectorAll('.dsec').forEach(s => s.classList.add('open'))); await sleep(250); await p.click('[data-tool=measure]'); await sleep(400);
     for (const [x, y] of [[80, 300], [300, 320], [300, 600]]) { await p.touchscreen.tap(x, y); await sleep(500); }
     const exp = await p.evaluate(() => { const m = window._map, a = [[80, 300], [300, 320], [300, 600]].map(q => m.unproject(q)); const h = (p, q) => { const R = 6371008.8, r = Math.PI / 180, dl = (q.lat - p.lat) * r, dg = (q.lng - p.lng) * r; const s = Math.sin(dl / 2) ** 2 + Math.cos(p.lat * r) * Math.cos(q.lat * r) * Math.sin(dg / 2) ** 2; return 2 * R * Math.asin(Math.sqrt(s)); }; return h(a[0], a[1]) + h(a[1], a[2]); });
     console.log('measure shown', await p.$eval('#mTotal', e => e.textContent), 'expected ~', Math.round(exp), 'm', 'panel opened by taps?', await p.$eval('#panel', e => !e.classList.contains('hidden')));
@@ -33,12 +33,12 @@ const BASE = 'http://127.0.0.1:18781/'; const sleep = ms => new Promise(r => set
     await p.click('[data-a=save]'); await sleep(400); await p.screenshot({ path: `${out}desktop_save_to_list.png` });
     await p.click('.listpick .lp[data-i="1"]'); await sleep(400); console.log('saved', await p.evaluate(() => localStorage.getItem('saved')));
     await p.click('#menuBtn'); await sleep(500); await p.screenshot({ path: `${out}desktop_menu_lists_tools.png` });
-    await p.click('[data-tool=list][data-arg="想去"]'); await sleep(500); console.log('list panel', await p.$eval('#panelTitle', e => e.textContent), await txt(p));
-    await p.click('#menuBtn'); await sleep(400); await p.click('[data-sq]'); await sleep(3000); await p.screenshot({ path: `${out}desktop_quest_progress.png` }); console.log('progress', (await txt(p)).slice(0, 80)); await p.close(); };
+    await p.evaluate(() => document.querySelectorAll('.dsec').forEach(s => s.classList.add('open'))); await sleep(250); await p.click('[data-tool=list][data-arg="想去"]'); await sleep(500); console.log('list panel', await p.$eval('#panelTitle', e => e.textContent), await txt(p));
+    await p.click('#menuBtn'); await sleep(400); await p.evaluate(() => document.querySelectorAll('.dsec').forEach(s => s.classList.add('open'))); await sleep(250); await p.click('[data-sq]'); await sleep(3000); await p.screenshot({ path: `${out}desktop_quest_progress.png` }); console.log('progress', (await txt(p)).slice(0, 80)); await p.close(); };
   T.offline = async () => { const ctx = await b.createBrowserContext(); const p = await ctx.newPage(); await p.setViewport(M); p.on('pageerror', e => console.log('ERR', e.message));
     await p.goto(BASE + '#15/53.5418/-113.4935', { waitUntil: 'networkidle0' }); await idle(p); await sleep(2000); await p.reload({ waitUntil: 'networkidle0' }); await idle(p);
     console.log('sw controlled', await p.evaluate(() => !!navigator.serviceWorker.controller));
-    await p.click('#menuBtn'); await sleep(400); await p.click('[data-tool=offline]');
+    await p.click('#menuBtn'); await sleep(400); await p.evaluate(() => document.querySelectorAll('.dsec').forEach(s => s.classList.add('open'))); await sleep(250); await p.click('[data-tool=offline]');
     await p.waitForFunction(() => document.querySelector('#panelBody')?.innerText.includes('完成'), { timeout: 300000 }).catch(() => console.log('offline dl timeout'));
     console.log('offline result', await txt(p), JSON.stringify(await p.evaluate(() => window._app.S.offlineLast)));
     await p.screenshot({ path: `${out}mobile_offline_download.png` });
