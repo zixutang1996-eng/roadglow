@@ -31,6 +31,35 @@ export function textScore(qn, name, addr = '') {
   }
   return s + (nn.startsWith(qn) ? 2 : 0);
 }
+// v0.9.2 intent layer: category words (en + zh, prefix-typed) -> classes in the local dataset / OpenMapTiles + Photon osm_tag + common brand names
+export const INTENTS = [
+  { id: 'airport', k: ['airport', 'airports', 'aerodrome', 'airfield', 'yeg', 'yyc', 'yvr', 'yyz', '机场', '飞机场', '航站楼'], cls: ['aerodrome'], tag: ['aeroway:aerodrome'], q: ['airport', 'international airport'] },
+  { id: 'gas', k: ['gas', 'gas station', 'fuel', 'petrol', 'gas bar', '加油站', '加油', '油站'], cls: ['fuel'], tag: ['amenity:fuel'], q: ['Shell', 'Petro-Canada', 'Esso', 'Chevron', 'Co-op Gas', 'Mobil', '76', 'gas station'] },
+  { id: 'hospital', k: ['hospital', 'hospitals', 'emergency', 'er', '医院', '急诊'], cls: ['hospital'], tag: ['amenity:hospital'], q: ['hospital', 'medical centre'] },
+  { id: 'coffee', k: ['coffee', 'cafe', 'café', 'coffee shop', '咖啡', '咖啡店', '咖啡馆'], cls: ['cafe'], tag: ['amenity:cafe'], q: ['Tim Hortons', 'Starbucks', 'coffee', 'cafe'] },
+  { id: 'pharmacy', k: ['pharmacy', 'drugstore', 'drug store', 'chemist', '药店', '药房'], cls: ['pharmacy', 'chemist'], tag: ['amenity:pharmacy', 'shop:chemist'], q: ['pharmacy', 'Shoppers Drug Mart', 'Rexall', 'London Drugs', 'CVS', 'Walgreens'] },
+  { id: 'grocery', k: ['grocery', 'groceries', 'supermarket', 'grocery store', '超市', '杂货', '杂货店', '菜市场'], cls: ['supermarket', 'grocery'], tag: ['shop:supermarket'], q: ['supermarket', 'Safeway', 'Sobeys', 'Superstore', 'No Frills', 'Save-On-Foods', 'Walmart Supercentre', 'Kroger'] },
+  { id: 'train', k: ['train station', 'train', 'railway station', 'station', 'lrt', 'skytrain', 'subway', 'metro', '火车站', '车站', '轻轨', '地铁', '地铁站'], cls: ['railway'], tag: ['railway:station', 'railway:halt'], q: ['station'] },
+  { id: 'bus', k: ['bus station', 'bus terminal', 'bus depot', 'transit centre', 'transit center', '汽车站', '巴士站', '公交站', '客运站'], cls: ['bus'], tag: ['amenity:bus_station'], q: ['bus station', 'bus terminal', 'transit centre'] },
+  { id: 'ferry', k: ['ferry', 'ferry terminal', '渡口', '码头', '轮渡'], cls: ['ferry_terminal'], tag: ['amenity:ferry_terminal'], q: ['ferry terminal', 'ferry'] },
+  { id: 'uni', k: ['university', 'college', 'campus', '大学', '学院'], cls: ['college', 'university'], tag: ['amenity:university', 'amenity:college'], q: ['university', 'college'] },
+  { id: 'park', k: ['park', 'parks', '公园'], cls: ['park'], tag: ['leisure:park'], q: ['park'] },
+  { id: 'hotel', k: ['hotel', 'hotels', 'motel', 'inn', 'lodging', '酒店', '宾馆', '旅馆', '住宿'], cls: ['lodging', 'hotel'], tag: ['tourism:hotel', 'tourism:motel'], q: ['hotel', 'inn', 'motel'] },
+  { id: 'parking', k: ['parking', 'parking lot', 'car park', '停车场', '停车'], cls: ['parking'], tag: ['amenity:parking'], q: ['parking'] },
+];
+export function intentOf(q) {
+  const x = norm(q); if (!x) return null; const cjk = /[\u3400-\u9fff]/.test(x);
+  return INTENTS.find(e => e.k.includes(x)) || (cjk ? INTENTS.find(e => e.k.some(k => /[\u3400-\u9fff]/.test(k) && (k.includes(x) || x.includes(k)))) : null)
+    || (x.length >= 3 ? INTENTS.find(e => e.k.some(k => k.length > 3 && (k.startsWith(x) || x === k + 's' || x.startsWith(k + ' ') || x.endsWith(' ' + k)))) : null) || null;
+}
+async function photonTag(q, ctx, it, signal) {
+  const c = ctx.c, B = ctx.B, r = Math.max(0.6, B ? (B.getEast() - B.getWest()) * 0.75 : 0.6), ry = r * 0.6;
+  const u = new URL('https://photon.komoot.io/api/'); const sp = new URLSearchParams({ q, limit: 10, lat: c.lat, lon: c.lng, location_bias_scale: 0.1, zoom: 12, bbox: [c.lng - r, c.lat - ry, c.lng + r, c.lat + ry].map(v => v.toFixed(4)).join(',') });
+  for (const t of it.tag) sp.append('osm_tag', t); u.search = sp;
+  const rr = await fetch(u, { signal }); if (!rr.ok) return [];
+  return (await rr.json()).features.map(f => { const p = f.properties; return { name: p.name || q, address: [p.street && [p.housenumber, p.street].filter(Boolean).join(' '), p.city, p.state].filter(Boolean).join(', '), category: p.osm_key + '=' + p.osm_value, cls: it.cls[0],
+    lng: f.geometry.coordinates[0], lat: f.geometry.coordinates[1], osm: p.osm_type ? { type: p.osm_type, id: p.osm_id } : null, _cat: 1, sc: /international/i.test(p.name || '') ? 70 : 0 }; }).filter(x => x.name);
+}
 let IDX = null, idxP = null;
 const PC = new Map(); // Photon cache by area (0.1 deg) + normalised prefix
 let PFX = null; // 2-char token-prefix -> entries (v0.9 prebuilt in-memory prefix index)
@@ -42,11 +71,13 @@ const key = x => norm(x.name) + '|' + (+x.lat).toFixed(3) + ',' + (+x.lng).toFix
 // local instant results
 export function localSuggest(q, ctx, extra = []) {
   const qn = norm(q); if (!qn) return []; const out = [], seen = new Set();
-  const push = (x, src) => { const ts = Math.max(textScore(qn, x.name, x.address), x.zh ? textScore(qn, x.zh) : -1); if (ts < 0) return; const k = key(x); if (seen.has(k)) return; seen.add(k);
+  const it = intentOf(q), icls = new Set(it?.cls || []);
+  const push = (x, src) => { let ts = Math.max(textScore(qn, x.name, x.address), x.zh ? textScore(qn, x.zh) : -1); if (it && (icls.has(x.cls) || icls.has(x.category) || x._cat)) { if (ts < 0 && haversine(ctx.c, x) > 150000) return; ts = Math.max(ts, 4); } if (ts < 0) return; const k = key(x); if (seen.has(k)) return; seen.add(k);
     out.push({ ...x, name: ctx.zh && x.zh ? x.zh : x.name, ts: ts + (src === 'saved' ? 2 : src === 'recent' ? 1 : 0), dist: haversine(ctx.c, x), src }); };
   for (const [src, list] of extra) for (const x of list) if (x && x.lat != null) push(x, src);
   const pool = IDX ? (PFX && qn.length >= 2 && !/[\u3400-\u9fff]/.test(qn) ? (PFX.get(qn.slice(0, 2)) || []) : IDX) : [];
   for (const x of pool) { push({ name: x.name, zh: x.zh, address: '', category: x.cls, cls: x.cls, lat: x.lat, lng: x.lng, osm: x.osm, sc: x.sc }, 'idx'); }
+  if (it && IDX && pool !== IDX) for (const x of IDX) if (icls.has(x.cls)) push({ name: x.name, zh: x.zh, address: '', category: x.cls, cls: x.cls, lat: x.lat, lng: x.lng, osm: x.osm, sc: x.sc }, 'idx');
   if (IDX && pool !== IDX && out.filter(o => o.src === 'idx').length < 3) for (const x of IDX) push({ name: x.name, zh: x.zh, address: '', category: x.cls, cls: x.cls, lat: x.lat, lng: x.lng, osm: x.osm, sc: x.sc }, 'idx');
   out.sort((a, b) => rank(a, ctx) - rank(b, ctx)); const dd = [];
   for (const x of out.slice(0, 40)) if (!dd.some(y => norm(y.name) === norm(x.name) && haversine(x, y) < 350)) dd.push(x);   // same place mapped twice (node + area)
@@ -62,10 +93,13 @@ export async function suggest(q, ctx, extra, render, signal) {
   const ck = `${ctx.c.lat.toFixed(1)},${ctx.c.lng.toFixed(1)}|${qn}`;
   const ph = (...a) => { const ts = AbortSignal.timeout(4000), sg = signal && AbortSignal.any ? AbortSignal.any([signal, ts]) : ts; return photon(...a.slice(0, 4), sg, a[4]).catch(() => []); };
   const reqs = PC.has(ck) ? [Promise.resolve(PC.get(ck))] : [Promise.all([ph(q, ctx.c, 8, ctx.z), prov ? ph(q, ctx.c, 8, Math.min(ctx.z, 9), prov) : []]).then(r => { const f = r.flat(); if (f.length) { PC.set(ck, f); if (PC.size > 300) PC.delete(PC.keys().next().value); } return f; })];
+  const it = intentOf(q);
+  if (it) { const ts = AbortSignal.timeout(4500), sg = signal && AbortSignal.any ? AbortSignal.any([signal, ts]) : ts; const ik = 'i|' + ck.split('|')[0] + '|' + it.id;
+    reqs.push(PC.has(ik) ? Promise.resolve(PC.get(ik)) : Promise.all(it.q.slice(0, 5).map(w => photonTag(w, ctx, it, sg).catch(() => []))).then(r => { const f = r.flat(); if (f.length) PC.set(ik, f); return f; })); }
   const addr = await addrP;
   let remote = (await Promise.all(reqs)).flat().map(x => ({ ...x })); if (signal?.aborted) return;
-  const score = x => { x.dist = haversine(ctx.c, x); x.ts = Math.max(textScore(qn, x.name, x.address), 0.5); return x; };
-  remote = remote.map(score).filter(x => x.ts >= 0.5);
+  const icl = new Set(it?.cls || []); const score = x => { x.dist = haversine(ctx.c, x); x.ts = Math.max(textScore(qn, x.name, x.address), x._cat || (it && icl.has(String(x.category || '').split('=').pop())) ? 4 : 0.5); return x; };
+  remote = remote.map(score).filter(x => x.ts >= 0.5 && !(it && x.dist > 250000 && x.ts >= 4 && textScore(qn, x.name, x.address) < 0));
   if (remote.length + local.length + addr.length < 3) { try { remote.push(...(await nominatim(q, ctx.c, { countrycodes: 'ca', viewbox: prov ? `${prov[0]},${prov[3]},${prov[2]},${prov[1]}` : undefined, signal })).map(score)); } catch {} if (signal?.aborted) return; }
   // stable merge: keep the local rows (and their order) on top; add new remote rows below, sorted by rank; fill to 8
   local.unshift(...addr); const seen = new Set(local.map(key)); const near = (a, b) => norm(a.name) === norm(b.name) && haversine(a, b) < 350;
