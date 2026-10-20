@@ -3,9 +3,16 @@ import { lang } from './i18n.js';
 
 const withTimeout = (ms) => { const c = new AbortController(); setTimeout(() => c.abort(), ms); return c.signal; };
 
-export async function photon(q, center, limit = 8) {
+export async function photonBox(q, B, center, zoom, limit = 10) { // results strictly inside (1.5x) the current view
+  const dx = (B.getEast() - B.getWest()) * 0.25, dy = (B.getNorth() - B.getSouth()) * 0.25;
   const u = new URL('https://photon.komoot.io/api/');
-  u.search = new URLSearchParams({ q, limit, lat: center.lat, lon: center.lng, location_bias_scale: 0.3, zoom: 12, ...(lang === 'en' ? { lang: 'en' } : {}) });
+  u.search = new URLSearchParams({ q, limit, lat: center.lat, lon: center.lng, zoom: Math.round(zoom), location_bias_scale: 0.1, bbox: [B.getWest() - dx, B.getSouth() - dy, B.getEast() + dx, B.getNorth() + dy].map(x => x.toFixed(5)).join(','), ...(lang === 'en' ? { lang: 'en' } : {}) });
+  const r = await fetch(u, { signal: withTimeout(8000) }); if (!r.ok) throw new Error('Photon ' + r.status);
+  return (await r.json()).features.map(fromPhoton);
+}
+export async function photon(q, center, limit = 8, zoom = 12) {
+  const u = new URL('https://photon.komoot.io/api/');
+  u.search = new URLSearchParams({ q, limit, lat: center.lat, lon: center.lng, location_bias_scale: 0.2, zoom: Math.round(zoom), ...(lang === 'en' ? { lang: 'en' } : {}) });
   const r = await fetch(u, { signal: withTimeout(8000) });
   if (!r.ok) throw new Error('Photon ' + r.status);
   return (await r.json()).features.map(fromPhoton);
@@ -147,4 +154,37 @@ export function distToLine(p, coords) {
     best = Math.min(best, Math.hypot(ax + tt * dx, ay + tt * dy));
   }
   return best;
+}
+
+/** Gallery: all public photos we can legally show (Commons files from tags, Wikidata P18 + P373 category), each with credit. */
+export async function photosFor(tags, ll) {
+  const files = [], cats = [];
+  const add = f => { f = f.replace(/^File:/, '').replace(/_/g, ' '); if (!files.includes(f)) files.push(f); };
+  const wc = tags.wikimedia_commons;
+  if (wc?.startsWith('File:')) add(wc); else if (wc?.startsWith('Category:')) cats.push(wc.slice(9));
+  if (tags.image?.includes('commons.wikimedia.org') && tags.image.includes('File:')) add(decodeURIComponent(tags.image.split('File:')[1]));
+  if (tags.wikidata) {
+    try {
+      const c = (await (await fetch(`https://www.wikidata.org/wiki/Special:EntityData/${tags.wikidata}.json`, { signal: withTimeout(8000) })).json()).entities?.[tags.wikidata]?.claims || {};
+      (c.P18 || []).forEach(x => x.mainsnak?.datavalue && add(x.mainsnak.datavalue.value));
+      (c.P373 || []).forEach(x => x.mainsnak?.datavalue && cats.push(x.mainsnak.datavalue.value));
+    } catch {}
+  }
+  for (const cat of cats.slice(0, 1)) {
+    try {
+      const j = await (await fetch(`https://commons.wikimedia.org/w/api.php?action=query&list=categorymembers&cmtitle=Category:${encodeURIComponent(cat)}&cmtype=file&cmlimit=12&format=json&origin=*`, { signal: withTimeout(8000) })).json();
+      (j.query?.categorymembers || []).forEach(m => /\.(jpe?g|png|webp)$/i.test(m.title) && add(m.title));
+    } catch {}
+  }
+  const out = [];
+  for (let i = 0; i < Math.min(files.length, 12); i += 6) {
+    try {
+      const chunk = files.slice(i, i + 6).map(f => 'File:' + f).join('|');
+      const j = await (await fetch(`https://commons.wikimedia.org/w/api.php?action=query&titles=${encodeURIComponent(chunk)}&prop=imageinfo&iiprop=url|extmetadata&iiurlwidth=900&format=json&origin=*`, { signal: withTimeout(9000) })).json();
+      for (const p of Object.values(j.query?.pages || {})) { const ii = p.imageinfo?.[0]; if (!ii) continue; const m = ii.extmetadata || {};
+        out.push({ src: ii.thumburl || ii.url, page: ii.descriptionurl, credit: `${strip(m.Artist?.value) || 'Wikimedia Commons'} · ${m.LicenseShortName?.value || ''} · Wikimedia Commons` }); }
+    } catch {}
+  }
+  if (!out.length && ll) { try { const p = await panoramax(ll); if (p) out.push(p); } catch {} }
+  return out;
 }

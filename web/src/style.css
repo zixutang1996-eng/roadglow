@@ -75,7 +75,7 @@ body.neon #navBanner{background:#173a48}body.west #navBanner{background:#4a2f1a}
   .grab{display:block;width:36px;height:4px;border-radius:2px;background:var(--line);margin:8px auto 0}
   #controls{bottom:auto;top:150px}
   #layersPop{right:62px;top:130px;bottom:auto}
-  body.panel-open #controls{display:none}
+  body.panel-open:not(.panel-collapsed) #controls{display:none}
 }
 
 .xbtn{position:absolute;right:8px;top:8px;z-index:2;width:40px;height:40px;border-radius:50%;border:0;background:var(--bg);box-shadow:var(--shadow);font-size:20px;color:var(--fg)}
@@ -86,3 +86,39 @@ body.neon #navBanner{background:#173a48}body.west #navBanner{background:#4a2f1a}
 .credit{font-size:12.5px;color:var(--muted);padding:4px 20px 0}.credit a{color:var(--muted)}
 .pickbar{position:absolute;left:50%;top:16px;transform:translateX(-50%);z-index:12;padding:12px 18px;font-size:16px;display:flex;gap:12px;align-items:center}
 .maplibregl-ctrl-attrib{font-size:12px}
+
+/* v0.4 close buttons + collapse */
+#panelHead{position:sticky;top:0;z-index:3;background:var(--bg);cursor:pointer}
+.ph{display:flex;align-items:center;gap:8px;padding:6px 8px 6px 18px;min-height:58px}
+#panelTitle{flex:1;font-size:19px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.xbig{flex:none;width:48px;height:48px;border-radius:50%;border:2px solid var(--fg);background:var(--bg);color:var(--fg);font-size:22px;font-weight:700;line-height:1;display:grid;place-items:center}
+.xbig:hover{background:var(--fg);color:var(--bg)}
+#panel.collapsed{bottom:auto;max-height:none;height:auto;overflow:hidden}
+@media (max-width:700px){#panel.collapsed{bottom:0;top:auto}}
+#panel.collapsed #panelBody{display:none}
+#panel.collapsed .ph::after{content:'▴';order:-1;font-size:18px;color:var(--muted)}
+#panel:not(.collapsed) #panelHead .ph{border-bottom:1px solid var(--line)}
+#dirX{display:none}
+.popx{position:absolute;right:8px;top:8px;width:44px;height:44px;font-size:20px}
+#layersPop{padding-top:16px}
+#drawer .dh{display:flex;align-items:center;justify-content:space-between;padding:10px 12px 10px 20px}
+.sq{display:flex;gap:12px;padding:10px 16px;border-bottom:1px solid var(--line);cursor:pointer;align-items:center}
+.sq img,.sq .ph0{width:64px;height:64px;border-radius:8px;object-fit:cover;flex:none;background:var(--line);display:grid;place-items:center;font-size:26px}
+.sq .t{font-size:17px;font-weight:600}.sq .s{font-size:14.5px;color:var(--muted)}
+.sq.done .t::after{content:' ✔';color:#188038}
+.prog{height:10px;border-radius:5px;background:var(--line);overflow:hidden;margin:6px 0}.prog i{display:block;height:100%;background:var(--accent)}
+.desc{padding:8px 22px;font-size:16.5px;line-height:1.45}
+.sugx{display:flex;justify-content:flex-end;padding:2px 6px}.sugx button{width:40px;height:40px;font-size:18px}
+
+.gal{position:relative;background:#000}
+.gtrack{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}.gtrack::-webkit-scrollbar{display:none}
+.gal figure{flex:0 0 100%;margin:0;scroll-snap-align:center;position:relative}
+.gal img{width:100%;height:220px;object-fit:cover;display:block;background:#222;cursor:zoom-in}
+.gal figcaption{font-size:12.5px;padding:4px 12px;background:var(--bg);color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.gal figcaption a{color:var(--muted)}
+.garr{position:absolute;top:86px;width:48px;height:48px;border-radius:50%;border:2px solid #fff;background:rgba(0,0,0,.6);color:#fff;font-size:30px;line-height:1;display:grid;place-items:center;z-index:2}
+.garr.l{left:8px}.garr.r{right:8px}
+.gidx{position:absolute;right:10px;top:10px;background:rgba(0,0,0,.7);color:#fff;border-radius:12px;padding:3px 10px;font-size:15px;font-weight:600}
+.gal.fs{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;justify-content:center}
+.gal.fs img{height:auto;max-height:84vh;object-fit:contain;background:#000;cursor:default}
+.gal.fs .garr{top:calc(50% - 24px)}.gal.fs .gidx{left:12px;right:auto;top:16px}.gal.fs .gx{position:absolute;right:12px;top:12px}
+.gal.fs figcaption{background:#000;color:#ccc;text-align:center}.gal.fs figcaption a{color:#ccc}
