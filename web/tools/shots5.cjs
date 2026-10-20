@@ -1,0 +1,52 @@
+const puppeteer = require('/workspace/pixelnav/node_modules/puppeteer-core');
+const path = require('path'); const out = path.join(__dirname, '../../screenshots/v05/'); require('fs').mkdirSync(out, { recursive: true });
+const BASE = 'http://127.0.0.1:18781/'; const sleep = ms => new Promise(r => setTimeout(r, ms)); const only = process.argv.slice(2);
+(async () => {
+  const b = await puppeteer.launch({ executablePath: '/usr/bin/google-chrome', args: ['--no-sandbox', '--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'], headless: 'new' });
+  const D = { width: 1280, height: 800 }, M = { width: 390, height: 844, deviceScaleFactor: 2, isMobile: true, hasTouch: true };
+  const idle = async p => { await p.waitForFunction(() => window._map && window._map.loaded() && window._map.areTilesLoaded(), { timeout: 45000 }).catch(() => console.log('idle timeout')); await sleep(1200); };
+  async function page(vp, { theme = 'neon', mode = 'light', hash = '#14/53.5418/-113.4935', ls = {} } = {}) { const p = await b.newPage(); await p.setViewport(vp); p.on('pageerror', e => console.log('ERR', e.message));
+    await p.evaluateOnNewDocument((theme, mode, ls) => { Object.defineProperty(navigator, 'language', { get: () => 'zh-CN' }); localStorage.setItem('theme', JSON.stringify(theme)); localStorage.setItem('mode', JSON.stringify(mode)); for (const k in ls) localStorage.setItem(k, JSON.stringify(ls[k])); }, theme, mode, ls);
+    await p.goto(BASE + hash, { waitUntil: 'networkidle0', timeout: 90000 }); await idle(p); return p; }
+  const txt = async p => (await p.$eval('#panelBody', e => e.innerText)).replace(/\n+/g, ' / ').slice(0, 400);
+  const T = {};
+  T.transit = async () => { for (const [vn, vp] of [['desktop', D], ['mobile', M]]) { const p = await page(vp, { theme: 'neon', mode: 'dark' });
+    await p.evaluate(() => { window._app.S.from = { name: 'Downtown', lat: 53.5461, lng: -113.4938 }; window._app.S.travel = 'transit'; window._app.openDirections({ name: 'U of A Hospital', lat: 53.5203, lng: -113.5237 }); });
+    await sleep(9000); await idle(p); await p.screenshot({ path: `${out}${vn}_transit.png` }); console.log(vn, 'transit', await txt(p)); await p.close(); } };
+  T.bike = async () => { const p = await page(D, { theme: 'west', mode: 'light' });
+    await p.evaluate(() => { window._app.S.from = { name: 'A', lat: 53.5461, lng: -113.4938 }; window._app.S.travel = 'bike'; window._app.openDirections({ name: 'B', lat: 53.5203, lng: -113.5237 }); });
+    await sleep(7000); await idle(p); await p.screenshot({ path: `${out}desktop_bike.png` }); console.log('bike', (await txt(p)).slice(0, 200));
+    await p.evaluate(() => { window._app.S.travel = 'drive'; document.querySelector('[data-m=drive]').click(); }); await sleep(5000); console.log('drive again', (await txt(p)).slice(0, 120)); await p.close(); };
+  T.measure = async () => { const p = await page(M, { theme: 'neon', mode: 'light' });
+    await p.click('#menuBtn'); await sleep(400); await p.click('[data-tool=measure]'); await sleep(400);
+    for (const [x, y] of [[80, 300], [300, 320], [300, 600]]) { await p.touchscreen.tap(x, y); await sleep(500); }
+    const exp = await p.evaluate(() => { const m = window._map, a = [[80, 300], [300, 320], [300, 600]].map(q => m.unproject(q)); const h = (p, q) => { const R = 6371008.8, r = Math.PI / 180, dl = (q.lat - p.lat) * r, dg = (q.lng - p.lng) * r; const s = Math.sin(dl / 2) ** 2 + Math.cos(p.lat * r) * Math.cos(q.lat * r) * Math.sin(dg / 2) ** 2; return 2 * R * Math.asin(Math.sqrt(s)); }; return h(a[0], a[1]) + h(a[1], a[2]); });
+    console.log('measure shown', await p.$eval('#mTotal', e => e.textContent), 'expected ~', Math.round(exp), 'm', 'panel opened by taps?', await p.$eval('#panel', e => !e.classList.contains('hidden')));
+    await p.screenshot({ path: `${out}mobile_measure.png` }); await p.click('.measurebar [data-x]'); await sleep(300); console.log('measure closed', !(await p.$('.measurebar'))); await p.close(); };
+  T.weather = async () => { const p = await page(M, { theme: 'west', mode: 'dark', hash: '#16/53.5444/-113.4909' });
+    await p.evaluate(() => window._app.showPlace({ name: 'Edmonton City Hall', lat: 53.5444, lng: -113.4909, osm: { type: 'W', id: 26389376 } })); await sleep(8000);
+    console.log('wx', await p.$eval('#wx', e => e.innerText.replace(/\n/g, ' | ')).catch(() => 'none'));
+    console.log('sun calc', await p.evaluate(() => { const s = window._app.sunTimes(53.5444, -113.4909, new Date('2026-06-21T12:00:00-06:00')); return [s.rise.toLocaleTimeString('en-CA', { timeZone: 'America/Edmonton' }), s.set.toLocaleTimeString('en-CA', { timeZone: 'America/Edmonton' })]; }));
+    await p.evaluate(() => document.querySelector('#wx').scrollIntoView()); await p.screenshot({ path: `${out}mobile_weather_sun.png` }); await p.close(); };
+  T.lists = async () => { const p = await page(D, { theme: 'neon', mode: 'light', hash: '#16/53.5444/-113.4909', ls: { questDone: ['Q132360385'] } });
+    await p.evaluate(() => window._app.showPlace({ name: 'Edmonton City Hall', lat: 53.5444, lng: -113.4909 })); await sleep(1500);
+    await p.click('[data-a=save]'); await sleep(400); await p.screenshot({ path: `${out}desktop_save_to_list.png` });
+    await p.click('.listpick .lp[data-i="1"]'); await sleep(400); console.log('saved', await p.evaluate(() => localStorage.getItem('saved')));
+    await p.click('#menuBtn'); await sleep(500); await p.screenshot({ path: `${out}desktop_menu_lists_tools.png` });
+    await p.click('[data-tool=list][data-arg="想去"]'); await sleep(500); console.log('list panel', await p.$eval('#panelTitle', e => e.textContent), await txt(p));
+    await p.click('#menuBtn'); await sleep(400); await p.click('[data-sq]'); await sleep(3000); await p.screenshot({ path: `${out}desktop_quest_progress.png` }); console.log('progress', (await txt(p)).slice(0, 80)); await p.close(); };
+  T.offline = async () => { const ctx = await b.createBrowserContext(); const p = await ctx.newPage(); await p.setViewport(M); p.on('pageerror', e => console.log('ERR', e.message));
+    await p.goto(BASE + '#15/53.5418/-113.4935', { waitUntil: 'networkidle0' }); await idle(p); await sleep(2000); await p.reload({ waitUntil: 'networkidle0' }); await idle(p);
+    console.log('sw controlled', await p.evaluate(() => !!navigator.serviceWorker.controller));
+    await p.click('#menuBtn'); await sleep(400); await p.click('[data-tool=offline]');
+    await p.waitForFunction(() => document.querySelector('#panelBody')?.innerText.includes('完成'), { timeout: 300000 }).catch(() => console.log('offline dl timeout'));
+    console.log('offline result', await txt(p), JSON.stringify(await p.evaluate(() => window._app.S.offlineLast)));
+    await p.screenshot({ path: `${out}mobile_offline_download.png` });
+    await p.setOfflineMode(true); await p.reload({ waitUntil: 'load' }).catch(e => console.log('reload offline err', e.message)); await sleep(8000);
+    console.log('offline map tiles loaded', await p.evaluate(() => window._map ? window._map.areTilesLoaded() : 'no map'), 'poi rendered', await p.evaluate(() => window._map?.queryRenderedFeatures({ layers: ['poi'] }).length));
+    await p.screenshot({ path: `${out}mobile_offline_view.png` });
+    await p.type('#q', 'coffee'); await sleep(3000); console.log('offline search', await p.$$eval('#suggest .sug', e => e.slice(0, 4).map(x => x.innerText.replace(/\n/g, ' | '))));
+    await p.screenshot({ path: `${out}mobile_offline_search.png` }); await ctx.close(); };
+  for (const k of (only.length ? only : Object.keys(T))) { try { await T[k](); } catch (e) { console.log('FAIL', k, e.message); } }
+  await b.close();
+})();

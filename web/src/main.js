@@ -113,7 +113,8 @@ async function runSearch(v) {
     if (lastQ !== v) return;
     const inB = x => B.contains([x.lng, x.lat]);
     const sc = x => (inB(x) ? 0 : 1e7) + haversine(c, x) * (inB(x) ? 0.2 : 1);
-    let r = [...inView, ...near].sort((a, b) => sc(a) - sc(b)).map(x => ({ ...x, dist: haversine(c, x) }));
+    let r = [...inView, ...near]; if (!r.length) r = offlineSearch(v);
+    r = r.sort((a, b) => sc(a) - sc(b)).map(x => ({ ...x, dist: haversine(c, x) }));
     const sem = semMatch(v); if (sem || r.some(x => x.dist < 50000)) r = r.filter(x => x.dist < 150000 || inB(x));
     if (sem) r.unshift({ sem, name: `${L('在此区域搜索', 'Search this area for')}「${sem.t}」`, address: L('附近所有相关地点（含连锁品牌）', 'All matching places nearby, incl. chains') });
     if (!r.filter(x => !x.sem).length && /^\d/.test(v)) { try { r.push(...await nominatim(v, c)); } catch {} }
@@ -257,7 +258,7 @@ function renderPlace(p, tags, extra) {
     const a = e.target.closest('.act')?.dataset.a;
     if (a === 'dir') openDirections(p);
     if (a === 'start') openDirections(p, true);
-    if (a === 'save') { let s = store.get('saved', []); s = saved ? s.filter(x => !(Math.abs(x.lat - p.lat) < 1e-5 && Math.abs(x.lng - p.lng) < 1e-5)) : [{ name: p.name, address: addr || p.address, lat: p.lat, lng: p.lng, osm: p.osm }, ...s]; store.set('saved', s); map.getSource('saved')?.setData(savedFC()); renderPlace(p, tags, extra); renderDrawer(); }
+    if (a === 'save') { const doSave = list => { let s = store.get('saved', []); s = saved ? s.filter(x => !(Math.abs(x.lat - p.lat) < 1e-5 && Math.abs(x.lng - p.lng) < 1e-5)) : [{ name: p.name, address: addr || p.address, lat: p.lat, lng: p.lng, osm: p.osm, list }, ...s]; store.set('saved', s); map.getSource('saved')?.setData(savedFC()); renderPlace(p, tags, extra); renderDrawer(); if (list) toast(L('已保存到 ', 'Saved to ') + list); }; saved ? doSave() : chooseList(p, doSave); }
     if (a === 'share') share(p);
   };
   if ($('#qDone')) $('#qDone').onclick = () => { const d = questDone(), i = d.indexOf(p.quest.id); i >= 0 ? d.splice(i, 1) : d.push(p.quest.id); store.set('questDone', d); renderPlace(p, tags, extra); updQuestLayer(); };
@@ -331,7 +332,7 @@ const closePanelTemp = hide => { panel.style.visibility = hide ? 'hidden' : ''; 
 function openDirections(dest, autostart = false) {
   if (dest !== undefined) S.dest = dest; S.from = S.from || { gps: true, name: t('mylocation') }; S.routes = null;
   openPanel(`<button class="xbtn" id="dirX" title="${lang === 'zh' ? '关闭路线' : 'Close directions'}">✕</button><div class="dir">
-    <div class="seg" id="modeSeg" style="margin-right:48px"><button data-m="drive">🚗 ${t('drive')}</button><button data-m="walk">🚶 ${t('walk')}</button><button disabled title="${t('transit')}">🚌 ${t('transit')}</button></div>
+    <div class="seg" id="modeSeg" style="margin-right:48px"><button data-m="drive">🚗 ${t('drive')}</button><button data-m="walk">🚶 ${t('walk')}</button><button data-m="bike">🚲 ${L('骑行', 'Bike')}</button><button data-m="transit">🚌 ${t('transit')}</button></div>
     <div class="row2"><div style="flex:1">
       <div class="fld"><span>◯</span><div class="acbox" style="flex:1"><input id="fromIn" value="${esc(S.from.name)}"></div></div>
       <div class="fld"><span>📍</span><div class="acbox" style="flex:1"><input id="toIn" value="${esc(S.dest?.name || '')}" placeholder="${t('to')}"></div></div>
@@ -345,12 +346,14 @@ function openDirections(dest, autostart = false) {
   $('#dirX').onclick = closeDirections;
   if (S.dest && !S.dest.gps) route(autostart); else if (S.dest?.gps) route(autostart);
 }
-function closeDirections() { S.routes = null; S.from = null; drawRoutes(); closePanel(); }
+function closeDirections() { clearTransit(); S.routes = null; S.from = null; drawRoutes(); closePanel(); }
 const gpsNow = () => new Promise(res => navigator.geolocation ? navigator.geolocation.getCurrentPosition(p => { setMe(p); res(S.me); }, () => res(null), { timeout: 8000, enableHighAccuracy: true }) : res(null));
 async function resolveEnd(e) { if (!e) return null; if (!e.gps) return e; return S.me || await gpsNow(); }
 async function route(autostart) {
   const from = await resolveEnd(S.from), to = await resolveEnd(S.dest);
   if (!from || !to) { $('#alts').innerHTML = `<div class="row">${!from ? t('err') + ': GPS' : ''}</div>`; return; }
+  clearTransit();
+  if (S.travel === 'transit') { S.routes = null; drawRoutes(); return routeTransit(from, to); }
   try {
     S.routes = await osrm(from, to, S.travel); S.routeIdx = 0; drawRoutes(); fitRoute(); renderAlts();
     if (autostart) startNav();
@@ -577,4 +580,131 @@ async function openSideQuests() {
   $('#sqList').onclick = e => { const el = e.target.closest('.sq'); if (el) showQuest(shown[+el.dataset.i][1]); };
 }
 
-window._app = { semanticSearch, semMatch, S, openSideQuests, showQuest, questData, tools, showPlace, openDirections, startNav, pick, openDrawer, closeDrawer, runSearch, setStyle, nominatimSearch };
+// ======================= v0.5 =======================
+// ---------- transit (Transitous / MOTIS, free community service; GTFS incl. Edmonton ETS) ----------
+function decodePoly(str, prec = 7) { let i = 0, lat = 0, lng = 0; const out = [], f = 10 ** prec;
+  while (i < str.length) { for (const k of [0, 1]) { let b, sh = 0, r = 0; do { b = str.charCodeAt(i++) - 63; r |= (b & 31) << sh; sh += 5; } while (b >= 32); const d = r & 1 ? ~(r >> 1) : r >> 1; if (k) lng += d; else lat += d; } out.push([lng / f, lat / f]); }
+  return out; }
+async function transitPlan(from, to) {
+  const u = `https://api.transitous.org/api/v1/plan?fromPlace=${from.lat},${from.lng}&toPlace=${to.lat},${to.lng}&time=${new Date().toISOString()}&numItineraries=4`;
+  const j = await (await fetch(u, { signal: AbortSignal.timeout(20000) })).json();
+  return (j.itineraries || []).map(it => ({ duration: it.duration, start: it.startTime, end: it.endTime, transfers: it.transfers,
+    legs: it.legs.map(l => ({ mode: l.mode, name: l.routeShortName || l.displayName || '', head: l.headsign || '', color: l.routeColor ? '#' + l.routeColor : null, from: l.from?.name, to: l.to?.name, start: l.startTime, end: l.endTime, dur: l.duration, dist: l.distance, agency: l.agencyName, coords: l.legGeometry?.points ? decodePoly(l.legGeometry.points, l.legGeometry.precision || 7) : [] })) }));
+}
+const MODEI = { WALK: '🚶', BUS: '🚌', TRAM: '🚊', SUBWAY: '🚇', RAIL: '🚆', REGIONAL_RAIL: '🚆', FERRY: '⛴', BIKE: '🚲', COACH: '🚌', HIGHSPEED_RAIL: '🚄', METRO: '🚇' };
+const hm = s => new Date(s).toLocaleTimeString(ZH ? 'zh-CN' : 'en-CA', { hour: 'numeric', minute: '2-digit' });
+function drawTransit(it) {
+  const fs = (it?.legs || []).map(l => ({ type: 'Feature', properties: { c: l.mode === 'WALK' ? '#7a7f8a' : (l.color || routeColor()), w: l.mode === 'WALK' ? 1 : 0 }, geometry: { type: 'LineString', coordinates: l.coords } }));
+  if (!map.getSource('transit')) { map.addSource('transit', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+    map.addLayer({ id: 'transit-case', type: 'line', source: 'transit', filter: ['==', ['get', 'w'], 0], layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': isDark() ? '#000' : '#fff', 'line-width': 10 } });
+    map.addLayer({ id: 'transit', type: 'line', source: 'transit', layout: { 'line-cap': 'round', 'line-join': 'round' }, paint: { 'line-color': ['get', 'c'], 'line-width': ['case', ['==', ['get', 'w'], 1], 4, 6], 'line-dasharray': [1, 0] } }); }
+  map.getSource('transit').setData({ type: 'FeatureCollection', features: fs });
+  const all = fs.flatMap(f => f.geometry.coordinates); if (all.length) { const b = new maplibregl.LngLatBounds(all[0], all[0]); all.forEach(c => b.extend(c)); map.fitBounds(b, { padding: innerWidth > 700 ? { left: 440, right: 80, top: 80, bottom: 80 } : { top: 140, bottom: innerHeight * 0.5, left: 40, right: 40 }, duration: 600 }); }
+}
+async function routeTransit(from, to) {
+  $('#alts').innerHTML = `<div class="row">${t('searching')}</div>`; $('#steps').innerHTML = '';
+  let its; try { its = await transitPlan(from, to); } catch (e) { $('#alts').innerHTML = `<div class="row">${t('err')}: Transitous ${esc(e.message)}</div>`; return; }
+  if (!its.length) { $('#alts').innerHTML = `<div class="row">${L('此时段没有公交方案（或该地区无 GTFS 数据）', 'No transit itinerary found (or no GTFS data here)')}</div>`; drawTransit(null); return; }
+  let sel = 0;
+  const render = () => {
+    $('#alts').innerHTML = its.map((it, i) => `<div class="alt${i === sel ? ' on' : ''}" data-i="${i}"><div class="d">${fmtDur(it.duration)}<small>${hm(it.start)} – ${hm(it.end)} · ${L('换乘', 'transfers')} ${it.transfers}</small></div>
+      <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">${it.legs.filter(l => l.mode !== 'WALK' || l.dur > 120).map(l => l.mode === 'WALK' ? `<span>🚶${Math.round(l.dur / 60)}′</span>` : `<span class="tl" style="background:${l.color || 'var(--accent)'};color:#fff">${MODEI[l.mode] || '🚌'} ${esc(l.name)}</span>`).join('<span>›</span>')}</div></div>`).join('')
+      + `<div style="font-size:12.5px;color:var(--muted);padding:6px 16px">${L('时刻表数据：Transitous（社区免费服务，GTFS 计划时刻，部分含实时）。公交模式不提供逐向导航。', 'Schedules: Transitous (free community service, scheduled GTFS, some realtime). No turn-by-turn in transit mode.')}</div>`;
+    const it = its[sel];
+    $('#steps').innerHTML = `<div class="dh" style="font-size:15px">${t('steps')}</div>` + it.legs.map(l => `<div class="step"><div class="i">${MODEI[l.mode] || '•'}</div><div>${l.mode === 'WALK' ? `${L('步行至', 'Walk to')} ${esc(l.to === 'END' ? (S.dest?.name || t('to')) : l.to)}` : `<b>${esc(l.name)}</b> ${esc(l.head ? '→ ' + l.head : '')}<div class="m">${hm(l.start)} ${esc(l.from)} → ${hm(l.end)} ${esc(l.to)}</div>`}<div class="m">${fmtDur(l.dur)}${l.dist ? ' · ' + fmtDist(l.dist) : ''}${l.agency ? ' · ' + esc(l.agency) : ''}</div></div></div>`).join('');
+    drawTransit(it);
+  };
+  render(); $('#alts').onclick = e => { const a = e.target.closest('.alt'); if (a) { sel = +a.dataset.i; render(); } };
+}
+const clearTransit = () => map.getSource('transit')?.setData({ type: 'FeatureCollection', features: [] });
+
+// ---------- distance measuring ----------
+tools.measure = () => {
+  if (S.measuring) return; S.measuring = true; closePanel(); const pts = [];
+  if (!map.getSource('measure')) { map.addSource('measure', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+    map.addLayer({ id: 'measure-line', type: 'line', source: 'measure', filter: ['==', ['geometry-type'], 'LineString'], paint: { 'line-color': routeColor(), 'line-width': 4, 'line-dasharray': [2, 1] } });
+    map.addLayer({ id: 'measure-pt', type: 'circle', source: 'measure', filter: ['==', ['geometry-type'], 'Point'], paint: { 'circle-radius': 7, 'circle-color': '#fff', 'circle-stroke-color': routeColor(), 'circle-stroke-width': 3 } }); }
+  const bar = document.createElement('div'); bar.className = 'card pickbar measurebar'; document.body.appendChild(bar);
+  const total = () => pts.reduce((s, p, i) => i ? s + haversine(pts[i - 1], p) : 0, 0);
+  const draw = () => { map.getSource('measure')?.setData({ type: 'FeatureCollection', features: [...pts.map(p => ({ type: 'Feature', properties: {}, geometry: { type: 'Point', coordinates: [p.lng, p.lat] } })), ...(pts.length > 1 ? [{ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: pts.map(p => [p.lng, p.lat]) } }] : [])] });
+    bar.innerHTML = `<div><div style="font-size:13px;color:var(--muted)">${L('测距：点按地图添加点', 'Measure: tap the map to add points')}</div><div id="mTotal" style="font-size:24px;font-weight:700">${fmtDist(total())}</div></div><button class="btn ghost" data-u="1">${L('撤销', 'Undo')}</button><button class="xbig" data-x="1" aria-label="close">✕</button>`; };
+  const onClick = e => { pts.push({ lat: e.lngLat.lat, lng: e.lngLat.lng }); draw(); };
+  bar.onclick = e => { if (e.target.closest('[data-u]')) { pts.pop(); draw(); } if (e.target.closest('[data-x]')) { S.measuring = false; map.off('click', onClick); bar.remove(); map.getSource('measure')?.setData({ type: 'FeatureCollection', features: [] }); } };
+  map.on('click', onClick); draw(); S.measureTotal = total;
+};
+
+// ---------- weather (Open-Meteo, no key) + sunrise/sunset computed locally (NOAA algorithm) ----------
+function sunTimes(lat, lng, date = new Date()) {
+  const rad = Math.PI / 180, J = date / 864e5 + 2440587.5, n = Math.round(J - 2451545.0 + 0.0008 - lng / 360);
+  const Js = n + 0.0009 - lng / 360, M = (357.5291 + 0.98560028 * Js) % 360, C = 1.9148 * Math.sin(M * rad) + 0.02 * Math.sin(2 * M * rad) + 0.0003 * Math.sin(3 * M * rad);
+  const lam = (M + C + 180 + 102.9372) % 360, Jt = 2451545.0 + Js + 0.0053 * Math.sin(M * rad) - 0.0069 * Math.sin(2 * lam * rad);
+  const dec = Math.asin(Math.sin(lam * rad) * Math.sin(23.44 * rad)), cw = (Math.sin(-0.833 * rad) - Math.sin(lat * rad) * Math.sin(dec)) / (Math.cos(lat * rad) * Math.cos(dec));
+  if (cw > 1 || cw < -1) return { polar: cw > 1 ? 'night' : 'day' };
+  const w = Math.acos(cw) / rad, toD = j => new Date((j - 2440587.5) * 864e5);
+  return { rise: toD(Jt - w / 360), set: toD(Jt + w / 360) };
+}
+const WMO = c => c === 0 ? ['☀️', L('晴', 'Clear')] : c <= 2 ? ['🌤', L('少云', 'Partly cloudy')] : c === 3 ? ['☁️', L('阴', 'Overcast')] : c <= 48 ? ['🌫', L('雾', 'Fog')] : c <= 57 ? ['🌦', L('毛毛雨', 'Drizzle')] : c <= 67 ? ['🌧', L('雨', 'Rain')] : c <= 77 ? ['🌨', L('雪', 'Snow')] : c <= 82 ? ['🌧', L('阵雨', 'Showers')] : c <= 86 ? ['🌨', L('阵雪', 'Snow showers')] : ['⛈', L('雷暴', 'Thunderstorm')];
+const wxCache = new Map();
+placeExtras = async p => {
+  const el = $('#wx'); if (!el) return;
+  const st = sunTimes(p.lat, p.lng), tf = d => d.toLocaleTimeString(ZH ? 'zh-CN' : 'en-CA', { hour: 'numeric', minute: '2-digit' });
+  const sun = st.polar ? (st.polar === 'day' ? L('极昼', 'Midnight sun') : L('极夜', 'Polar night')) : `🌅 ${tf(st.rise)} · 🌇 ${tf(st.set)}`;
+  const k = p.lat.toFixed(2) + ',' + p.lng.toFixed(2);
+  const show = w => { if (!$('#wx') || S.place !== p) return; const [ic, tx] = w ? WMO(w.current.weather_code) : ['', ''];
+    $('#wx').innerHTML = `<div class="row"><span class="i">${ic || '☼'}</span><div>${w ? `<b>${Math.round(w.current.temperature_2m)}°C</b> ${tx} · ${L('体感', 'feels')} ${Math.round(w.current.apparent_temperature)}° · ${L('今日', 'today')} ${Math.round(w.daily.temperature_2m_min[0])}–${Math.round(w.daily.temperature_2m_max[0])}°` : ''}
+      <div style="font-size:15px;color:var(--muted)">${sun}${L('（日出日落为本地计算，时间按本设备时区显示）', ' (computed locally, shown in this device’s time zone)')}</div>${w ? `<div style="font-size:12px;color:var(--muted)">Weather: Open-Meteo.com (CC BY 4.0)</div>` : ''}</div></div>`; };
+  show(null);
+  try { let w = wxCache.get(k); if (!w) { w = await (await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${p.lat.toFixed(3)}&longitude=${p.lng.toFixed(3)}&current=temperature_2m,apparent_temperature,weather_code&daily=temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=1`, { signal: AbortSignal.timeout(8000) })).json(); wxCache.set(k, w); } show(w); } catch {}
+};
+
+// ---------- saved lists ----------
+const lists = () => store.get('lists', [L('收藏', 'Favourites'), L('想去', 'Want to go')]);
+function chooseList(p, after) {
+  const box = document.createElement('div'); box.className = 'card listpick';
+  box.innerHTML = `<div style="font-weight:600;font-size:18px;margin-bottom:10px">${L('保存到列表', 'Save to list')}</div>${lists().map((l, i) => `<button class="btn ghost lp" data-i="${i}">${esc(l)}</button>`).join('')}
+    <button class="btn ghost lp" data-new="1">＋ ${L('新建列表', 'New list')}</button><button class="xbig popx" data-x="1" aria-label="close">✕</button>`;
+  document.body.appendChild(box);
+  box.onclick = e => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.x) return box.remove();
+    let name; if (b.dataset.new) { name = prompt(L('列表名称', 'List name')); if (!name) return; store.set('lists', [...lists(), name]); } else name = lists()[+b.dataset.i];
+    box.remove(); after(name); };
+}
+drawerExtra = () => {
+  const saved = store.get('saved', []), ls = [...new Set([...lists(), ...saved.map(s => s.list).filter(Boolean)])];
+  const off = store.get('offline', []);
+  return `<div class="ds"><div class="di"><span class="i">☰</span><b>${L('我的列表', 'My lists')}</b></div>${ls.map(l => { const n = saved.filter(s => (s.list || lists()[0]) === l).length; return `<div class="di" data-tool="list" data-arg="${esc(l)}"><span class="i">▸</span>${esc(l)} <span style="color:var(--muted)">· ${n}</span></div>`; }).join('')}</div>
+   <div class="ds"><div class="di" data-tool="measure"><span class="i">📏</span><b>${L('测量距离', 'Measure distance')}</b></div>
+   <div class="di" data-tool="offline"><span class="i">⇩</span><div><b>${L('下载当前区域（离线）', 'Download this area (offline)')}</b><div class="s" style="font-size:13.5px;color:var(--muted)">${off.length ? L(`已下载 ${off.length} 个区域`, `${off.length} area(s) downloaded`) : L('地图 + 地点，可离线查看和搜索', 'Map + places, view & search offline')}</div></div></div></div>`;
+};
+tools.list = name => {
+  const items = store.get('saved', []).filter(s => (s.list || lists()[0]) === name);
+  openPanel(`<div class="list">${items.map((it, i) => `<div class="it" data-i="${i}"><div>★ ${esc(it.name)}</div><div class="s">${esc(it.address || '')}</div></div>`).join('') || `<div class="row">${t('empty')}</div>`}</div>`, `${name} · ${items.length}`);
+  $('#panelBody .list').onclick = e => { const el = e.target.closest('.it'); if (el) pick(items[+el.dataset.i]); };
+};
+
+// ---------- offline areas (Service Worker cache of tiles + local place index) ----------
+const lng2x = (l, z) => Math.floor((l + 180) / 360 * 2 ** z), lat2y = (a, z) => Math.floor((1 - Math.log(Math.tan(a * Math.PI / 180) + 1 / Math.cos(a * Math.PI / 180)) / Math.PI) / 2 * 2 ** z);
+if ('serviceWorker' in navigator && location.protocol === 'https:' || location.hostname === '127.0.0.1') navigator.serviceWorker?.register(`${base}sw.js`).catch(() => {});
+tools.offline = async () => {
+  const B = map.getBounds(), tj = await (await fetch('https://tiles.openfreemap.org/planet')).json(), tpl = tj.tiles[0];
+  const urls = []; const z0 = Math.max(0, Math.floor(map.getZoom()) - 4);
+  for (let z = z0; z <= 14; z++) { const x0 = lng2x(B.getWest(), z), x1 = lng2x(B.getEast(), z), y0 = lat2y(B.getNorth(), z), y1 = lat2y(B.getSouth(), z);
+    for (let x = x0; x <= x1; x++) for (let y = y0; y <= y1; y++) urls.push(tpl.replace('{z}', z).replace('{x}', x).replace('{y}', y)); }
+  if (urls.length > 3000) return toast(L(`区域太大（${urls.length} 个瓦片），请放大后再下载`, `Area too large (${urls.length} tiles) — zoom in first`));
+  openPanel(`<div class="row"><div>${L('正在下载…', 'Downloading…')} <span id="offN">0</span> / ${urls.length}<div class="prog"><i id="offP" style="width:0"></i></div><div style="font-size:13px;color:var(--muted)">${L('矢量瓦片 OpenFreeMap（z' + z0 + '–14，放大后自动细化）', 'OpenFreeMap vector tiles (z' + z0 + '–14, overzoomed beyond)')}</div></div></div>`, L('离线下载', 'Offline download'));
+  const cache = await caches.open('rg-tiles-v1'); let done = 0, fail = 0;
+  const glyphs = []; for (const f of [...new Set(map.getStyle().layers.flatMap(l => l.layout?.['text-font'] || []))]) for (const r of ['0-255', '256-511', '8192-8447']) glyphs.push(`${base}glyphs/${encodeURIComponent(f)}/${r}.pbf`);
+  const all = [...urls, ...glyphs, ...['neon_dark', 'neon_light', 'west_dark', 'west_light'].flatMap(k => [`${base}styles/${k}.json`, `${base}sprites/${k}.json`, `${base}sprites/${k}.png`, `${base}sprites/${k}@2x.json`, `${base}sprites/${k}@2x.png`]), 'https://tiles.openfreemap.org/planet'];
+  const work = async () => { while (all.length) { const u = all.pop(); try { if (!(await cache.match(u))) { const r = await fetch(u); if (r.ok) await cache.put(u, r); else fail++; } } catch { fail++; } done++; if ($('#offN')) { $('#offN').textContent = Math.min(done, urls.length); $('#offP').style.width = (100 * done / (urls.length + 40)).toFixed(1) + '%'; } } };
+  await Promise.all(Array.from({ length: 6 }, work));
+  // local place index for offline search: named POIs from the downloaded z14 tiles (already rendered features) + Photon names
+  const feats = map.querySourceFeatures('omt', { sourceLayer: 'poi' }).filter(f => f.properties.name).map(f => ({ name: f.properties[ZH ? 'name:zh' : 'name:en'] || f.properties.name, n2: f.properties.name, cls: f.properties.class, lat: +f.geometry.coordinates[1].toFixed(6), lng: +f.geometry.coordinates[0].toFixed(6) }));
+  const idx = new Map(store.get('offlineIdx', []).map(x => [x.n2 + x.lat, x])); feats.forEach(x => idx.set(x.n2 + x.lat, x));
+  store.set('offlineIdx', [...idx.values()].slice(-20000));
+  store.set('offline', [...store.get('offline', []), { b: [B.getWest(), B.getSouth(), B.getEast(), B.getNorth()], n: urls.length, at: Date.now() }]);
+  S.offlineLast = { tiles: urls.length, fail, places: feats.length };
+  openPanel(`<div class="row"><div><b>${L('下载完成', 'Download complete')}</b> · ${urls.length} ${L('个瓦片', 'tiles')}${fail ? ` · ${fail} ${L('失败', 'failed')}` : ''} · ${feats.length} ${L('个可离线搜索的地点', 'places searchable offline')}
+    <div style="font-size:13.5px;color:var(--muted);margin-top:8px">${L('限制：浏览器可能在存储紧张时清除缓存；离线时无法路线规划、实时搜索、照片、天气、营业时间详情。', 'Limits: the browser may evict the cache under storage pressure; offline there is no routing, live search, photos, weather or full details.')}</div></div></div>`, L('离线下载', 'Offline download'));
+};
+function offlineSearch(v) { const x = v.toLowerCase(), c = map.getCenter(); return store.get('offlineIdx', []).filter(o => (o.name + ' ' + o.n2).toLowerCase().includes(x)).map(o => ({ name: o.name, address: L('离线 · ', 'offline · ') + (o.cls || ''), lat: o.lat, lng: o.lng, category: o.cls, dist: haversine(c, o) })).sort((a, b) => a.dist - b.dist).slice(0, 12); }
+
+window._app = { sunTimes, offlineSearch, semanticSearch, semMatch, S, openSideQuests, showQuest, questData, tools, showPlace, openDirections, startNav, pick, openDrawer, closeDrawer, runSearch, setStyle, nominatimSearch };

@@ -98,7 +98,7 @@ export async function nearbyCategory(filter, bounds) {
 }
 
 export async function osrm(from, to, mode) {
-  const prof = mode === 'walk' ? 'routed-foot' : 'routed-car';
+  const prof = mode === 'walk' ? 'routed-foot' : mode === 'bike' ? 'routed-bike' : 'routed-car';
   const u = `https://routing.openstreetmap.de/${prof}/route/v1/driving/${from.lng},${from.lat};${to.lng},${to.lat}?overview=full&geometries=geojson&steps=true&alternatives=true`;
   const r = await fetch(u, { signal: withTimeout(15000) });
   const j = await r.json();

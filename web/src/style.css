@@ -122,3 +122,7 @@ body.neon #navBanner{background:#173a48}body.west #navBanner{background:#4a2f1a}
 .gal.fs img{height:auto;max-height:84vh;object-fit:contain;background:#000;cursor:default}
 .gal.fs .garr{top:calc(50% - 24px)}.gal.fs .gidx{left:12px;right:auto;top:16px}.gal.fs .gx{position:absolute;right:12px;top:12px}
 .gal.fs figcaption{background:#000;color:#ccc;text-align:center}.gal.fs figcaption a{color:#ccc}
+.tl{display:inline-block;border-radius:6px;padding:2px 8px;font-size:15px;font-weight:600}
+.listpick{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:40;padding:18px;width:320px;max-width:92vw;display:flex;flex-direction:column;gap:8px}
+.listpick .lp{text-align:left;font-size:17px;padding:12px 16px;color:var(--fg)}
+.measurebar{gap:14px}
