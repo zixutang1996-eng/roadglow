@@ -207,7 +207,7 @@ function tileFeats(v) {
   const it = AC.intentOf(v), cls = new Set(it?.cls || []), x = AC.norm(v), out = [], seen = new Set();
   const take = (f, cl) => { const n = f.properties[ZH ? 'name:zh' : 'name:en'] || f.properties.name; if (!n) return; const c = f.geometry.coordinates; const k = n + c[1].toFixed(3) + c[0].toFixed(3); if (seen.has(k)) return;
     const hit = (cls.has(cl) || cls.has(f.properties.subclass)) && (!it.sub || it.sub.includes(f.properties.subclass) || cl === 'aerodrome'); if (!hit && !(x.length >= 2 && AC.norm(n).includes(x))) return; seen.add(k);
-    out.push({ name: n, address: catLabel(f.properties.subclass || cl), lat: c[1], lng: c[0], cls: cl, category: cl, _cat: hit ? 1 : 0, sc: cl === 'aerodrome' ? AC.apSc(n, it) + (f.properties.iata ? 40 : 0) : 0 }); };
+    out.push({ name: n, address: catLabel(f.properties.subclass || cl), lat: c[1], lng: c[0], cls: cl, category: cl, _cat: hit ? 1 : 0, sc: cl === 'aerodrome' ? AC.apSc(n, it) + (f.properties.iata ? 40 : 0) : hit ? AC.apSc(n, it) : 0 }); };
   try { if (map.getSource('omt')) for (const f of map.querySourceFeatures('omt', { sourceLayer: 'aerodrome_label' })) take(f, 'aerodrome');
     for (const f of (TPOI?.features || [])) { if (out.length > 400) break; take(f, f.properties.class); }
     if (map.getZoom() >= 14) for (const f of map.querySourceFeatures('omt', { sourceLayer: 'poi' })) { if (out.length > 400) break; take(f, f.properties.class); } } catch { }

@@ -52,7 +52,7 @@ export function intentOf(q) {
   return INTENTS.find(e => e.k.includes(x)) || (cjk ? INTENTS.find(e => e.k.some(k => /[\u3400-\u9fff]/.test(k) && (k.includes(x) || x.includes(k)))) : null)
     || (x.length >= 3 ? INTENTS.find(e => e.k.some(k => k.length > 3 && (k.startsWith(x) || x === k + 's' || x.startsWith(k + ' ') || x.endsWith(' ' + k)))) : null) || null;
 }
-export const apSc = (n, it) => it?.id !== 'airport' ? 0 : /international|intl/i.test(n || '') ? 150 : /seaplane|heli|water (aerodrome|airport)|harbou?r|air park|airpark/i.test(n || '') ? -60 : 20;
+export const apSc = (n, it) => it?.id === 'uni' ? (/career|training|academy|language|beauty|test centre/i.test(n || '') ? -50 : /universit|universit[ée]|polytechni|institute of technology/i.test(n || '') ? 70 : 0) : it?.id === 'hospital' ? (/hospital|h[ôo]pital|medical cent(re|er)/i.test(n || '') ? 30 : 0) : it?.id !== 'airport' ? 0 : /international|intl/i.test(n || '') ? 150 : /seaplane|heli|water (aerodrome|airport)|harbou?r|air park|airpark/i.test(n || '') ? -60 : 20;
 async function photonTag(q, ctx, it, signal) {
   const c = ctx.c, B = ctx.B, r = Math.max(0.6, B ? (B.getEast() - B.getWest()) * 0.75 : 0.6), ry = r * 0.6;
   const u = new URL('https://photon.komoot.io/api/'); const sp = new URLSearchParams({ q, limit: 10, lat: c.lat, lon: c.lng, location_bias_scale: 0.1, zoom: 12, bbox: [c.lng - r, c.lat - ry, c.lng + r, c.lat + ry].map(v => v.toFixed(4)).join(',') });
@@ -81,7 +81,7 @@ export function localSuggest(q, ctx, extra = []) {
   if (it && IDX && pool !== IDX) for (const x of IDX) if (icls.has(x.cls)) push({ name: x.name, zh: x.zh, address: '', category: x.cls, cls: x.cls, lat: x.lat, lng: x.lng, osm: x.osm, sc: x.sc }, 'idx');
   if (IDX && pool !== IDX && out.filter(o => o.src === 'idx').length < 3) for (const x of IDX) push({ name: x.name, zh: x.zh, address: '', category: x.cls, cls: x.cls, lat: x.lat, lng: x.lng, osm: x.osm, sc: x.sc }, 'idx');
   out.sort((a, b) => rank(a, ctx) - rank(b, ctx)); const dd = [];
-  for (const x of out.slice(0, 40)) if (!dd.some(y => norm(y.name) === norm(x.name) && haversine(x, y) < 350)) dd.push(x);   // same place mapped twice (node + area)
+  for (const x of out.slice(0, 40)) if (!dd.some(y => norm(y.name) === norm(x.name) && haversine(x, y) < (/airport|aerodrome/i.test(x.name) ? 9000 : 350))) dd.push(x);   // same place mapped twice (node + area)
   return farCut(dd).slice(0, 8);
 }
 // drop far-away rows (e.g. the Alberta dataset while viewing Seattle) whenever something nearby matched
@@ -101,11 +101,11 @@ export async function suggest(q, ctx, extra, render, signal) {
     reqs.push(PC.has(ik) ? Promise.resolve(PC.get(ik)) : Promise.all(it.q.slice(0, 3).map(w => photonTag(w, ctx, it, sg).catch(() => []))).then(r => { const f = r.flat(); if (f.length) PC.set(ik, f); return f; })); }
   const addr = await addrP;
   let remote = (await Promise.all(reqs)).flat().map(x => ({ ...x })); if (signal?.aborted) return;
-  const icl = new Set(it?.cls || []); const score = x => { x.dist = haversine(ctx.c, x); if (it?.id === 'airport' && x.sc == null && /aerodrome/.test(x.category || '')) x.sc = apSc(x.name, it); const cat = x._cat || (it && icl.has(String(x.category || '').split('=').pop())); x.ts = cat ? 8 : Math.max(Math.min(textScore(qn, x.name, x.address), it ? 4 : 99), 0.5); return x; };
+  const icl = new Set(it?.cls || []); const score = x => { x.dist = haversine(ctx.c, x); if (it && x.sc == null && (it.id !== 'airport' || /aerodrome/.test(x.category || ''))) x.sc = apSc(x.name, it); const cat = x._cat || (it && icl.has(String(x.category || '').split('=').pop())); x.ts = cat ? 8 : Math.max(Math.min(textScore(qn, x.name, x.address), it ? 4 : 99), 0.5); return x; };
   remote = remote.map(score).filter(x => x.ts >= 0.5 && !(it && x.dist > 250000));
   if (remote.length + local.length + addr.length < 3) { try { remote.push(...(await nominatim(q, ctx.c, { countrycodes: 'ca', viewbox: prov ? `${prov[0]},${prov[3]},${prov[2]},${prov[1]}` : undefined, signal })).map(score)); } catch {} if (signal?.aborted) return; }
   // stable merge: keep the local rows (and their order) on top; add new remote rows below, sorted by rank; fill to 8
-  local.unshift(...addr); const seen = new Set(local.map(key)); const near = (a, b) => norm(a.name) === norm(b.name) && haversine(a, b) < (/airport|aerodrome/i.test(a.name) ? 4000 : 350);
+  local.unshift(...addr); const seen = new Set(local.map(key)); const near = (a, b) => norm(a.name) === norm(b.name) && haversine(a, b) < (/airport|aerodrome/i.test(a.name) ? 9000 : 350);
   const add = remote.filter(x => !seen.has(key(x)) && !local.some(l => near(l, x))).sort((a, b) => rank(a, ctx) - rank(b, ctx));
   const dd = []; for (const x of add) if (!dd.some(y => near(x, y))) dd.push(x);
   const all = []; for (const x of [...local, ...dd]) if (!all.some(y => near(x, y))) all.push(x); for (const x of all) { if (x.dist == null) x.dist = haversine(ctx.c, x); if (x.ts == null) x.ts = 1; } all.sort((a, b) => rank(a, ctx) - rank(b, ctx));
