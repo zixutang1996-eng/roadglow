@@ -86,7 +86,7 @@ function addImportant() {
   map.setFilter('poi', ['all', ...(f0 ? [f0] : []), clean, ['!', ['within', { type: 'Polygon', coordinates: [YEG] }]]]);
   for (let i = BANDS.length - 1; i >= 0; i--) {
     const b = BANDS[i], id = IMP[i];
-    const op = ['interpolate', ['linear'], ['zoom'], b, 0, b + 0.6, 1];
+    const op = ['interpolate', ['linear'], ['zoom'], b, 0.55, b + 0.4, 1];
     if (map.getLayer(id)) map.removeLayer(id);
     map.addLayer({ id, type: 'symbol', source: 'imp', minzoom: b, filter: ['all', ['>=', ['get', 'rz'], b], ['<', ['get', 'rz'], b + 0.25]],
       layout: { 'icon-image': poi.layout['icon-image'], 'icon-size': ['interpolate', ['linear'], ['zoom'], 10.75, 0.72, 14, 0.95, 17, 1.05], 'text-field': poi.layout['text-field'], 'text-font': poi.layout['text-font'],
