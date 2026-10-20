@@ -110,9 +110,8 @@ export function startNavigation({ map, S, setMe, makePuck, reroute, drawRoutes, 
       onPos({ lng: a[0] + (b[0] - a[0]) * f, lat: a[1] + (b[1] - a[1]) * f, speed, heading: bearingOf({ lng: a[0], lat: a[1] }, { lng: b[0], lat: b[1] }), acc: 5 });
     }, 1000);
   } else {
-    watchId = navigator.geolocation.watchPosition(g => onPos({ lat: g.coords.latitude, lng: g.coords.longitude, speed: g.coords.speed, heading: g.coords.heading, acc: g.coords.accuracy }),
+    watchId = navigator.geolocation.watchPosition(g => onPos({ lat: g.coords.latitude, lng: g.coords.longitude, speed: g.coords.speed, heading: g.coords.heading ?? S.compassHdg ?? null, acc: g.coords.accuracy }),
       () => { if (!st.gpsLostSaid) { st.gpsLostSaid = 1; sayEv('gpslost'); } }, { enableHighAccuracy: true, maximumAge: 1000 });
-    try { navigator.wakeLock?.request('screen').then(l => st.lock = l); } catch {}
   }
   sayEv('step', { st: route.steps[0] });
 

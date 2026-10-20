@@ -72,7 +72,7 @@ const STY = {
   neon_light: { th: 'neon', glyph: '#ffffff', dglyph: '#14161f', edge: '#ffffff', dark: false },
   neon_dark:  { th: 'neon', glyph: '#f1eee2', dglyph: '#101219', edge: '#0d0f16', dark: true },
   west_light: { th: 'west', glyph: '#ffffff', dglyph: '#ffffff', edge: '#0d0905', ink: true, dark: false },
-  west_dark:  { th: 'west', glyph: '#ffffff', dglyph: '#ffffff', edge: '#efe0bf', ink: true, dark: true },  // v0.7: black badge, white glyph, cream rim on dark
+  west_dark:  { th: 'west', glyph: '#ffffff', dglyph: '#ffffff', edge: '#8a7350', ink: true, dark: true },  // v0.7: black badge, white glyph, cream rim on dark
 };
 export const CONTRAST = {};
 function fillFor(s, grp) {
@@ -88,10 +88,10 @@ function svgFor(name, s, px, key) {
   (CONTRAST[key] ||= {})[grp] = +cr(fill, glyph).toFixed(2);
   const rough = s.th === 'west' ? 'filter="url(#r)"' : '';
   const ring = s.th === 'neon' ? `<path d="${shape}" fill="none" stroke="${s.dark ? mix(fill, '#ffffff', 0.45) : '#ffffff'}" stroke-width="1.2" transform="translate(20 21) scale(.84) translate(-20 -21)" opacity="${s.dark ? 0.7 : 0.85}"/>`
-    : `<path d="${shape}" fill="none" stroke="${glyph}" stroke-width="0.9" opacity="0.6" transform="translate(20 21) scale(.83) translate(-20 -21)"/>`;
+    : `<path d="${shape}" fill="none" stroke="${s.ink ? '#8a7350' : glyph}" stroke-width="0.9" opacity="${s.ink ? 0.45 : 0.6}" transform="translate(20 21) scale(.83) translate(-20 -21)"/>`;
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${px}" height="${px * 43 / 40}" viewBox="-2 -1 44 45">
     <defs><filter id="r"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="${name.length}"/><feDisplacementMap in="SourceGraphic" scale="0.8"/></filter></defs>
-    <g ${rough}><path d="${shape}" fill="${fill}" stroke="${s.edge}" stroke-width="${s.ink && s.dark ? 1.6 : 2.2}" stroke-linejoin="round"/>${ring}</g>
+    <g ${rough}><path d="${shape}" fill="${fill}" stroke="${s.edge}" stroke-width="${s.ink && s.dark ? 1.3 : 2.2}" stroke-opacity="${s.ink && s.dark ? 0.7 : 1}" stroke-linejoin="round"/>${ring}</g>
     <g transform="translate(20 21) scale(.92) translate(-12 -12)" fill="${glyph}" fill-rule="evenodd"><path d="${G[name]}"/></g></svg>`;
 }
 fs.mkdirSync('public/sprites', { recursive: true });

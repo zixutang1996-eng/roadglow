@@ -39,35 +39,38 @@ def fill(n, light, seed):
             x, y = int(x0 + np.cos(ang) * t) % n, int(y0 + np.sin(ang) * t) % n; c[y, x] *= (.93 if light else 1.08)
     return np.clip(c, 0, 255).astype(np.uint8)
 
-def edge(S, light, seed, rough):
-    """9-slice source: size 3S, slice S. Returns (rim RGBA, mask RGBA). Edge profiles periodic with period S."""
+def edge(S, light, seed, amp, nicks):
+    """9-slice source: size 3S, slice S (2x px). Gentle low-frequency undulation (period = S, i.e. 40-64 css px per repeat),
+    amplitude `amp` (2x px), a few small nicks, feathered thin scorch, soft alpha."""
     N = 3 * S; r = np.random.default_rng(seed)
     def prof(k):
         t = np.arange(N); p = np.zeros(N)
-        for h, amp in [(1, .35), (2, .3), (3, .22), (5, .16), (8, .12), (13, .08), (21, .05)]:
-            p += amp * np.sin(2 * np.pi * h * t / S + r.uniform(0, 6.3)) * r.uniform(.5, 1.2)
-        p += .25 * np.sin(2 * np.pi * 34 * t / S + r.uniform(0, 6.3)) * (r.random(N) > .5)  # tiny nicks
-        return (p - p.min()) / (p.max() - p.min()) * rough * S + S * .06
+        for h, a in [(1, 1.0), (2, .45)]: p += a * np.sin(2 * np.pi * h * t / S + r.uniform(0, 6.3))
+        p = (p - p.min()) / (p.max() - p.min()) * amp
+        for _ in range(nicks):                                  # occasional small nick (periodic per tile)
+            c, w, dpt = r.uniform(0, S), r.uniform(3, 7), r.uniform(.8, 1.6) * amp
+            d = np.minimum(abs((t - c) % S), S - abs((t - c) % S)); p += dpt * np.clip(1 - d / w, 0, 1) ** 1.5
+        return p + 2
     L, R, T, B = (prof(k) for k in range(4))
     yy, xx = np.mgrid[0:N, 0:N]
-    d = np.minimum.reduce([xx - L[yy], (N - 1 - xx) - R[yy], yy - T[xx], (N - 1 - yy) - B[xx]])  # px inside torn line
-    nz = pnoise(S, 2.2, seed + 9); nz = nz[yy % S, xx % S]                                         # periodic blotch noise
-    alpha = np.clip(d + .8, 0, 1)                                                                # torn edge, ~AA
+    d = np.minimum.reduce([xx - L[yy], (N - 1 - xx) - R[yy], yy - T[xx], (N - 1 - yy) - B[xx]])
+    nz = pnoise(S, 2.0, seed + 9); nz = nz[yy % S, xx % S]
+    alpha = np.clip((d + 1.2) / 2.6, 0, 1)                      # soft anti-aliased edge
     mask = np.zeros((N, N, 4), np.uint8); mask[..., 3] = (alpha * 255).astype(np.uint8)
-    w = S * .55 * (0.7 + 0.6 * nz)                                                               # irregular scorch depth
+    w = S * .16 * (0.75 + 0.5 * nz)                             # narrow feathered scorch (~5-10 css px)
     q = np.clip(d / w, 0, 1)
-    char, umber, tan = hexc('#140a03'), hexc('#5a3a1a'), (hexc('#c9a46a') if light else hexc('#2c1e10'))
-    col = np.where((q < .18)[..., None], lerp(char, umber, q / .18), lerp(umber, tan, np.clip((q - .18) / .5, 0, 1)))
-    a = np.clip(1 - q, 0, 1)**1.4 * alpha; a *= (.85 + .3 * nz) if light else (.95 + .2 * nz)
+    umber, tan = hexc('#5a3a1a'), (hexc('#b98f58') if light else hexc('#2c1e10'))
+    col = lerp(umber, tan, q)
+    a = (1 - q) ** 2.2 * alpha * (.42 if light else .5) * (.8 + .4 * nz)
     rim = np.dstack([col, np.clip(a, 0, 1) * 255]).astype(np.uint8)
     rim[S:2*S, S:2*S, 3] = 0; mask[S:2*S, S:2*S, 3] = 255
     return rim, mask
 
 for light, name in [(True, 'light'), (False, 'dark')]:
     Image.fromarray(fill(384, light, 11 if light else 21)).save(f'{OUT}/parch_{name}.webp', quality=80)
-for size, S, rough in [('s', 24, .34), ('m', 40, .3), ('l', 64, .28)]:
+for size, S, amp, nk in [('s', 24, 2.0, 0), ('m', 40, 4.0, 1), ('l', 64, 6.0, 1)]:
     for light, name in [(True, 'light'), (False, 'dark')]:
-        rim, mask = edge(S * 2, light, 100 + S, rough)   # rendered at 2x for retina; CSS slices at S*2 and draws at S px
+        rim, mask = edge(S * 2, light, 100 + S, amp, nk)   # rendered at 2x for retina; CSS slices at S*2 and draws at S px
         Image.fromarray(rim, 'RGBA').save(f'{OUT}/rim_{size}_{name}.webp', quality=82)
     Image.fromarray(mask, 'RGBA').save(f'{OUT}/torn_{size}.png', optimize=True)
 # contrast report: text vs lightest/darkest 1% of fill

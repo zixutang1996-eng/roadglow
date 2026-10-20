@@ -10,9 +10,9 @@ export async function photonBox(q, B, center, zoom, limit = 10, signal) { // res
   const r = await fetch(u, { signal: signal ? AbortSignal.any([signal, withTimeout(8000)]) : withTimeout(8000) }); if (!r.ok) throw new Error('Photon ' + r.status);
   return (await r.json()).features.map(fromPhoton);
 }
-export async function photon(q, center, limit = 8, zoom = 12, signal) {
+export async function photon(q, center, limit = 8, zoom = 12, signal, bbox) {
   const u = new URL('https://photon.komoot.io/api/');
-  u.search = new URLSearchParams({ q, limit, lat: center.lat, lon: center.lng, location_bias_scale: 0.2, zoom: Math.round(zoom), ...(lang === 'en' ? { lang: 'en' } : {}) });
+  u.search = new URLSearchParams({ q, limit, lat: center.lat, lon: center.lng, location_bias_scale: 0.2, zoom: Math.round(zoom), ...(bbox ? { bbox: bbox.join(',') } : {}), ...(lang === 'en' ? { lang: 'en' } : {}) });
   const r = await fetch(u, { signal: signal ? AbortSignal.any([signal, withTimeout(8000)]) : withTimeout(8000) });
   if (!r.ok) throw new Error('Photon ' + r.status);
   return (await r.json()).features.map(fromPhoton);
@@ -36,14 +36,14 @@ function fromPhoton(f) {
 
 // Nominatim: max 1 request/second (usage policy). Browser sends Referer automatically.
 let lastNom = 0;
-export async function nominatim(q, center) {
+export async function nominatim(q, center, opt = {}) {
   const wait = Math.max(0, lastNom + 1100 - Date.now());
   await new Promise(r => setTimeout(r, wait)); lastNom = Date.now();
   const d = 0.6;
   const u = new URL('https://nominatim.openstreetmap.org/search');
   u.search = new URLSearchParams({ q, format: 'jsonv2', limit: 8, addressdetails: 1, 'accept-language': lang === 'zh' ? 'zh,en' : 'en',
-    viewbox: `${center.lng - d},${center.lat + d},${center.lng + d},${center.lat - d}`, bounded: 0 });
-  const r = await fetch(u, { signal: withTimeout(10000) });
+    viewbox: opt.viewbox || `${center.lng - d},${center.lat + d},${center.lng + d},${center.lat - d}`, bounded: 0, ...(opt.countrycodes ? { countrycodes: opt.countrycodes } : {}) });
+  const r = await fetch(u, { signal: opt.signal ? AbortSignal.any([opt.signal, withTimeout(10000)]) : withTimeout(10000) });
   if (!r.ok) throw new Error('Nominatim ' + r.status);
   return (await r.json()).map(x => ({
     name: x.name || x.display_name.split(',')[0], address: x.display_name, category: `${x.category}=${x.type}`,

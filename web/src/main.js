@@ -2,8 +2,10 @@ import * as maplibregl from 'maplibre-gl';
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import './style.css';
-import { ic, iconDefs } from './uiicons.js';
-const AV = '?v=0.7'; // asset version: busts caches for styles + important-POI data
+import { ic, iconDefs, catIc } from './uiicons.js';
+import * as AC from './ac.js';
+import * as ios from './ios.js';
+const AV = '?v=0.7.1'; // asset version: busts caches for styles + important-POI data
 document.body.insertAdjacentHTML('afterbegin', iconDefs());
 for (const [id, k] of [['menuBtn', 'menu'], ['clearBtn', 'close'], ['dirBtn', 'dir'], ['layersBtn', 'layers'], ['locBtn', 'locate']]) { const el = document.getElementById(id); if (el) el.innerHTML = ic(k); }
 import { t, lang, setLang, fmtDist, fmtDur, instruction } from './i18n.js';
@@ -29,7 +31,8 @@ async function loadStyle() {
   return st;
 }
 const routeColor = () => ({ neon_dark: '#4fd6e8', neon_light: '#c2309a', west_light: '#9a2a18', west_dark: '#e0a46a' })[styleKey()];
-function applyBodyClass() { document.body.className = `${S.theme} ${isDark() ? 'dark' : 'light'}${$('#panel').classList.contains('hidden') ? '' : ' panel-open'}${$('#panel').classList.contains('collapsed') ? ' panel-collapsed' : ''}`; }
+const THEMEC = { neon_light: '#2a2f3c', neon_dark: '#0f131c', west_light: '#5a3a1a', west_dark: '#24170c' };
+function applyBodyClass() { const tc = document.getElementById('themeColor'); if (tc) tc.content = THEMEC[`${S.theme}_${isDark() ? 'dark' : 'light'}`] || '#101521'; document.body.className = `${S.theme} ${isDark() ? 'dark' : 'light'}${$('#panel').classList.contains('hidden') ? '' : ' panel-open'}${$('#panel').classList.contains('collapsed') ? ' panel-collapsed' : ''}`; }
 
 // ---------- map ----------
 const hash = location.hash.slice(1).split('/').map(Number);
@@ -65,23 +68,33 @@ map.on('load', addOverlays);
 map.scrollZoom.setWheelZoomRate(1 / 320); map.scrollZoom.setZoomRate(1 / 75);
 { const ez = map.easeTo.bind(map); map.easeTo = (o, ev) => { if (o && o.duration === 300 && o.zoom !== undefined && ev?.originalEvent) o = { ...o, duration: 210 }; return ez(o, ev); }; }
 // important POIs for z11.5–14 (prebuilt from the OSM Alberta extract; tiles take over from z14)
-const IMP = ['imp0', 'imp1', 'imp2', 'imp3'];
+// v0.7b continuous rank-based POI reveal: all named Edmonton-area POIs (prebuilt from OSM, tools/genpois.py) each carry a reveal zoom rz.
+// Layer filters are evaluated at integer zoom, but layer minzoom is fractional, so features are banded into 0.25-zoom layers:
+// band b has minzoom b and fades in from b to b+0.6. More important bands are added last (on top) so they win collisions.
+const BANDS = []; for (let b = 10.75; b <= 17.5; b += 0.25) BANDS.push(+b.toFixed(2));
+const IMP = BANDS.map(b => 'rp' + String(b).replace('.', '_'));
+const YEG = [[-113.85, 53.35], [-113.15, 53.35], [-113.15, 53.72], [-113.85, 53.72], [-113.85, 53.35]];
 function addImportant() {
-  if (!map.getSource('imp')) map.addSource('imp', { type: 'geojson', data: `${base}important_yeg.geojson${AV}` });
+  if (!map.getSource('imp')) map.addSource('imp', { type: 'geojson', data: `${base}pois_yeg.geojson${AV}`, buffer: 64, tolerance: 0 });
   const poi = map.getStyle().layers.find(l => l.id === 'poi'); if (!poi) return;
-  // v0.7: one layer per tier with fractional minzoom (filters are evaluated at integer zoom, layer minzoom is not),
-  // placed on top so collisions favour them; count grows from the 2 km scale (z11.3) to z14 where tile POIs take over.
-  const MZ = [11.2, 11.85, 12.5, 13.2];
-  for (const [i, mz] of MZ.entries()) {
-    const op = ['interpolate', ['linear'], ['zoom'], mz, 0.25, mz + 0.35, 1, 13.7, 1, 14.1, 0];
-    const lay = { id: 'imp' + i, type: 'symbol', source: 'imp', minzoom: mz, maxzoom: 14.1, filter: ['==', ['get', 'tier'], i],
-      layout: { 'icon-image': poi.layout['icon-image'], 'icon-size': ['interpolate', ['linear'], ['zoom'], mz, 0.8 - i * 0.04, 14, 1.05], 'text-field': poi.layout['text-field'], 'text-font': poi.layout['text-font'],
-        'text-size': ['interpolate', ['linear'], ['zoom'], mz, 15 - i, 14, 18], 'text-anchor': 'top', 'text-offset': [0, 1.1], 'text-optional': true, 'text-max-width': 7, 'symbol-sort-key': ['get', 'rank'], 'icon-padding': 1, 'text-padding': 1 },
-      paint: { 'icon-opacity': op, 'text-opacity': op, 'text-color': poi.paint['text-color'], 'text-halo-color': poi.paint['text-halo-color'], 'text-halo-width': poi.paint['text-halo-width'] } };
-    if (map.getLayer(lay.id)) map.removeLayer(lay.id);
-    map.addLayer(lay);
+  // vector-tile POIs only outside the covered area (fallback), so nothing pops in at z14 inside Edmonton
+  const f0 = baseFilters.poi ||= poi.filter;
+  // clutter rule for the tile fallback too: must have a name (except toilets/ATM/parking from z17), never gates/bollards/benches/bins/etc.
+  const DENY = ['gate', 'bollard', 'lift_gate', 'kerb', 'cycle_barrier', 'bench', 'waste_basket', 'bicycle_parking', 'vending_machine', 'parking_entrance', 'street_lamp', 'fire_hydrant', 'manhole', 'pole', 'shelter', 'entrance', 'recycling', 'drinking_water', 'post_box', 'telephone', 'swimming_pool', 'pitch'];
+  const clean = ['all', ['!', ['in', ['get', 'subclass'], ['literal', DENY]]], ['!', ['in', ['get', 'class'], ['literal', DENY]]],
+    ['any', ['has', 'name'], ['all', ['>=', ['zoom'], 17], ['in', ['get', 'class'], ['literal', ['toilets', 'atm', 'parking']]]]]];
+  map.setFilter('poi', ['all', ...(f0 ? [f0] : []), clean, ['!', ['within', { type: 'Polygon', coordinates: [YEG] }]]]);
+  for (let i = BANDS.length - 1; i >= 0; i--) {
+    const b = BANDS[i], id = IMP[i];
+    const op = ['interpolate', ['linear'], ['zoom'], b, 0, b + 0.6, 1];
+    if (map.getLayer(id)) map.removeLayer(id);
+    map.addLayer({ id, type: 'symbol', source: 'imp', minzoom: b, filter: ['all', ['>=', ['get', 'rz'], b], ['<', ['get', 'rz'], b + 0.25]],
+      layout: { 'icon-image': poi.layout['icon-image'], 'icon-size': ['interpolate', ['linear'], ['zoom'], 10.75, 0.72, 14, 0.95, 17, 1.05], 'text-field': poi.layout['text-field'], 'text-font': poi.layout['text-font'],
+        'text-size': ['interpolate', ['linear'], ['zoom'], 10.75, 13.5, 14, 16.5, 17, 18], 'text-anchor': 'top', 'text-offset': [0, 1.1], 'text-optional': true, 'text-max-width': 7, 'symbol-sort-key': ['-', 200, ['get', 'sc']], 'icon-padding': 2 },
+      paint: { 'icon-opacity': op, 'text-opacity': op, 'text-color': poi.paint['text-color'], 'text-halo-color': poi.paint['text-halo-color'], 'text-halo-width': poi.paint['text-halo-width'] } }, map.getLayer('saved-dot') ? 'saved-dot' : undefined);
   }
 }
+const baseFilters = {};
 // custom scale bar with round metric steps
 const scaleEl = document.createElement('div'); scaleEl.id = 'scale'; scaleEl.innerHTML = '<div class="sbar"></div><span></span>'; document.body.appendChild(scaleEl);
 const STEPS = [5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000, 500000, 1000000];
@@ -139,21 +152,30 @@ function addAccLayer() {
   updAcc(); if (puck) puck.getElement().innerHTML = puckSvg();
 }
 function setMe(pos) {
-  S.me = { lat: pos.coords.latitude, lng: pos.coords.longitude, heading: pos.coords.heading, speed: pos.coords.speed, acc: pos.coords.accuracy };
+  S.me = { lat: pos.coords.latitude, lng: pos.coords.longitude, heading: pos.coords.heading ?? S.compassHdg ?? null, speed: pos.coords.speed, acc: pos.coords.accuracy };
   if (!puck) { const el = document.createElement('div'); el.className = 'puck'; el.innerHTML = puckSvg(); puck = new maplibregl.Marker({ element: el, rotationAlignment: 'map', pitchAlignment: 'map' }).setLngLat(S.me).addTo(map); }
   puck.setLngLat(S.me); if (S.me.heading != null && !isNaN(S.me.heading) && !S.nav?.active) puck.setRotation(S.me.heading); updAcc();
 }
-export const locate = (fly = true) => navigator.geolocation?.getCurrentPosition(p => { setMe(p); fly && map.flyTo({ center: S.me, zoom: Math.max(map.getZoom(), 15) }); }, () => toast(t('err') + ': GPS'), { enableHighAccuracy: true, timeout: 10000 });
+export const locate = (fly = true) => navigator.geolocation?.getCurrentPosition(p => { setMe(p); fly && map.flyTo({ center: S.me, zoom: Math.max(map.getZoom(), 15) }); }, err => ios.geoHelp(err, openPanel), { enableHighAccuracy: true, timeout: 10000 });
 
 // ---------- search ----------
 const q = $('#q'); q.placeholder = t('search');
 let sugTimer, sugItems = [], sugSel = -1, lastQ = '';
+// v0.7 autocomplete: instant local rows on every keystroke, remote rows merged after a 150 ms debounce (stale requests aborted)
+const acCtx = () => ({ c: map.getCenter(), z: map.getZoom(), B: map.getBounds(), zh: ZH });
+const acExtra = v => [['saved', store.get('saved', [])], ['recent', store.get('recents', [])], ['offline', offlineSearch(v)]];
+const acPrefix = (v, list) => { const sem = semMatch(v); if (sem) return [{ sem, name: `${L('在此区域搜索', 'Search this area for')}「${sem.t}」`, address: L('附近所有相关地点（含连锁品牌）', 'All matching places nearby, incl. chains') }]; const ce = chainEntry(v, list); return ce ? [ce] : []; };
+window._acLat = [];
 q.addEventListener('input', () => {
   $('#clearBtn').classList.toggle('hidden', !q.value);
-  clearTimeout(sugTimer);
-  const v = q.value.trim();
-  if (v.length < 2) { renderSuggest(v ? [] : recentItems()); return; }
-  renderLocal(v); sugTimer = setTimeout(() => runSearch(v), 200);
+  clearTimeout(sugTimer); searchAbort?.abort();
+  const v = q.value.trim(); lastQ = v;
+  if (v.length < 1) { renderSuggest(recentItems()); return; }
+  const t0 = performance.now(), ctx = acCtx(), local = AC.localSuggest(v, ctx, acExtra(v));
+  renderSuggest([...acPrefix(v, local), ...local], false, v); window._acLat.push({ q: v, phase: 'local', ms: +(performance.now() - t0).toFixed(1), n: local.length });
+  const ac = new AbortController(); searchAbort = ac;
+  sugTimer = setTimeout(() => AC.suggest(v, ctx, acExtra(v), (list, phase, ms, prov) => { if (ac.signal.aborted || lastQ !== v || phase === 'local') return;
+    renderSuggest([...acPrefix(v, list), ...list], false, v); window._acLat.push({ q: v, phase, ms: +(performance.now() - t0).toFixed(0), n: list.length, prov }); }, ac.signal).catch(() => {}), 150);
 });
 q.addEventListener('focus', () => { if (!q.value) renderSuggest(recentItems()); });
 q.addEventListener('keydown', e => {
@@ -175,7 +197,7 @@ function localHits(v) {
   return out.sort((a, b) => a.dist - b.dist).slice(0, 8);
 }
 function chainEntry(v, list) {
-  const x = v.trim().toLowerCase(); if (x.length < 3) return null;
+  const x = v.trim().toLowerCase(); if (x.length < 3 || /^\d/.test(x)) return null;
   const known = SEM.flatMap(e => e.brands).find(b => b.toLowerCase().replace(/[’']/g, '') === x.replace(/[’']/g, '') || (x.length > 4 && b.toLowerCase().startsWith(x)));
   const same = list.filter(r => r.name && r.name.toLowerCase().includes(x)); const multi = new Set(same.map(r => r.name.toLowerCase())).size < same.length;
   if (!known && !multi) return null;
@@ -207,13 +229,14 @@ async function nominatimSearch(v) {
   $('#suggest').innerHTML = `<div class="sug"><div class="t">${t('searching')}</div></div>`; $('#suggest').classList.remove('hidden');
   try { renderSuggest(await nominatim(v, map.getCenter()), false, null); } catch (e) { renderSuggest([], false, null); }
 }
+const shortAddr = r => { const a = (r.address || '').split(', ').filter(x => x && x !== r.name && !/^(Canada|加拿大)$/.test(x)); return (a.length ? a.slice(0, 3).join(', ') : catLabel(String(r.cls || r.category || '').split('=').pop())) || ''; };
 const recentItems = () => store.get('recents', []).slice(0, 8).map(r => ({ ...r, recent: true }));
 function renderSuggest(items, keepSel, qForNom) {
   setTimeout(() => { const b = $('#suggest'); if (!b.querySelector('.sugx') && !b.classList.contains('hidden') && b.innerHTML) { b.insertAdjacentHTML('afterbegin', `<div class="sugx"><button class="xbig" aria-label="close">✕</button></div>`); b.querySelector('.sugx button').addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); b.classList.add('hidden'); q.blur(); }); } }, 0);
   sugItems = items; if (!keepSel) sugSel = -1;
   const box = $('#suggest');
   if (!items.length && qForNom === undefined) { box.classList.add('hidden'); return; }
-  box.innerHTML = items.map((r, i) => `<div class="sug${i === sugSel ? ' sel' : ''}" data-i="${i}"><div class="i">${r.sem ? ic('search') : r.recent ? ic('clock') : ic('pin')}</div><div style="flex:1"><div class="t">${esc(r.name)}</div><div class="s">${esc(r.address)}</div></div>${r.dist != null ? `<div class="s" style="flex:none">${fmtDist(r.dist)}</div>` : ''}</div>`).join('')
+  box.innerHTML = items.map((r, i) => `<div class="sug${i === sugSel ? ' sel' : ''}" data-i="${i}"><div class="i">${r.sem ? ic('search') : r.recent || r.src === 'recent' ? ic('clock') : r.src === 'saved' ? ic('star') : catIc(r.cls || r.category)}</div><div style="flex:1;min-width:0"><div class="t">${esc(r.name)}</div><div class="s">${esc(shortAddr(r))}</div></div>${r.dist != null ? `<div class="s" style="flex:none">${fmtDist(r.dist)}</div>` : ''}</div>`).join('')
     + (!items.length ? `<div class="sug"><div class="s">${t('noresults')}</div></div>` : '')
     + (qForNom ? `<div class="sug" data-nom="1"><div class="i">${ic('search')}</div><div class="t">${t('nominatim')}</div></div>` : '');
   box.classList.remove('hidden');
@@ -420,10 +443,16 @@ function attachAC(input, onPick) {
   let tm, items = [];
   const extra = () => [{ gps: true, name: t('mylocation'), address: 'GPS' }, { pickMap: true, name: lang === 'zh' ? '在地图上选择' : 'Choose on map', address: '' },
     ...store.get('saved', []).slice(0, 3), ...store.get('recents', []).slice(0, 4)];
-  const render = list => { items = list; box.innerHTML = list.map((r, i) => `<div class="sug" data-i="${i}"><div class="i">${r.gps ? ic('locate') : r.pickMap ? ic('coord') : ic('pin')}</div><div><div class="t">${esc(r.name)}</div><div class="s">${esc(r.address || '')}</div></div></div>`).join(''); box.classList.toggle('hidden', !list.length); };
+  const render = list => { items = list; box.innerHTML = list.map((r, i) => `<div class="sug" data-i="${i}"><div class="i">${r.gps ? ic('locate') : r.pickMap ? ic('coord') : r.src === 'recent' ? ic('clock') : r.src === 'saved' ? ic('star') : catIc(r.cls || r.category)}</div><div style="flex:1;min-width:0"><div class="t">${esc(r.name)}</div><div class="s">${esc(r.gps || r.pickMap ? (r.address || '') : shortAddr(r))}</div></div>${r.dist != null && !r.gps ? `<div class="s" style="flex:none">${fmtDist(r.dist)}</div>` : ''}</div>`).join(''); box.classList.toggle('hidden', !list.length); };
   input.addEventListener('focus', () => { input.select(); render(extra()); });
-  input.addEventListener('input', () => { clearTimeout(tm); const v = input.value.trim(); if (v.length < 2) return render(extra());
-    tm = setTimeout(async () => { try { render(await photon(v, map.getCenter(), 6)); } catch {} }, 280); });
+  let acA = null, sel = -1;
+  input.addEventListener('input', () => { clearTimeout(tm); acA?.abort(); sel = -1; const v = input.value.trim(); if (v.length < 1) return render(extra());
+    const top = extra().slice(0, 2), ctx = acCtx(), local = AC.localSuggest(v, ctx, acExtra(v)); render([...top, ...local]);
+    const ac = new AbortController(); acA = ac;
+    tm = setTimeout(() => AC.suggest(v, ctx, acExtra(v), (list, ph) => { if (!ac.signal.aborted && ph === 'remote' && input.value.trim() === v) render([...top, ...list]); }, ac.signal).catch(() => {}), 150); });
+  input.addEventListener('keydown', e => { const rows = box.querySelectorAll('.sug'); if (!rows.length) return;
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { sel = Math.max(0, Math.min(rows.length - 1, sel + (e.key === 'ArrowDown' ? 1 : -1))); rows.forEach((r, i) => r.classList.toggle('sel', i === sel)); e.preventDefault(); }
+    if (e.key === 'Enter' && items[sel >= 0 ? sel : (items[0]?.gps || items[0]?.pickMap ? 2 : 0)]) { e.preventDefault(); box.classList.add('hidden'); input.blur(); onPick(items[sel >= 0 ? sel : (items[0]?.gps || items[0]?.pickMap ? 2 : 0)]); } });
   box.addEventListener('pointerdown', e => { const el = e.target.closest('.sug'); if (!el) return; e.preventDefault(); box.classList.add('hidden'); input.blur(); onPick(items[+el.dataset.i]); });
   input.addEventListener('blur', () => setTimeout(() => box.classList.add('hidden'), 150));
 }
@@ -488,9 +517,11 @@ function fitRoute() {
   map.fitBounds(b, { padding: innerWidth > 700 ? { left: 440, right: 80, top: 80, bottom: 80 } : { top: 140, bottom: innerHeight * 0.5, left: 40, right: 40 }, duration: 600 });
 }
 async function startNav() {
+  ios.unlockSpeech(); ios.enableCompass(onCompass); // must run synchronously inside the Start tap on iOS
+  ios.wakeOn(toast); document.getElementById('iosGuide')?.remove();
   const { startNavigation } = await import('./nav.js'); // lazy: only loaded when navigating
   closePanel();
-  S.nav = startNavigation({ map, S, setMe: (c) => { S.me = c; if (puck) puck.setLngLat(c); updAcc(); }, getPuck: () => puck, makePuck: c => { setMe({ coords: { latitude: c.lat, longitude: c.lng } }); return puck; }, reroute: async from => (await osrm(from, await resolveEnd(S.dest), S.travel)), drawRoutes, onEnd: () => { S.nav = null; S.routes = null; drawRoutes(); $('#top').classList.remove('hidden'); } });
+  S.nav = startNavigation({ map, S, setMe: (c) => { S.me = c; if (puck) puck.setLngLat(c); updAcc(); }, getPuck: () => puck, makePuck: c => { setMe({ coords: { latitude: c.lat, longitude: c.lng } }); return puck; }, reroute: async from => (await osrm(from, await resolveEnd(S.dest), S.travel)), drawRoutes, onEnd: () => { ios.wakeOff(); S.nav = null; S.routes = null; drawRoutes(); $('#top').classList.remove('hidden'); } });
   $('#top').classList.add('hidden');
 }
 $('#dirBtn').onclick = () => openDirections(S.place || null);
@@ -498,7 +529,10 @@ $('#dirBtn').onclick = () => openDirections(S.place || null);
 // ---------- controls ----------
 $('#zin').onclick = () => map.zoomIn({ duration: 350 }); $('#zout').onclick = () => map.zoomOut({ duration: 350 });
 $('#compassBtn').onclick = () => { if (S.nav?.active) return S.nav.toggleHeading(); map.easeTo({ bearing: 0, pitch: 0 }); };
-$('#locBtn').onclick = () => locate(true);
+$('#locBtn').onclick = () => { ios.enableCompass(onCompass); locate(true); };
+let compT = 0;
+function onCompass(h) { S.compassHdg = h; const n = performance.now(); if (n - compT < 120 || !puck || S.nav?.active) return; compT = n; if (S.me && (S.me.speed == null || S.me.speed < 1)) puck.setRotation(h); }
+setTimeout(() => ios.maybeShowA2HS(), 2500);
 $('#layersBtn').onclick = () => { renderLayersPop(); $('#layersPop').classList.toggle('hidden'); };
 function renderLayersPop() {
   $('#layersPop').innerHTML = `<button class="xbig popx" data-x="1" aria-label="close">✕</button><div style="font-weight:600;margin:6px 0 14px;font-size:18px">${t('styles')}</div>
@@ -548,7 +582,7 @@ const openDrawer = () => { renderDrawer(); $('#drawer').classList.add('open'); $
 const closeDrawer = () => { $('#drawer').classList.remove('open'); $('#scrim').classList.add('hidden'); };
 $('#menuBtn').onclick = openDrawer; $('#scrim').onclick = closeDrawer;
 
-let toastT; export function toast(s) { const el = $('#toast'); el.textContent = s; el.classList.remove('hidden'); clearTimeout(toastT); toastT = setTimeout(() => el.classList.add('hidden'), 2200); }
+let toastT; export function toast(s, ms = 2200) { const el = $('#toast'); el.textContent = s; el.classList.remove('hidden'); clearTimeout(toastT); toastT = setTimeout(() => el.classList.add('hidden'), ms); }
 
 // Shared link ?p=lat,lng&n=name
 const sp = new URLSearchParams(location.search);
@@ -865,6 +899,7 @@ tools.offline = async () => {
   const urls = []; const z0 = Math.max(0, Math.floor(map.getZoom()) - 4);
   for (let z = z0; z <= 14; z++) { const x0 = lng2x(B.getWest(), z), x1 = lng2x(B.getEast(), z), y0 = lat2y(B.getNorth(), z), y1 = lat2y(B.getSouth(), z);
     for (let x = x0; x <= x1; x++) for (let y = y0; y <= y1; y++) urls.push(tpl.replace('{z}', z).replace('{x}', x).replace('{y}', y)); }
+  { const g = await ios.offlineGuard(urls.length * 30e3, m => Promise.resolve(confirm(m))); if (!g.ok) return; S.offlinePersisted = g.persisted; }
   if (urls.length > 3000) return toast(L(`区域太大（${urls.length} 个瓦片），请放大后再下载`, `Area too large (${urls.length} tiles) — zoom in first`));
   openPanel(`<div class="row"><div>${L('正在下载…', 'Downloading…')} <span id="offN">0</span> / ${urls.length}<div class="prog"><i id="offP" style="width:0"></i></div><div style="font-size:13px;color:var(--muted)">${L('矢量瓦片 OpenFreeMap（z' + z0 + '–14，放大后自动细化）', 'OpenFreeMap vector tiles (z' + z0 + '–14, overzoomed beyond)')}</div></div></div>`, L('离线下载', 'Offline download'));
   const cache = await caches.open('rg-tiles-v1'); let done = 0, fail = 0;
@@ -883,5 +918,6 @@ tools.offline = async () => {
 };
 function offlineSearch(v) { const x = v.toLowerCase(), c = map.getCenter(); return store.get('offlineIdx', []).filter(o => (o.name + ' ' + o.n2).toLowerCase().includes(x)).map(o => ({ name: o.name, address: L('离线 · ', 'offline · ') + (o.cls || ''), lat: o.lat, lng: o.lng, category: o.cls, dist: haversine(c, o) })).sort((a, b) => a.dist - b.dist).slice(0, 12); }
 
-window._app = { applySizes, setMe, updScale, sunTimes, offlineSearch, semanticSearch, semMatch, S, openSideQuests, showQuest, questData, tools, showPlace, openDirections, startNav, pick, openDrawer, closeDrawer, runSearch, setStyle, nominatimSearch };
+AC.loadIndex(`${base}pois_yeg.geojson${AV}`);
+window._app = { AC, ios, applySizes, setMe, updScale, sunTimes, offlineSearch, semanticSearch, semMatch, S, openSideQuests, showQuest, questData, tools, showPlace, openDirections, startNav, pick, openDrawer, closeDrawer, runSearch, setStyle, nominatimSearch };
 renderDrawer(); // re-render once all menu sections (lists, tools) are defined

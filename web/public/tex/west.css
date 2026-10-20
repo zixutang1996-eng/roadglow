@@ -7,11 +7,11 @@ html body.west :is(#searchbar,#panel,#drawer,#layersPop,.listpick,#suggest,.card
   border-radius:0;clip-path:none;box-shadow:none;border:0 solid transparent;
   background:var(--vig),var(--pf) 0 0/192px repeat;background-color:var(--bg);color:var(--fg);
   border-image:var(--rimM) 80/20px round;
-  -webkit-mask-box-image:url(torn_m.png) 80/20px round;mask-border:url(torn_m.png) 80/20px round}
+  -webkit-mask-box-image:url(torn_m.png) 80 fill/20px round;mask-border:url(torn_m.png) 80 fill/20px round}
 /* sizes: large panels get deeper scorched rims, small controls get fine ones */
-html body.west :is(#panel,#drawer){border-image:var(--rimL) 128/34px round;-webkit-mask-box-image:url(torn_l.png) 128/34px round;mask-border:url(torn_l.png) 128/34px round}
+html body.west :is(#panel,#drawer){border-image:var(--rimL) 128/34px round;-webkit-mask-box-image:url(torn_l.png) 128 fill/34px round;mask-border:url(torn_l.png) 128 fill/34px round}
 html body.west :is(#searchbar,#layersPop,.listpick,#suggest,.card,#navBanner.objective,.toast,.pickbar,.acl,#measureBar){border-image:var(--rimM) 80/20px round}
-html body.west :is(.chip,.ctl,.zoomgrp,.btn:not(.ghost)){border-image:var(--rimS) 48/11px round;-webkit-mask-box-image:url(torn_s.png) 48/11px round;mask-border:url(torn_s.png) 48/11px round}
+html body.west :is(.chip,.ctl,.zoomgrp,.btn:not(.ghost)){border-image:var(--rimS) 48/11px round;-webkit-mask-box-image:url(torn_s.png) 48 fill/11px round;mask-border:url(torn_s.png) 48 fill/11px round}
 html body.west{--rimL:url(rim_l_light.webp);--rimM:url(rim_m_light.webp);--rimS:url(rim_s_light.webp)}
 html body.west.dark{--rimL:url(rim_l_dark.webp);--rimM:url(rim_m_dark.webp);--rimS:url(rim_s_dark.webp)}
 html body.west .btn:not(.ghost){color:var(--fg);font-weight:700}
@@ -22,4 +22,4 @@ html body.west #paper{display:none}
 html body.west #panelHead{background:var(--vig),var(--pf) 0 0/192px repeat;background-color:transparent;background-attachment:local}
 html body.west a{color:var(--accent)}
 html body.west #panel{padding-top:6px}
-html body.west #endBtn{background:#7a2e22 !important;color:#fbf1dc !important;border-image:none !important;-webkit-mask-box-image:url(torn_s.png) 48/11px round;box-shadow:inset 0 0 0 2px #4a1a12;font-family:var(--head)}
+html body.west #endBtn{background:#7a2e22 !important;color:#fbf1dc !important;border-image:none !important;-webkit-mask-box-image:url(torn_s.png) 48 fill/11px round;box-shadow:inset 0 0 0 2px #4a1a12;font-family:var(--head)}

@@ -27,6 +27,7 @@ const P = {
   clock: 'M12 2a10 10 0 1 1 0 20 10 10 0 1 1 0-20zm-1.3 4v7.3l5.3 3.1 1.3-2.1-4-2.4V6z',
   access: 'M12 1.5a2.3 2.3 0 1 1 0 4.6 2.3 2.3 0 1 1 0-4.6zM5 7h14v2.4h-4.8V13l3 8.5-2.3.8L12 15.5l-2.9 6.8-2.3-.8 3-8.5V9.4H5z',
   copy: 'M8 2h12v14h-3V5H8zM3.5 7h11.5v15H3.5z',
+  add: 'M3 3h18v18H3zm2.5 2.5v13h13v-13zM10.8 7.5h2.4v3.3h3.3v2.4h-3.3v3.3h-2.4v-3.3H7.5v-2.4h3.3z',
   ruler: 'M1.5 16L16 1.5 22.5 8 8 22.5z',
 };
 P.coord = P.locate; P.saved = P.star; P.recents = P.recent; P.lists = P.list;
@@ -39,4 +40,12 @@ export function iconDefs() {
   return `<svg width="0" height="0" style="position:absolute" aria-hidden="true">${sym}</svg>`;
 }
 export const ic = (k, cls = '') => P[k] ? `<svg class="uic ${cls}" aria-hidden="true"><use class="w" href="#uiw-${k}"/><use class="n" href="#uin-${k}"/></svg>` : '';
+import { PG } from './poiglyphs.js';
+// category -> POI glyph (same art as the map badges), rendered as a themed UI badge
+const CATG = { restaurant: 'restaurant', fast_food: 'restaurant', cafe: 'cafe', ice_cream: 'cafe', bakery: 'cafe', bar: 'bar', pub: 'bar', library: 'library', supermarket: 'supermarket', grocery: 'supermarket', convenience: 'supermarket',
+  fuel: 'fuel', hotel: 'hotel', lodging: 'hotel', motel: 'hotel', hospital: 'hospital', doctors: 'hospital', clinic: 'hospital', dentist: 'hospital', pharmacy: 'pharmacy', school: 'school', college: 'school', university: 'school', kindergarten: 'school',
+  park: 'park', garden: 'park', playground: 'park', bank: 'bank', atm: 'bank', parking: 'parking', bus: 'transit', railway: 'transit', bus_station: 'transit', station: 'transit', bus_stop: 'transit', aerodrome: 'transit', ferry_terminal: 'ferry',
+  museum: 'museum', attraction: 'museum', art_gallery: 'museum', theatre: 'museum', cinema: 'museum', monument: 'museum', mall: 'shop', shop: 'shop', department_store: 'shop', clothes: 'shop' };
+for (const [k, d] of Object.entries(PG)) if (!P['g_' + k]) P['g_' + k] = d;
+export const catIc = c => { const v = String(c || '').split('=').pop(); return ic('g_' + (CATG[v] || (PG[v] ? v : 'generic'))); };
 export const ICON_NAMES = Object.keys(P);
