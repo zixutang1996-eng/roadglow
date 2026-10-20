@@ -45,3 +45,11 @@ html body.west:not(.dark) #searchbar input::placeholder{color:#e2cfa8}html body.
 html body.west:not(.dark) #searchbar input{color:#f6ead0}html body.west.dark #searchbar input{color:#22160b}
 html body.west:not(.dark) #chips .chip{color:#f6ead0}html body.west.dark #chips .chip{color:#22160b}
 html body.west:not(.dark) #chips .chip.on{background:#ead9b4;color:#22160b}html body.west.dark #chips .chip.on{background:#2a2017;color:#f6ead0}
+/* v0.9.2d: swapped chrome nudged ~16% toward the map base so it is less glaring (light map: lighter dark-parchment; dark map: muted light-parchment) */
+html body.west:not(.dark) :is(#searchbar,#controls .ctl,#controls .zoomgrp,#navBanner,#navFoot,#chips .chip){--bg:#65533e;--chip:#65533e;
+  background:linear-gradient(rgba(234,217,180,.16),rgba(234,217,180,.16)),var(--vig),var(--pf) 0 0/192px repeat;background-color:var(--bg)}
+html body.west.dark :is(#searchbar,#controls .ctl,#controls .zoomgrp,#navBanner,#navFoot,#chips .chip){--bg:#cbbc9b;--chip:#cbbc9b;
+  background:linear-gradient(rgba(43,34,25,.16),rgba(43,34,25,.16)),var(--vig),var(--pf) 0 0/192px repeat;background-color:var(--bg)}
+html body.west #navBanner,html body.west #navBanner.objective{color:var(--fg) !important}
+html body.west #navBanner *{color:inherit}
+html body.west:not(.dark) #navFoot .eta b{color:#b9ecc0}html body.west.dark #navFoot .eta b{color:#154a22}
