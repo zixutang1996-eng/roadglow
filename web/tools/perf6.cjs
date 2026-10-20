@@ -1,5 +1,5 @@
 const puppeteer = require('/workspace/pixelnav/node_modules/puppeteer-core');
-const out = require('path').join(__dirname, '../../screenshots/v06/');
+const out = require('path').join(__dirname, '../../screenshots/' + (process.env.OUTV || 'v06') + '/');
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 (async () => {
   const b = await puppeteer.launch({ executablePath: '/usr/bin/google-chrome', args: ['--no-sandbox', '--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'], headless: 'new' });

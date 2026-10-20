@@ -27,7 +27,7 @@ export function startNavigation({ map, S, setMe, makePuck, reroute, drawRoutes, 
   const foot = document.createElement('div'); foot.id = 'navFoot'; foot.className = 'card'; document.body.appendChild(foot);
   // static buttons (never re-rendered, so taps can't be lost to the 1 Hz refresh)
   banner.innerHTML = `<button id="navX" title="${t('nav_end')}">✕</button><div id="navBody"></div>`; const navBody = banner.querySelector('#navBody');
-  foot.innerHTML = `<div class="eta"></div><button class="ctl" id="hdgBtn" title="${t('compass')}">⬆</button><button class="btn red" id="endBtn">${t('nav_end')}</button>`;
+  foot.innerHTML = `<div class="eta"></div><button class="ctl" id="hdgBtn" title="${t('compass')}">⬆</button><button class="btn red" id="endBtn"><span class="stopg" aria-hidden="true"></span>${t('nav_end')}</button>`;
   const footEta = foot.querySelector('.eta'), hdgBtn = foot.querySelector('#hdgBtn');
   foot.querySelector('#endBtn').onclick = () => end(); banner.querySelector('#navX').onclick = () => end(); hdgBtn.onclick = () => toggleHeading();
   const rc = document.createElement('button'); rc.id = 'recenter'; rc.className = 'btn hidden'; rc.textContent = lang === 'zh' ? '◎ 重新居中' : '◎ Re-centre'; document.body.appendChild(rc);

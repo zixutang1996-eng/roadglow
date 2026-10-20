@@ -71,11 +71,12 @@ const mix = (h, t, k) => '#' + [1, 3, 5].map(i => Math.round(parseInt(h.slice(i,
 const STY = {
   neon_light: { th: 'neon', glyph: '#ffffff', dglyph: '#14161f', edge: '#ffffff', dark: false },
   neon_dark:  { th: 'neon', glyph: '#f1eee2', dglyph: '#101219', edge: '#0d0f16', dark: true },
-  west_light: { th: 'west', glyph: '#f6ead0', dglyph: '#24170c', edge: '#2a1d12', dark: false },
-  west_dark:  { th: 'west', glyph: '#efe0bf', dglyph: '#1a120a', edge: '#120d08', dark: true },
+  west_light: { th: 'west', glyph: '#ffffff', dglyph: '#ffffff', edge: '#0d0905', ink: true, dark: false },
+  west_dark:  { th: 'west', glyph: '#ffffff', dglyph: '#ffffff', edge: '#efe0bf', ink: true, dark: true },  // v0.7: black badge, white glyph, cream rim on dark
 };
 export const CONTRAST = {};
 function fillFor(s, grp) {
+  if (s.ink) return ['#14100c', '#ffffff'];
   let f = HUE[s.th][grp]; if (s.dark) f = mix(f, s.th === 'neon' ? '#151823' : '#1c1610', 0.3); // muted in dark mode
   // pick the glyph colour with more contrast; only darken the fill if neither reaches 4.5:1
   let g = cr(f, s.glyph) >= cr(f, s.dglyph) ? s.glyph : s.dglyph;
@@ -90,7 +91,7 @@ function svgFor(name, s, px, key) {
     : `<path d="${shape}" fill="none" stroke="${glyph}" stroke-width="0.9" opacity="0.6" transform="translate(20 21) scale(.83) translate(-20 -21)"/>`;
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${px}" height="${px * 43 / 40}" viewBox="-2 -1 44 45">
     <defs><filter id="r"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="${name.length}"/><feDisplacementMap in="SourceGraphic" scale="0.8"/></filter></defs>
-    <g ${rough}><path d="${shape}" fill="${fill}" stroke="${s.edge}" stroke-width="2.2" stroke-linejoin="round"/>${ring}</g>
+    <g ${rough}><path d="${shape}" fill="${fill}" stroke="${s.edge}" stroke-width="${s.ink && s.dark ? 1.6 : 2.2}" stroke-linejoin="round"/>${ring}</g>
     <g transform="translate(20 21) scale(.92) translate(-12 -12)" fill="${glyph}" fill-rule="evenodd"><path d="${G[name]}"/></g></svg>`;
 }
 fs.mkdirSync('public/sprites', { recursive: true });

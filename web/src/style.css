@@ -194,3 +194,17 @@ body.neon .lpring{border-radius:0;rotate:45deg}
 .puck.nav svg{transform:scale(calc(1.25 * var(--is,1)))}
 .szrow{display:flex;align-items:center;gap:10px;margin:6px 0}.szrow input{flex:1;accent-color:var(--accent);height:32px}.szrow b{min-width:52px;text-align:right}
 #top,#panel,#drawer{overflow-wrap:anywhere}
+/* v0.7 themed UI icons */
+.uic{width:calc(1.45em);height:calc(1.45em);vertical-align:middle;flex:none;display:inline-block}
+.uic use{display:none}body.west .uic .w,body.neon .uic .n{display:inline}
+.ic .uic,.ctl .uic{width:calc(32px * var(--is,1));height:calc(32px * var(--is,1))}
+.act .b .uic{width:calc(30px * var(--is,1));height:calc(30px * var(--is,1))}
+body.west.dark{--icr:#efe0bf}
+body.neon:not(.dark){--ic1:#0e8fa0;--ic2:#a8166a;--icb:rgba(255,255,255,.35)}
+body.neon.dark{--ic1:#2fd3e6;--ic2:#ffd25a;--icb:rgba(10,14,24,.6)}
+.uic.on{filter:none}body.west .uic.on .w{opacity:1}
+.act .b:has(.uic),body.neon .act .b:has(.uic),body.neon .act.primary .b:has(.uic){border:0;background:none;clip-path:none;box-shadow:none;width:auto;height:auto}
+/* v0.7 muted End-navigation button (same size; light+dark identical per theme) */
+#endBtn{display:inline-flex;align-items:center;gap:8px;font-weight:700}
+#endBtn .stopg{width:.8em;height:.8em;background:currentColor;display:inline-block}
+body.neon #endBtn{background:#8c2f3c !important;color:#fff !important;border:1.5px solid #c45a68;box-shadow:none;text-shadow:none;border-radius:0;clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px)}

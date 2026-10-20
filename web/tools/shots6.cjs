@@ -1,5 +1,5 @@
 const puppeteer = require('/workspace/pixelnav/node_modules/puppeteer-core');
-const path = require('path'); const out = path.join(__dirname, '../../screenshots/v06/'); require('fs').mkdirSync(out, { recursive: true });
+const path = require('path'); const out = path.join(__dirname, '../../screenshots/' + (process.env.OUTV || 'v06') + '/'); require('fs').mkdirSync(out, { recursive: true });
 const BASE = process.env.URL || 'http://127.0.0.1:18781/'; const sleep = ms => new Promise(r => setTimeout(r, ms)); const only = process.argv.slice(2);
 (async () => {
   const b = await puppeteer.launch({ executablePath: '/usr/bin/google-chrome', args: ['--no-sandbox', '--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'], headless: 'new' });
@@ -17,10 +17,10 @@ const BASE = process.env.URL || 'http://127.0.0.1:18781/'; const sleep = ms => n
     for (const z of [10, 11.5, 12, 13, 14, 15, 16, 17, 18]) { await p.evaluate(z => window._map.jumpTo({ zoom: z }), z); await sleep(300);
       const r = await p.evaluate(() => { const s = document.querySelector('#scale'); const bb = s.getBoundingClientRect(); return [s.querySelector('span').textContent, s.querySelector('.sbar').style.width, Math.round(bb.bottom)]; }); console.log('scale z', z, JSON.stringify(r)); }
     await p.evaluate(() => window._map.jumpTo({ zoom: 12 })); await idle(p); await p.screenshot({ path: `${out}mobile_scale_z12.png` }); await p.close(); };
-  T.reveal = async () => { for (const [th, md] of [['neon', 'dark'], ['west', 'light']]) { const p = await page(M, { theme: th, mode: md, hash: '#11/53.5418/-113.4935' });
-    for (const z of [11.5, 12, 12.5, 13, 13.5, 14, 15, 16, 17]) { await p.evaluate(z => window._map.jumpTo({ zoom: z }), z); await idle(p);
-      const r = await p.evaluate(() => { const m = window._map, c = {}; const imp = m.queryRenderedFeatures({ layers: ['imp'] }); const poi = m.queryRenderedFeatures({ layers: ['poi'] }); imp.forEach(f => c[f.properties.class] = (c[f.properties.class] || 0) + 1); return { imp: imp.length, poi: poi.length, scale: document.querySelector('#scale span').textContent, impTop: c }; });
-      console.log(th, md, 'z', z, JSON.stringify(r)); await p.screenshot({ path: `${out}reveal_${th}_${md}_z${z}.png` }); } await p.close(); } };
+  T.reveal = async () => { for (const [th, md] of (process.env.REV4 ? V : [['neon', 'dark'], ['west', 'light']])) { const p = await page(M, { theme: th, mode: md, hash: '#11/53.5300/-113.5300' });
+    for (const z of (process.env.REV4 ? [11.5, 12, 13, 14] : [11.5, 12, 12.5, 13, 13.5, 14, 15])) { await p.evaluate(z => window._map.jumpTo({ zoom: z }), z); await idle(p);
+      const r = await p.evaluate(() => { const m = window._map, c = {}; const L = ['imp0', 'imp1', 'imp2', 'imp3'].filter(l => m.getLayer(l)); const imp = L.length ? m.queryRenderedFeatures({ layers: L }) : []; const names = [...new Set(imp.map(f => f.properties.name))].filter(n => /Mall|Centre|Airport|Station|Hospital|Southgate|Kingsway|Superstore|Walmart|Costco|Museum|Legislature|Stadium|Central|Ice District/i.test(n)).slice(0, 14); const poi = m.queryRenderedFeatures({ layers: ['poi'] }); imp.forEach(f => c[f.properties.class] = (c[f.properties.class] || 0) + 1); return { layers: L.length, imp: imp.length, poi: poi.length, scale: document.querySelector('#scale span').textContent, impTop: c, names }; });
+      console.log(th, md, 'z', z, JSON.stringify(r)); await p.screenshot({ path: `${out}reveal_${th}_${md}_z${z}_${r.scale.replace(/\s/g, '')}.png` }); } await p.close(); } };
   T.nav = async () => { for (const [th, md] of V) { for (const [vn, vp] of (th === 'neon' && md === 'dark' ? [['mobile', M], ['desktop', D]] : [['mobile', M]])) {
     const p = await page(vp, { theme: th, mode: md, search: '?sim=1' });
     await p.evaluate(() => { window._app.S.from = { name: 'A', lat: 53.5444, lng: -113.4909 }; window._app.openDirections({ name: '阿尔伯塔大学医院', lat: 53.5203, lng: -113.5237 }, true); });

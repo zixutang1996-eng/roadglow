@@ -2,6 +2,10 @@ import * as maplibregl from 'maplibre-gl';
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import './style.css';
+import { ic, iconDefs } from './uiicons.js';
+const AV = '?v=0.7'; // asset version: busts caches for styles + important-POI data
+document.body.insertAdjacentHTML('afterbegin', iconDefs());
+for (const [id, k] of [['menuBtn', 'menu'], ['clearBtn', 'close'], ['dirBtn', 'dir'], ['layersBtn', 'layers'], ['locBtn', 'locate']]) { const el = document.getElementById(id); if (el) el.innerHTML = ic(k); }
 import { t, lang, setLang, fmtDist, fmtDur, instruction } from './i18n.js';
 import { photon, photonReverse, nominatim, osmElement, nearbyCategory, nearbyCategoryNominatim, osrm, photoFor, photosFor, haversine, overpass, photonBox, reverseAddr } from './services.js';
 let placeExtras = null; const tools = {}; let drawerExtra = () => '';
@@ -17,7 +21,7 @@ const styleKey = () => `${S.theme}_${isDark() ? 'dark' : 'light'}`;
 const base = new URL(import.meta.env.BASE_URL, location.href).href;
 
 async function loadStyle() {
-  const st = await (await fetch(`${base}styles/${styleKey()}.json`)).json();
+  const st = await (await fetch(`${base}styles/${styleKey()}.json${AV}`)).json();
   st.glyphs = `${base}glyphs/{fontstack}/{range}.pbf`;
   st.sprite = `${base}sprites/${styleKey()}`;
   const nameExpr = lang === 'zh' ? ['coalesce', ['get', 'name:zh-Hans'], ['get', 'name:zh'], ['get', 'name'], ['get', 'name:en']] : ['coalesce', ['get', 'name:en'], ['get', 'name:latin'], ['get', 'name']];
@@ -61,15 +65,22 @@ map.on('load', addOverlays);
 map.scrollZoom.setWheelZoomRate(1 / 320); map.scrollZoom.setZoomRate(1 / 75);
 { const ez = map.easeTo.bind(map); map.easeTo = (o, ev) => { if (o && o.duration === 300 && o.zoom !== undefined && ev?.originalEvent) o = { ...o, duration: 210 }; return ez(o, ev); }; }
 // important POIs for z11.5–14 (prebuilt from the OSM Alberta extract; tiles take over from z14)
+const IMP = ['imp0', 'imp1', 'imp2', 'imp3'];
 function addImportant() {
-  if (!map.getSource('imp')) map.addSource('imp', { type: 'geojson', data: `${base}important_yeg.geojson` });
+  if (!map.getSource('imp')) map.addSource('imp', { type: 'geojson', data: `${base}important_yeg.geojson${AV}` });
   const poi = map.getStyle().layers.find(l => l.id === 'poi'); if (!poi) return;
-  const T = ['get', 'tier'], REV = [11.3, 11.6, 12.3, 13.0];
-  const ramp = (lo, hi, d = 0, fo = false) => ['interpolate', ['linear'], ['zoom'], ...[11, 11.25, 11.5, 11.75, 12, 12.25, 12.5, 12.75, 13, 13.25, 13.5, 13.75, 14].flatMap(z => { const f = fo ? Math.min(1, Math.max(0, (14 - z) / 0.5)) : 1; return [z, ['match', T, ...REV.flatMap((r, i) => [i, +((lo + (hi - lo) * Math.min(1, Math.max(0, (z - r - d) / 0.6))) * f).toFixed(2)]), hi * f]]; })];
-  const fade = v => ['interpolate', ['linear'], ['zoom'], 13.6, v, 14, 0];
-  map.addLayer({ id: 'imp', type: 'symbol', source: 'imp', minzoom: 11, maxzoom: 14, filter: ['<=', T, ['step', ['zoom'], 1, 12, 2, 12.5, 3]],
-    layout: { 'icon-image': poi.layout['icon-image'], 'icon-size': ramp(0.75, 1.1), 'text-field': poi.layout['text-field'], 'text-font': poi.layout['text-font'], 'text-size': baseSizes.poi?.t ?? poi.layout['text-size'], 'text-anchor': 'top', 'text-offset': [0, 1.1], 'text-optional': true, 'text-max-width': 7, 'symbol-sort-key': T },
-    paint: { 'icon-opacity': ramp(0, 1, 0, true), 'text-opacity': ramp(0, 1, 0.3, true), 'text-color': poi.paint['text-color'], 'text-halo-color': poi.paint['text-halo-color'], 'text-halo-width': poi.paint['text-halo-width'] } }, 'poi');
+  // v0.7: one layer per tier with fractional minzoom (filters are evaluated at integer zoom, layer minzoom is not),
+  // placed on top so collisions favour them; count grows from the 2 km scale (z11.3) to z14 where tile POIs take over.
+  const MZ = [11.2, 11.85, 12.5, 13.2];
+  for (const [i, mz] of MZ.entries()) {
+    const op = ['interpolate', ['linear'], ['zoom'], mz, 0.25, mz + 0.35, 1, 13.7, 1, 14.1, 0];
+    const lay = { id: 'imp' + i, type: 'symbol', source: 'imp', minzoom: mz, maxzoom: 14.1, filter: ['==', ['get', 'tier'], i],
+      layout: { 'icon-image': poi.layout['icon-image'], 'icon-size': ['interpolate', ['linear'], ['zoom'], mz, 0.8 - i * 0.04, 14, 1.05], 'text-field': poi.layout['text-field'], 'text-font': poi.layout['text-font'],
+        'text-size': ['interpolate', ['linear'], ['zoom'], mz, 15 - i, 14, 18], 'text-anchor': 'top', 'text-offset': [0, 1.1], 'text-optional': true, 'text-max-width': 7, 'symbol-sort-key': ['get', 'rank'], 'icon-padding': 1, 'text-padding': 1 },
+      paint: { 'icon-opacity': op, 'text-opacity': op, 'text-color': poi.paint['text-color'], 'text-halo-color': poi.paint['text-halo-color'], 'text-halo-width': poi.paint['text-halo-width'] } };
+    if (map.getLayer(lay.id)) map.removeLayer(lay.id);
+    map.addLayer(lay);
+  }
 }
 // custom scale bar with round metric steps
 const scaleEl = document.createElement('div'); scaleEl.id = 'scale'; scaleEl.innerHTML = '<div class="sbar"></div><span></span>'; document.body.appendChild(scaleEl);
@@ -154,7 +165,7 @@ $('#clearBtn').onclick = () => { q.value = ''; $('#clearBtn').classList.add('hid
 // instant local hits: loaded vector-tile POIs + offline index (no network)
 function localHits(v) {
   const x = v.toLowerCase(), c = map.getCenter(), out = [], seen = new Set();
-  for (const f of map.queryRenderedFeatures({ layers: ['poi', 'imp'].filter(l => map.getLayer(l)) })) {
+  for (const f of map.queryRenderedFeatures({ layers: ['poi', ...IMP].filter(l => map.getLayer(l)) })) {
     const n = f.properties[ZH ? 'name:zh' : 'name:en'] || f.properties.name; if (!n || !(n.toLowerCase().includes(x) || (f.properties.name || '').toLowerCase().includes(x))) continue;
     const [lng, lat] = f.geometry.coordinates, k = n + lat.toFixed(4); if (seen.has(k)) continue; seen.add(k);
     const id = typeof f.id === 'number' ? f.id : null;
@@ -202,9 +213,9 @@ function renderSuggest(items, keepSel, qForNom) {
   sugItems = items; if (!keepSel) sugSel = -1;
   const box = $('#suggest');
   if (!items.length && qForNom === undefined) { box.classList.add('hidden'); return; }
-  box.innerHTML = items.map((r, i) => `<div class="sug${i === sugSel ? ' sel' : ''}" data-i="${i}"><div class="i">${r.sem ? '🔎' : r.recent ? '🕘' : '📍'}</div><div style="flex:1"><div class="t">${esc(r.name)}</div><div class="s">${esc(r.address)}</div></div>${r.dist != null ? `<div class="s" style="flex:none">${fmtDist(r.dist)}</div>` : ''}</div>`).join('')
+  box.innerHTML = items.map((r, i) => `<div class="sug${i === sugSel ? ' sel' : ''}" data-i="${i}"><div class="i">${r.sem ? ic('search') : r.recent ? ic('clock') : ic('pin')}</div><div style="flex:1"><div class="t">${esc(r.name)}</div><div class="s">${esc(r.address)}</div></div>${r.dist != null ? `<div class="s" style="flex:none">${fmtDist(r.dist)}</div>` : ''}</div>`).join('')
     + (!items.length ? `<div class="sug"><div class="s">${t('noresults')}</div></div>` : '')
-    + (qForNom ? `<div class="sug" data-nom="1"><div class="i">🔎</div><div class="t">${t('nominatim')}</div></div>` : '');
+    + (qForNom ? `<div class="sug" data-nom="1"><div class="i">${ic('search')}</div><div class="t">${t('nominatim')}</div></div>` : '');
   box.classList.remove('hidden');
 }
 $('#suggest').addEventListener('click', e => {
@@ -310,21 +321,21 @@ function renderPlace(p, tags, extra) {
     ${extra?.photo?.length ? galleryHtml(extra.photo) : ''}
     <h2>${esc(tags[lang === 'zh' ? 'name:zh' : 'name:en'] || p.name)}</h2><div class="cat">${esc(cat)}${tags.cuisine ? ' · ' + esc(tags.cuisine.replace(/;/g, ', ')) : ''}</div>
     <div class="acts">
-      <button class="act primary" data-a="dir"><span class="b">➦</span>${t('directions')}</button>
-      <button class="act" data-a="start"><span class="b">▲</span>${t('start')}</button>
-      <button class="act" data-a="save"><span class="b">${saved ? '★' : '☆'}</span>${saved ? t('saved_ok') : t('save')}</button>
-      <button class="act" data-a="share"><span class="b">⇪</span>${t('share')}</button>
-      ${p.dropped ? `<button class="act" data-a="measure"><span class="b">📏</span>${L('从这里测距', 'Measure from here')}</button>` : ''}
+      <button class="act primary" data-a="dir"><span class="b">${ic('dir')}</span>${t('directions')}</button>
+      <button class="act" data-a="start"><span class="b">${ic('start')}</span>${t('start')}</button>
+      <button class="act" data-a="save"><span class="b">${ic('star', saved ? 'on' : '')}</span>${saved ? t('saved_ok') : t('save')}</button>
+      <button class="act" data-a="share"><span class="b">${ic('share')}</span>${t('share')}</button>
+      ${p.dropped ? `<button class="act" data-a="measure"><span class="b">${ic('measure')}</span>${L('从这里测距', 'Measure from here')}</button>` : ''}
     </div>
-    ${tags.opening_hours ? `<div class="row"><span class="i">🕘</span><div>${extra?.oh ? extra.oh.badge : esc(tags.opening_hours)}${extra?.oh ? `<div class="hrs">${esc(extra.oh.table)}</div>` : ''}</div></div>` : ''}
+    ${tags.opening_hours ? `<div class="row"><span class="i">${ic('clock')}</span><div>${extra?.oh ? extra.oh.badge : esc(tags.opening_hours)}${extra?.oh ? `<div class="hrs">${esc(extra.oh.table)}</div>` : ''}</div></div>` : ''}
     ${p.desc ? `<div class="desc">${esc(p.desc)}</div>` : ''}
-    ${p.quest ? `<div class="row"><span class="i">✦</span><div><button class="btn${questDone().includes(p.quest.id) ? ' ghost' : ''}" id="qDone">${questDone().includes(p.quest.id) ? L('✔ 已完成（点按取消）', '✔ Completed (tap to undo)') : L('标记为已完成', 'Mark as completed')}</button><div style="font-size:13px;color:var(--muted);margin-top:4px"><a href="https://www.wikidata.org/wiki/${p.quest.id}" target="_blank" rel="noopener">Wikidata ${p.quest.id}</a></div></div></div>` : ''}
+    ${p.quest ? `<div class="row"><span class="i">${ic('quest')}</span><div><button class="btn${questDone().includes(p.quest.id) ? ' ghost' : ''}" id="qDone">${questDone().includes(p.quest.id) ? L('✔ 已完成（点按取消）', '✔ Completed (tap to undo)') : L('标记为已完成', 'Mark as completed')}</button><div style="font-size:13px;color:var(--muted);margin-top:4px"><a href="https://www.wikidata.org/wiki/${p.quest.id}" target="_blank" rel="noopener">Wikidata ${p.quest.id}</a></div></div></div>` : ''}
     <div id="wx"></div>
-    <div class="row" id="addrRow"><span class="i">📍</span><div style="flex:1"><div id="addrTx">${esc(fmtAddr(tags) || p.address || tags._display || '')}</div><div id="addrNote" style="font-size:calc(13px * var(--ts,1));color:var(--muted)">${p._approx ? L('大致地址（按坐标反查）', 'Approx. address (from coordinates)') : ''}</div></div><button class="btn ghost" id="copyAddr" style="flex:none;padding:6px 12px">${L('复制', 'Copy')}</button></div>
-    ${tel ? `<div class="row"><span class="i">☎</span><a href="tel:${esc(tel)}">${esc(tel)}</a></div>` : ''}
-    ${web ? `<div class="row"><span class="i">🌐</span><a href="${esc(web.startsWith('http') ? web : 'https://' + web)}" target="_blank" rel="noopener">${esc(web.replace(/^https?:\/\//, ''))}</a></div>` : ''}
-    ${tags.wheelchair ? `<div class="row"><span class="i">♿</span><div>${esc(tags.wheelchair)}</div></div>` : ''}
-    <div class="row"><span class="i">⌖</span><div style="flex:1">${p.lat.toFixed(6)}, ${p.lng.toFixed(6)}</div><button class="btn ghost" id="copyLL" style="flex:none;padding:6px 12px">${L('复制', 'Copy')}</button></div>
+    <div class="row" id="addrRow"><span class="i">${ic('pin')}</span><div style="flex:1"><div id="addrTx">${esc(fmtAddr(tags) || p.address || tags._display || '')}</div><div id="addrNote" style="font-size:calc(13px * var(--ts,1));color:var(--muted)">${p._approx ? L('大致地址（按坐标反查）', 'Approx. address (from coordinates)') : ''}</div></div><button class="btn ghost" id="copyAddr" style="flex:none;padding:6px 12px">${L('复制', 'Copy')}</button></div>
+    ${tel ? `<div class="row"><span class="i">${ic('phone')}</span><a href="tel:${esc(tel)}">${esc(tel)}</a></div>` : ''}
+    ${web ? `<div class="row"><span class="i">${ic('web')}</span><a href="${esc(web.startsWith('http') ? web : 'https://' + web)}" target="_blank" rel="noopener">${esc(web.replace(/^https?:\/\//, ''))}</a></div>` : ''}
+    ${tags.wheelchair ? `<div class="row"><span class="i">${ic('access')}</span><div>${esc(tags.wheelchair)}</div></div>` : ''}
+    <div class="row"><span class="i">${ic('coord')}</span><div style="flex:1">${p.lat.toFixed(6)}, ${p.lng.toFixed(6)}</div><button class="btn ghost" id="copyLL" style="flex:none;padding:6px 12px">${L('复制', 'Copy')}</button></div>
     ${p.osm ? `<div class="tags"><a href="https://www.openstreetmap.org/${{ N: 'node', W: 'way', R: 'relation' }[p.osm.type] || p.osm.type}/${p.osm.id}" target="_blank" rel="noopener">OpenStreetMap</a></div>` : ''}
   </div>`, tags[lang === 'zh' ? 'name:zh' : 'name:en'] || p.name, 'place');
   $('#panelBody .acts').onclick = e => {
@@ -348,7 +359,7 @@ async function share(p) {
 }
 
 // POI click with hit tolerance (any rendered POI / category result)
-const hitLayers = () => ['quests', 'cat', 'saved-dot', 'imp', 'poi'].filter(l => map.getLayer(l));
+const hitLayers = () => ['quests', 'cat', 'saved-dot', ...IMP, 'poi'].filter(l => map.getLayer(l));
 map.on('click', e => {
   if (S.nav?.active || S.picking || S.measuring) return;
   if (S.lpSuppress) { S.lpSuppress = false; return; }
@@ -362,7 +373,7 @@ map.on('click', e => {
   if (f.layer.id === 'quests') return showQuest(QDATA[f.properties.i]);
   if (f.layer.id === 'cat') { const it = S.catItems[f.properties.i]; showPlace(it); return; }
   if (f.layer.id === 'saved-dot') { const sv = store.get('saved', []).find(x => x.name === f.properties.name); if (sv) return showPlace(sv); }
-  if (f.layer.id === 'imp') { const o = f.properties.osm; return showPlace({ name: f.properties[lang === 'zh' ? 'name:zh' : 'name:en'] || f.properties.name, address: '', lat, lng, osm: { type: o[0], id: +o.slice(1) }, category: f.properties.class, fromPoi: true }); }
+  if (IMP.includes(f.layer.id)) { const o = f.properties.osm; return showPlace({ name: f.properties[lang === 'zh' ? 'name:zh' : 'name:en'] || f.properties.name, address: '', lat, lng, osm: { type: o[0], id: +o.slice(1) }, category: f.properties.class, fromPoi: true }); }
   // OpenMapTiles/Planetiler feature id = osm_id * 10 + (1 node | 2 way | 3 relation)
   const id = typeof f.id === 'number' ? f.id : null;
   const osm = id ? { type: ['N', 'N', 'W', 'R'][id % 10] || 'N', id: Math.floor(id / 10) } : null;
@@ -409,7 +420,7 @@ function attachAC(input, onPick) {
   let tm, items = [];
   const extra = () => [{ gps: true, name: t('mylocation'), address: 'GPS' }, { pickMap: true, name: lang === 'zh' ? '在地图上选择' : 'Choose on map', address: '' },
     ...store.get('saved', []).slice(0, 3), ...store.get('recents', []).slice(0, 4)];
-  const render = list => { items = list; box.innerHTML = list.map((r, i) => `<div class="sug" data-i="${i}"><div class="i">${r.gps ? '◎' : r.pickMap ? '⌖' : '📍'}</div><div><div class="t">${esc(r.name)}</div><div class="s">${esc(r.address || '')}</div></div></div>`).join(''); box.classList.toggle('hidden', !list.length); };
+  const render = list => { items = list; box.innerHTML = list.map((r, i) => `<div class="sug" data-i="${i}"><div class="i">${r.gps ? ic('locate') : r.pickMap ? ic('coord') : ic('pin')}</div><div><div class="t">${esc(r.name)}</div><div class="s">${esc(r.address || '')}</div></div></div>`).join(''); box.classList.toggle('hidden', !list.length); };
   input.addEventListener('focus', () => { input.select(); render(extra()); });
   input.addEventListener('input', () => { clearTimeout(tm); const v = input.value.trim(); if (v.length < 2) return render(extra());
     tm = setTimeout(async () => { try { render(await photon(v, map.getCenter(), 6)); } catch {} }, 280); });
@@ -434,7 +445,7 @@ function openDirections(dest, autostart = false) {
     <div class="seg" id="modeSeg" style="margin-right:48px"><button data-m="drive">🚗 ${t('drive')}</button><button data-m="walk">🚶 ${t('walk')}</button><button data-m="bike">🚲 ${L('骑行', 'Bike')}</button><button data-m="transit">🚌 ${t('transit')}</button></div>
     <div class="row2"><div style="flex:1">
       <div class="fld"><span>◯</span><div class="acbox" style="flex:1"><input id="fromIn" value="${esc(S.from.name)}"></div></div>
-      <div class="fld"><span>📍</span><div class="acbox" style="flex:1"><input id="toIn" value="${esc(S.dest?.name || '')}" placeholder="${t('to')}"></div></div>
+      <div class="fld"><span>${ic('pin')}</span><div class="acbox" style="flex:1"><input id="toIn" value="${esc(S.dest?.name || '')}" placeholder="${t('to')}"></div></div>
     </div><button class="swap" id="swapBtn" title="swap">⇅</button></div>
   </div><div id="alts">${S.dest ? `<div class="row">${t('searching')}</div>` : ''}</div><div id="steps"></div>`, t('directions'), 'dir');
   const seg = $('#modeSeg'); const mark = () => seg.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.m === S.travel)); mark();
@@ -501,22 +512,22 @@ function renderLayersPop() {
 // ---------- drawer ----------
 function renderDrawer() {
   const saved = store.get('saved', []), rec = store.get('recents', []);
-  const li = (arr, k) => arr.slice(0, 6).map((p, i) => `<div class="di" data-${k}="${i}"><span class="i">${k === 's' ? '★' : '🕘'}</span><div>${esc(p.name)}<div class="s" style="font-size:12px;color:var(--muted)">${esc(p.address || '')}</div></div></div>`).join('') || `<div class="sub">${t('empty')}</div>`;
+  const li = (arr, k) => arr.slice(0, 6).map((p, i) => `<div class="di" data-${k}="${i}"><span class="i">${k === 's' ? ic('star') : ic('clock')}</span><div>${esc(p.name)}<div class="s" style="font-size:12px;color:var(--muted)">${esc(p.address || '')}</div></div></div>`).join('') || `<div class="sub">${t('empty')}</div>`;
   $('#drawer').innerHTML = `<div class="dh"><span>RoadGlow</span><button class="xbig" data-close="1" aria-label="close">✕</button></div>
-   <div class="ds"><div class="di" data-sq="1"><span class="i">✦</span><div><b>${L('支线任务', 'Side quests')}</b><div class="s" style="font-size:13.5px;color:var(--muted)">${L('鬼镇、废墟、奇特景点、观景台', 'Ghost towns, ruins, oddities, viewpoints')} · ${questDone().length} ✔</div></div></div></div>
+   <div class="ds"><div class="di" data-sq="1"><span class="i">${ic('quest')}</span><div><b>${L('支线任务', 'Side quests')}</b><div class="s" style="font-size:13.5px;color:var(--muted)">${L('鬼镇、废墟、奇特景点、观景台', 'Ghost towns, ruins, oddities, viewpoints')} · ${questDone().length} ✔</div></div></div></div>
    ${drawerExtra()}
-   <div class="ds"><div class="di"><span class="i">★</span><b>${t('saved')}</b></div>${li(saved, 's')}</div>
-   <div class="ds"><div class="di"><span class="i">🕘</span><b>${t('recents')}</b></div>${li(rec, 'r')}${rec.length ? `<div class="di" data-clear="1"><span class="i">🗑</span>${t('clear_history')}</div>` : ''}</div>
-   <div class="ds"><div class="di"><span class="i">◩</span><b>${t('styles')}</b></div>
+   <div class="ds"><div class="di"><span class="i">${ic('star')}</span><b>${t('saved')}</b></div>${li(saved, 's')}</div>
+   <div class="ds"><div class="di"><span class="i">${ic('clock')}</span><b>${t('recents')}</b></div>${li(rec, 'r')}${rec.length ? `<div class="di" data-clear="1"><span class="i">${ic('trash')}</span>${t('clear_history')}</div>` : ''}</div>
+   <div class="ds"><div class="di"><span class="i">${ic('layers')}</span><b>${t('styles')}</b></div>
      <div style="padding:0 22px 10px 58px"><div class="seg">${['neon', 'west'].map(th => `<button data-th="${th}" class="${S.theme === th ? 'on' : ''}">${t(th)}</button>`).join('')}</div>
      <div class="seg" style="margin-top:8px">${['auto', 'light', 'dark'].map(m => `<button data-md="${m}" class="${S.mode === m ? 'on' : ''}">${t(m)}</button>`).join('')}</div></div></div>
-   <div class="ds"><div class="di"><span class="i">⇩</span><b>${t('offline')}</b></div><div class="sub">${t('offline_soon')}</div></div>
-   <div class="ds"><div class="di"><span class="i">⚙</span><b>${t('settings')}</b></div>
+   <div class="ds"><div class="di"><span class="i">${ic('offline')}</span><b>${t('offline')}</b></div><div class="sub">${t('offline_soon')}</div></div>
+   <div class="ds"><div class="di"><span class="i">${ic('settings')}</span><b>${t('settings')}</b></div>
      <div style="padding:0 22px 10px 58px"><div style="font-size:13px;color:var(--muted);margin-bottom:6px">${t('language')}</div><div class="seg">
      <button data-lang="" class="${!localStorage.getItem('lang') ? 'on' : ''}">${t('lang_auto')}</button><button data-lang="zh" class="${localStorage.getItem('lang') === 'zh' ? 'on' : ''}">中文</button><button data-lang="en" class="${localStorage.getItem('lang') === 'en' ? 'on' : ''}">English</button></div></div></div>
-   <div class="ds"><div class="di"><span class="i">Aa</span><b>${L('文字与图标大小', 'Text & icon size')}</b></div><div style="padding:0 22px 12px 58px">${sizeHtml()}</div></div>
-   <div class="ds"><div class="di"><span class="i">🔊</span><b>${L('导航语音包', 'Voice pack')}</b></div><div style="padding:0 22px 12px 58px" id="voiceBox">${voiceHtml()}</div></div>
-   <div class="ds"><div class="di"><span class="i">ⓘ</span><b>${t('about')}</b></div><div class="sub">${t('about_text')}</div></div>`;
+   <div class="ds"><div class="di"><span class="i">${ic('size')}</span><b>${L('文字与图标大小', 'Text & icon size')}</b></div><div style="padding:0 22px 12px 58px">${sizeHtml()}</div></div>
+   <div class="ds"><div class="di"><span class="i">${ic('voice')}</span><b>${L('导航语音包', 'Voice pack')}</b></div><div style="padding:0 22px 12px 58px" id="voiceBox">${voiceHtml()}</div></div>
+   <div class="ds"><div class="di"><span class="i">${ic('info')}</span><b>${t('about')}</b></div><div class="sub">${t('about_text')}</div></div>`;
   $('#drawer').onclick = e => {
     const el = e.target.closest('[data-s],[data-r],[data-th],[data-md],[data-lang],[data-clear],[data-close],[data-sq],[data-tool],[data-vp],[data-vtest],[data-szreset]'); if (!el) return;
     if (el.dataset.close) return closeDrawer();
@@ -836,13 +847,13 @@ function chooseList(p, after) {
 drawerExtra = () => {
   const saved = store.get('saved', []), ls = [...new Set([...lists(), ...saved.map(s => s.list).filter(Boolean)])];
   const off = store.get('offline', []);
-  return `<div class="ds"><div class="di"><span class="i">☰</span><b>${L('我的列表', 'My lists')}</b></div>${ls.map(l => { const n = saved.filter(s => (s.list || lists()[0]) === l).length; return `<div class="di" data-tool="list" data-arg="${esc(l)}"><span class="i">▸</span>${esc(l)} <span style="color:var(--muted)">· ${n}</span></div>`; }).join('')}</div>
-   <div class="ds"><div class="di" data-tool="measure"><span class="i">📏</span><b>${L('测量距离', 'Measure distance')}</b></div>
-   <div class="di" data-tool="offline"><span class="i">⇩</span><div><b>${L('下载当前区域（离线）', 'Download this area (offline)')}</b><div class="s" style="font-size:13.5px;color:var(--muted)">${off.length ? L(`已下载 ${off.length} 个区域`, `${off.length} area(s) downloaded`) : L('地图 + 地点，可离线查看和搜索', 'Map + places, view & search offline')}</div></div></div></div>`;
+  return `<div class="ds"><div class="di"><span class="i">${ic('list')}</span><b>${L('我的列表', 'My lists')}</b></div>${ls.map(l => { const n = saved.filter(s => (s.list || lists()[0]) === l).length; return `<div class="di" data-tool="list" data-arg="${esc(l)}"><span class="i">▸</span>${esc(l)} <span style="color:var(--muted)">· ${n}</span></div>`; }).join('')}</div>
+   <div class="ds"><div class="di" data-tool="measure"><span class="i">${ic('measure')}</span><b>${L('测量距离', 'Measure distance')}</b></div>
+   <div class="di" data-tool="offline"><span class="i">${ic('offline')}</span><div><b>${L('下载当前区域（离线）', 'Download this area (offline)')}</b><div class="s" style="font-size:13.5px;color:var(--muted)">${off.length ? L(`已下载 ${off.length} 个区域`, `${off.length} area(s) downloaded`) : L('地图 + 地点，可离线查看和搜索', 'Map + places, view & search offline')}</div></div></div></div>`;
 };
 tools.list = name => {
   const items = store.get('saved', []).filter(s => (s.list || lists()[0]) === name);
-  openPanel(`<div class="list">${items.map((it, i) => `<div class="it" data-i="${i}"><div>★ ${esc(it.name)}</div><div class="s">${esc(it.address || '')}</div></div>`).join('') || `<div class="row">${t('empty')}</div>`}</div>`, `${name} · ${items.length}`);
+  openPanel(`<div class="list">${items.map((it, i) => `<div class="it" data-i="${i}"><div>${ic('star')} ${esc(it.name)}</div><div class="s">${esc(it.address || '')}</div></div>`).join('') || `<div class="row">${t('empty')}</div>`}</div>`, `${name} · ${items.length}`);
   $('#panelBody .list').onclick = e => { const el = e.target.closest('.it'); if (el) pick(items[+el.dataset.i]); };
 };
 
@@ -858,7 +869,7 @@ tools.offline = async () => {
   openPanel(`<div class="row"><div>${L('正在下载…', 'Downloading…')} <span id="offN">0</span> / ${urls.length}<div class="prog"><i id="offP" style="width:0"></i></div><div style="font-size:13px;color:var(--muted)">${L('矢量瓦片 OpenFreeMap（z' + z0 + '–14，放大后自动细化）', 'OpenFreeMap vector tiles (z' + z0 + '–14, overzoomed beyond)')}</div></div></div>`, L('离线下载', 'Offline download'));
   const cache = await caches.open('rg-tiles-v1'); let done = 0, fail = 0;
   const glyphs = []; for (const f of [...new Set(map.getStyle().layers.flatMap(l => l.layout?.['text-font'] || []))]) for (const r of ['0-255', '256-511', '8192-8447']) glyphs.push(`${base}glyphs/${encodeURIComponent(f)}/${r}.pbf`);
-  const all = [...urls, ...glyphs, ...['neon_dark', 'neon_light', 'west_dark', 'west_light'].flatMap(k => [`${base}styles/${k}.json`, `${base}sprites/${k}.json`, `${base}sprites/${k}.png`, `${base}sprites/${k}@2x.json`, `${base}sprites/${k}@2x.png`]), 'https://tiles.openfreemap.org/planet'];
+  const all = [...urls, ...glyphs, ...['neon_dark', 'neon_light', 'west_dark', 'west_light'].flatMap(k => [`${base}styles/${k}.json${AV}`, `${base}sprites/${k}.json`, `${base}sprites/${k}.png`, `${base}sprites/${k}@2x.json`, `${base}sprites/${k}@2x.png`]), 'https://tiles.openfreemap.org/planet'];
   const work = async () => { while (all.length) { const u = all.pop(); try { if (!(await cache.match(u))) { const r = await fetch(u); if (r.ok) await cache.put(u, r); else fail++; } } catch { fail++; } done++; if ($('#offN')) { $('#offN').textContent = Math.min(done, urls.length); $('#offP').style.width = (100 * done / (urls.length + 40)).toFixed(1) + '%'; } } };
   await Promise.all(Array.from({ length: 6 }, work));
   // local place index for offline search: named POIs from the downloaded z14 tiles (already rendered features) + Photon names
