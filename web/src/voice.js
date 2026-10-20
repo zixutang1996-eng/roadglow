@@ -52,7 +52,7 @@ export function phrase(ev, { st, dist, min } = {}) {
   }
   return fill(pick(T[ev]), { min });
 }
-export function voices() { const l = lang === 'zh' ? /^zh/i : /^en/i; return (speechSynthesis?.getVoices() || []).filter(v => l.test(v.lang)); }
+export function voices() { const l = lang === 'zh' ? /^zh/i : /^en/i; return (window.speechSynthesis?.getVoices() || []).filter(v => l.test(v.lang)); }
 function chooseVoice(P) {
   const saved = localStorage.getItem('voiceName'), vs = voices(); if (saved) { const v = vs.find(x => x.name === saved); if (v) return v; }
   const pref = vs.filter(v => P.prefer[lang === 'zh' ? 'zh' : 'en'].test(v.lang));
@@ -61,6 +61,7 @@ function chooseVoice(P) {
   return pool[0] || null;
 }
 export function say(text) {
+  if (text && window.__nativeSay) { const P = PACKS[voicePack()]; return window.__nativeSay(text, lang === 'zh' ? 'zh-CN' : (P === PACKS.canuck ? 'en-CA' : 'en-US'), P.rate, P.pitch); }
   if (!text || !window.speechSynthesis) return;
   try { const P = PACKS[voicePack()], u = new SpeechSynthesisUtterance(text); u.lang = lang === 'zh' ? 'zh-CN' : (P === PACKS.canuck ? 'en-CA' : 'en-US');
     const v = chooseVoice(P); if (v) u.voice = v; u.pitch = P.pitch; u.rate = P.rate; speechSynthesis.cancel(); speechSynthesis.speak(u); } catch {}

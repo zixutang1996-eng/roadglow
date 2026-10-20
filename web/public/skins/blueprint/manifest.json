@@ -1,0 +1,49 @@
+{
+ "format": "roadglow-skin/1",
+ "id": "blueprint",
+ "name": {
+  "en": "Blueprint",
+  "zh": "蓝图"
+ },
+ "version": "1.0.0",
+ "author": "RoadGlow example",
+ "license": "CC0-1.0",
+ "base": "neon",
+ "description": {
+  "en": "Cyanotype blueprint recolour of Neon. Example skin pack.",
+  "zh": "霓虹风格的蓝晒图配色，示例皮肤包。"
+ },
+ "minApp": "0.9.2",
+ "modes": {
+  "light": {
+   "style": "light.json"
+  },
+  "dark": {
+   "style": "dark.json"
+  }
+ },
+ "tokens": {
+  "light": {
+   "route": "#d9480f",
+   "themeColor": "#16407a",
+   "accent": "#16407a",
+   "navCard": {
+    "bg": "#16407a",
+    "fg": "#ffffff",
+    "mapBase": "#9fb6d6",
+    "swapBg": "#ecf4ff"
+   }
+  },
+  "dark": {
+   "route": "#ffb347",
+   "themeColor": "#0a1e3e",
+   "accent": "#7fc4ff",
+   "navCard": {
+    "bg": "#0f2a52",
+    "fg": "#e8f2ff",
+    "mapBase": "#0a1e3e",
+    "swapBg": "#dcecff"
+   }
+  }
+ }
+}

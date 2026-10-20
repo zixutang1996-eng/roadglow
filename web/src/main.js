@@ -1,3 +1,4 @@
+import { NATIVE } from './native.js';
 import * as maplibregl from 'maplibre-gl';
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 import 'maplibre-gl/dist/maplibre-gl.css';
@@ -19,25 +20,31 @@ maplibregl.setWorkerUrl(workerUrl);
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const store = { get: (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } }, set: (k, v) => localStorage.setItem(k, JSON.stringify(v)) };
-const S = { sat: store.get('sat', false), theme: store.get('theme', 'neon'), mode: store.get('mode', 'auto'), me: null, place: null, routes: null, routeIdx: 0, travel: 'drive', from: null, catLayer: null };
+const S = { sat: store.get('sat', false), theme: store.get('theme', 'neon'), skin: store.get('skin', null), mode: store.get('mode', 'auto'), me: null, place: null, routes: null, routeIdx: 0, travel: 'drive', from: null, catLayer: null };
+import * as SK from './skins.js';
+let SKINS = []; const refreshSkins = async () => { try { SKINS = await SK.listInstalled(); } catch { SKINS = []; } };
 const isDark = () => S.mode === 'dark' || (S.mode === 'auto' && matchMedia('(prefers-color-scheme: dark)').matches);
 const styleKey = () => `${S.theme}_${isDark() ? 'dark' : 'light'}`;
 const base = new URL(import.meta.env.BASE_URL, location.href).href;
 
 let _tj; const tileJSON = () => _tj ||= fetch('https://tiles.openfreemap.org/planet').then(r => r.json()).catch(e => { _tj = null; throw e; });
 async function loadStyle() {
-  const st = await (await fetch(`${base}styles/${styleKey()}.json${AV}`)).json();
+  let st, pk = null;
+  if (S.skin) { try { pk = await SK.getPack(S.skin); } catch {} if (!pk) { S.skin = null; store.set('skin', null); } }
+  if (pk) { S.theme = pk.base; const ps = await SK.packStyle(pk, isDark() ? 'dark' : 'light', base); st = ps.style; window.__skinTok = pk.tokens || {}; }
+  else { window.__skinTok = null; st = await (await fetch(`${base}styles/${styleKey()}.json${AV}`)).json(); st.sprite = `${base}sprites/${styleKey()}`; }
   st.glyphs = `${base}glyphs/{fontstack}/{range}.pbf`;
-  st.sprite = `${base}sprites/${styleKey()}`;
   const nameExpr = lang === 'zh' ? ['coalesce', ['get', 'name:zh-Hans'], ['get', 'name:zh'], ['get', 'name'], ['get', 'name:en']] : ['coalesce', ['get', 'name:en'], ['get', 'name:latin'], ['get', 'name']];
   for (const l of st.layers) if (l.layout?.['text-field']) l.layout['text-field'] = nameExpr;
   const poi = st.layers.find(l => l.id === 'poi');
   if (poi) poi.layout['icon-image'] = ['case', ['==', ['get', 'class'], 'aerodrome'], 'airport', poi.layout['icon-image']];
   return st;
 }
-const routeColor = () => ({ neon_dark: '#4fd6e8', neon_light: '#c2309a', west_light: '#9a2a18', west_dark: '#e0a46a' })[styleKey()];
+const routeColor = () => skinTok().route || ({ neon_dark: '#4fd6e8', neon_light: '#c2309a', west_light: '#9a2a18', west_dark: '#e0a46a' })[styleKey()];
 const THEMEC = { neon_light: '#2a2f3c', neon_dark: '#0f131c', west_light: '#5a3a1a', west_dark: '#24170c' };
-function applyBodyClass() { const tc = document.getElementById('themeColor'); if (tc) tc.content = THEMEC[`${S.theme}_${isDark() ? 'dark' : 'light'}`] || '#101521'; document.body.className = `${S.theme} ${isDark() ? 'dark' : 'light'}${$('#panel').classList.contains('hidden') ? '' : ' panel-open'}${$('#panel').classList.contains('collapsed') ? ' panel-collapsed' : ''}`; }
+import { ncApply, ncHtml, ncSet, NC_SCALES, NC_DEF } from './navcard.js';
+export const skinTok = () => window.__skinTok?.[isDark() ? 'dark' : 'light'] || {};
+function applyBodyClass() { const tc = document.getElementById('themeColor'); if (tc) tc.content = skinTok().themeColor || THEMEC[`${S.theme}_${isDark() ? 'dark' : 'light'}`] || '#101521'; document.body.className = `${S.theme} ${isDark() ? 'dark' : 'light'}${$('#panel').classList.contains('hidden') ? '' : ' panel-open'}${$('#panel').classList.contains('collapsed') ? ' panel-collapsed' : ''}`; SK.applyTokens(skinTok()); ncApply(styleKey(), skinTok().navCard); }
 
 // ---------- map ----------
 const hash = location.hash.slice(1).split('/').map(Number);
@@ -46,7 +53,7 @@ const map = new maplibregl.Map({
   center: hash.length >= 3 && !hash.some(isNaN) ? [hash[2], hash[1]] : [-113.4938, 53.5461], zoom: hash.length >= 3 && !isNaN(hash[0]) ? hash[0] : 12,
   attributionControl: { compact: true }, hash: false, maxPitch: 70, fadeDuration: 150, localIdeographFontFamily: '"PingFang SC","Noto Sans CJK SC","Microsoft YaHei",sans-serif',
 });
-window._map = map; window._sug = () => sugItems.map(r => ({ dbg: [r.ts, r.sc, Math.round(r.dist), r.src].join('/'), name: r.name, address: r.address, lat: r.lat, lng: r.lng, sem: !!r.sem, src: r.src, cls: r.cls || r.category }));
+window._map = map; if (NATIVE) map.once('load', () => setTimeout(() => import('./updates.js').then(m => m.initUpdates({ toast, L, store })).catch(e => console.warn(e)), 4000)); SK.hookMissingImages(map); refreshSkins(); window._skins = { ...SK, refresh: refreshSkins, use: async id => { S.skin = id; store.set('skin', id); await setStyle(); } }; window._sug = () => sugItems.map(r => ({ dbg: [r.ts, r.sc, Math.round(r.dist), r.src].join('/'), name: r.name, address: r.address, lat: r.lat, lng: r.lng, sem: !!r.sem, src: r.src, cls: r.cls || r.category }));
 applyBodyClass();
 const updHash = () => { const c = map.getCenter(); history.replaceState(null, '', `${location.pathname}${location.search}#${map.getZoom().toFixed(2)}/${c.lat.toFixed(5)}/${c.lng.toFixed(5)}`); };
 map.on('moveend', updHash);
@@ -621,7 +628,7 @@ function renderLayersPop() {
    <div class="seg" style="margin-top:10px">${['auto', 'light', 'dark'].map(m => `<button data-md="${m}" class="${S.mode === m ? 'on' : ''}">${t(m)}</button>`).join('')}</div>
    <div class="seg" style="margin-top:10px"><button data-sat="0" class="${!S.sat ? 'on' : ''}">${lang === 'zh' ? '地图' : 'Map'}</button><button data-sat="1" class="${S.sat ? 'on' : ''}">${lang === 'zh' ? '卫星' : 'Satellite'}</button></div>
    <div style="font-size:12px;color:var(--muted);margin-top:6px">${lang === 'zh' ? '卫星：EOX Sentinel‑2 无云（非商业）+ 埃德蒙顿市航拍' : 'Satellite: EOX Sentinel‑2 cloudless (non‑commercial) + City of Edmonton orthophoto'}</div>`;
-  $('#layersPop').onclick = e => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.x) return $('#layersPop').classList.add('hidden'); if (b.dataset.th) S.theme = b.dataset.th; if (b.dataset.md) S.mode = b.dataset.md; if (b.dataset.sat) { S.sat = b.dataset.sat === '1'; store.set('sat', S.sat); } setStyle(); };
+  $('#layersPop').onclick = e => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.x) return $('#layersPop').classList.add('hidden'); if (b.dataset.th) { S.theme = b.dataset.th; S.skin = null; store.set('skin', null); } if (b.dataset.md) S.mode = b.dataset.md; if (b.dataset.sat) { S.sat = b.dataset.sat === '1'; store.set('sat', S.sat); } setStyle(); };
 }
 
 // ---------- drawer ----------
@@ -641,13 +648,19 @@ function renderDrawer() {
    ${sec('settings', 'settings', t('settings'), sub('layers', t('styles'), pad(`<div class="seg">${['neon', 'west'].map(th => `<button data-th="${th}" class="${S.theme === th ? 'on' : ''}">${t(th)}</button>`).join('')}</div>
      <div class="seg" style="margin-top:8px">${['auto', 'light', 'dark'].map(m => `<button data-md="${m}" class="${S.mode === m ? 'on' : ''}">${t(m)}</button>`).join('')}</div>`))
      + sub('voice', L('导航语音包', 'Voice pack'), `<div style="padding:0 22px 12px 58px" id="voiceBox">${voiceHtml()}</div>`)
-     + sub('size', L('文字与图标大小', 'Text & icon size'), pad(sizeHtml()))
+     + sub('size', L('文字与图标大小', 'Text & icon size'), pad(sizeHtml())))}
+   ${sec('navcard', 'dir', L('导航卡片', 'Navigation card'), `<div style="padding:4px 22px 12px 22px" id="ncBox">${ncHtml(L)}</div>`)}
+   ${sec('settings2', 'layers', L('皮肤插件与语言', 'Skin plugins & language'), sub('layers', L('皮肤插件', 'Skin plugins'), pad(skinsHtml()))
      + sub('settings', t('language'), pad(`<div class="seg"><button data-lang="" class="${!localStorage.getItem('lang') ? 'on' : ''}">${t('lang_auto')}</button><button data-lang="zh" class="${localStorage.getItem('lang') === 'zh' ? 'on' : ''}">中文</button><button data-lang="en" class="${localStorage.getItem('lang') === 'en' ? 'on' : ''}">English</button></div>`)))}
    ${sec('about', 'info', t('about'), `<div class="sub">${t('about_text')}</div>`)}`;
   $('#drawer').onclick = e => {
     const h = e.target.closest('[data-sech]'); if (h) { const o = store.get('drawerOpen', { mine: 1 }), id = h.dataset.sech, sc = h.parentElement; o[id] = sc.classList.toggle('open') ? 1 : 0; h.setAttribute('aria-expanded', !!o[id]); store.set('drawerOpen', o); return; }
-    const el = e.target.closest('[data-s],[data-r],[data-th],[data-md],[data-lang],[data-clear],[data-close],[data-sq],[data-tool],[data-vp],[data-vtest],[data-szreset]'); if (!el) return;
+    const el = e.target.closest('[data-s],[data-r],[data-th],[data-md],[data-lang],[data-clear],[data-close],[data-sq],[data-tool],[data-vp],[data-vtest],[data-szreset],[data-ncc],[data-ncreset],[data-skin],[data-skrm],[data-skurl]'); if (!el) return;
     if (el.dataset.close) return closeDrawer();
+    if (el.dataset.ncc || el.dataset.ncreset) { if (el.dataset.ncreset) localStorage.removeItem('navCard'); else ncSet({ color: el.dataset.ncc }); applyBodyClass(); $('#ncBox').innerHTML = ncHtml(L); return; }
+    if (el.dataset.skin !== undefined) { S.skin = el.dataset.skin || null; if (!S.skin) S.theme = el.dataset.th2 || S.theme; store.set('skin', S.skin); return setStyle(); }
+    if (el.dataset.skrm) { if (S.skin === el.dataset.skrm) { S.skin = null; store.set('skin', null); } return SK.removePack(el.dataset.skrm).then(refreshSkins).then(setStyle); }
+    if (el.dataset.skurl) { const u = $('#skUrl').value.trim(); return skinInstall(() => SK.installFromUrl(u)); }
     if (el.dataset.szreset) { store.set('textScale', 1); store.set('iconScale', 1); applySizes(); return renderDrawer(); }
     if (el.dataset.vp) { localStorage.setItem('voicePack', el.dataset.vp); localStorage.removeItem('voiceName'); return renderDrawer(); }
     if (el.dataset.vtest) return import('./voice.js').then(m => m.say(m.phrase('test')));
@@ -655,7 +668,7 @@ function renderDrawer() {
     if (el.dataset.tool) { closeDrawer(); return tools[el.dataset.tool]?.(el.dataset.arg); }
     if (el.dataset.s) { closeDrawer(); pick(saved[+el.dataset.s]); }
     else if (el.dataset.r) { closeDrawer(); pick(rec[+el.dataset.r]); }
-    else if (el.dataset.th) { S.theme = el.dataset.th; setStyle(); }
+    else if (el.dataset.th) { S.theme = el.dataset.th; S.skin = null; store.set('skin', null); setStyle(); }
     else if (el.dataset.md) { S.mode = el.dataset.md; setStyle(); }
     else if (el.dataset.lang !== undefined) setLang(el.dataset.lang);
     else if (el.dataset.clear) { store.set('recents', []); renderDrawer(); }
@@ -818,8 +831,18 @@ function applySizes() {
 }
 map.on('style.load', () => { baseSizes = {}; setTimeout(applySizes, 60); });
 applySizes();
+function skinsHtml() {
+  const row = (id, nm, sub, on, rm, th2) => `<div class="skrow${on ? ' on' : ''}"><button class="btn ghost" data-skin="${id}"${th2 ? ` data-th2="${th2}"` : ''}>${on ? '✔ ' : ''}${esc(nm)}</button><span class="s">${esc(sub)}</span>${rm ? `<button class="btn ghost" data-skrm="${esc(id)}" aria-label="remove">✕</button>` : ''}</div>`;
+  return SK.BUILTIN.map(b => row('', t(b), L('内置', 'built-in') + ' · RoadGlow', !S.skin && S.theme === b, 0, b)).join('')
+    + SKINS.map(p => row(p.id, SK.packName(p, ZH), `v${p.version} · ${p.author} · ${p.license}`, S.skin === p.id, 1)).join('')
+    + `<div class="skin-add"><input id="skUrl" type="url" placeholder="https://…/manifest.json" inputmode="url"><button class="btn" data-skurl="1">${L('安装', 'Install')}</button></div>
+      <label class="btn ghost skfile">${L('从文件安装 (.json)', 'Install from file (.json)')}<input id="skFile" type="file" accept=".json,application/json" hidden></label><div id="skMsg" class="sub" style="padding:4px 0;white-space:pre-wrap"></div>`;
+}
+async function skinInstall(fn) { const m = $('#skMsg'); try { const v = await fn(); await refreshSkins(); S.skin = v.pack.id; store.set('skin', S.skin); await setStyle(); const mm = $('#skMsg'); if (mm) mm.textContent = `✔ ${SK.packName(v.pack, ZH)}${v.warnings.length ? '\n⚠ ' + v.warnings.join('\n⚠ ') : ''}`; } catch (e) { if (m) m.textContent = '✖ ' + e.message; } }
+document.addEventListener('change', e => { if (e.target.id === 'skFile' && e.target.files[0]) skinInstall(() => SK.installFromFile(e.target.files[0])); });
 function sizeHtml() { const { t: ts, i: is } = sz(); const row = (k, v, lab) => `<div class="szrow"><span>${lab}</span><input type="range" min="0" max="5" step="1" value="${Math.max(0, SZ.indexOf(v))}" data-sz="${k}"><b id="szv_${k}">${Math.round(v * 100)}%</b></div>`;
   return row('textScale', ts, L('文字', 'Text')) + row('iconScale', is, L('图标', 'Icons')) + `<button class="btn ghost" data-szreset="1">${L('重置为默认', 'Reset')}</button>`; }
+document.addEventListener('input', e => { const n = e.target.dataset?.nc; if (n) { const v = n === 'scale' ? NC_SCALES[+e.target.value] : +e.target.value / 100; ncSet({ [n]: v }); $('#ncv_' + n).textContent = Math.round(v * 100) + '%'; applyBodyClass(); } });
 document.addEventListener('input', e => { const k = e.target.dataset?.sz; if (!k) return; const v = SZ[+e.target.value]; store.set(k, v); $('#szv_' + k).textContent = Math.round(v * 100) + '%'; applySizes(); });
 // ---------- voice pack settings (voice.js is tiny; loaded with the drawer) ----------
 import { PACKS, voices, voicePack } from './voice.js';
@@ -981,7 +1004,7 @@ tools.list = name => {
 
 // ---------- offline areas (Service Worker cache of tiles + local place index) ----------
 const lng2x = (l, z) => Math.floor((l + 180) / 360 * 2 ** z), lat2y = (a, z) => Math.floor((1 - Math.log(Math.tan(a * Math.PI / 180) + 1 / Math.cos(a * Math.PI / 180)) / Math.PI) / 2 * 2 ** z);
-if ('serviceWorker' in navigator && location.protocol === 'https:' || location.hostname === '127.0.0.1') navigator.serviceWorker?.register(`${base}sw.js`).catch(() => {});
+if (!NATIVE && 'serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === '127.0.0.1')) navigator.serviceWorker?.register(`${base}sw.js`).catch(() => {});
 tools.offline = async () => {
   const B = map.getBounds(), tj = await (await fetch('https://tiles.openfreemap.org/planet')).json(), tpl = tj.tiles[0];
   const urls = []; const z0 = Math.max(0, Math.floor(map.getZoom()) - 4);

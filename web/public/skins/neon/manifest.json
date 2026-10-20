@@ -1,0 +1,39 @@
+{
+ "format": "roadglow-skin/1",
+ "version": "0.9.2",
+ "author": "RoadGlow",
+ "license": "MIT",
+ "builtin": true,
+ "id": "neon",
+ "name": {
+  "en": "Neon",
+  "zh": "霓虹"
+ },
+ "base": "neon",
+ "modes": {
+  "light": {
+   "style": "../../styles/neon_light.json",
+   "sprite": "../../sprites/neon_light"
+  },
+  "dark": {
+   "style": "../../styles/neon_dark.json",
+   "sprite": "../../sprites/neon_dark"
+  }
+ },
+ "tokens": {
+  "light": {
+   "route": "#c2309a",
+   "themeColor": "#2a2f3c",
+   "navCard": {
+    "mapBase": "#8e94a2"
+   }
+  },
+  "dark": {
+   "route": "#4fd6e8",
+   "themeColor": "#0f131c",
+   "navCard": {
+    "mapBase": "#14161f"
+   }
+  }
+ }
+}

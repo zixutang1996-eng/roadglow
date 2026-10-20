@@ -38,9 +38,9 @@ export function unlockSpeech() {
 }
 // voices load late on iOS/Safari: resolve when available (or after timeout)
 export function voicesReady(ms = 3000) {
-  return new Promise(res => { const v = speechSynthesis?.getVoices?.() || []; if (v.length) return res(v);
-    const t = setTimeout(() => res(speechSynthesis?.getVoices?.() || []), ms);
-    speechSynthesis?.addEventListener?.('voiceschanged', () => { clearTimeout(t); res(speechSynthesis.getVoices()); }, { once: true }); });
+  return new Promise(res => { const v = window.speechSynthesis?.getVoices?.() || []; if (v.length) return res(v);
+    const t = setTimeout(() => res(window.speechSynthesis?.getVoices?.() || []), ms);
+    window.speechSynthesis?.addEventListener?.('voiceschanged', () => { clearTimeout(t); res(speechSynthesis.getVoices()); }, { once: true }); });
 }
 
 // compass: iOS 13+ needs DeviceOrientationEvent.requestPermission() from a tap; heading from webkitCompassHeading

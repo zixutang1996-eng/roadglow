@@ -1,0 +1,39 @@
+{
+ "format": "roadglow-skin/1",
+ "version": "0.9.2",
+ "author": "RoadGlow",
+ "license": "MIT",
+ "builtin": true,
+ "id": "west",
+ "name": {
+  "en": "Frontier Ink",
+  "zh": "西部墨韵"
+ },
+ "base": "west",
+ "modes": {
+  "light": {
+   "style": "../../styles/west_light.json",
+   "sprite": "../../sprites/west_light"
+  },
+  "dark": {
+   "style": "../../styles/west_dark.json",
+   "sprite": "../../sprites/west_dark"
+  }
+ },
+ "tokens": {
+  "light": {
+   "route": "#9a2a18",
+   "themeColor": "#5a3a1a",
+   "navCard": {
+    "mapBase": "#ebddbb"
+   }
+  },
+  "dark": {
+   "route": "#e0a46a",
+   "themeColor": "#24170c",
+   "navCard": {
+    "mapBase": "#26201a"
+   }
+  }
+ }
+}
