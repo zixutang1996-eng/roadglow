@@ -31,7 +31,7 @@ const R = { reveal: [], search: [] };
         await p.waitForFunction(q => window._acLat.some(x => x.q === q && x.phase === 'remote'), { timeout: 9000 }, q).catch(() => {});
         await sl(300); const ms = Date.now() - t0; const timedOut = !(await p.evaluate(q => window._acLat.some(x => x.q === q && x.phase === 'remote'), q));
         const top = await p.evaluate(c => window._sug().filter(x => !x.sem).slice(0, 5).map(x => ({ ...x, km: x.lat != null ? +(Math.hypot((x.lat - c[1]) * 111, (x.lng - c[0]) * 111 * Math.cos(c[1] * Math.PI / 180))).toFixed(1) : null })), c);
-        R.search.push({ region: rn, q, localTop: local[0]?.name || null, top, timedOut, ms }); console.log(rn, q, timedOut ? 'TIMEOUT' : '', '|', top.slice(0, 3).map(x => `${x.name} (${x.km}km)`).join(' ; '));
+        R.search.push({ region: rn, q, localTop: local[0]?.name || null, top, timedOut, ms }); console.log(rn, q, timedOut ? 'TIMEOUT' : '', '|', top.slice(0, 3).map(x => `${x.name} (${x.km}km ${process.env.DBG ? x.dbg : ''})`).join(' ; '));
         if (q === 'airport' || q === '机场') await p.screenshot({ path: out + `search_${q === '机场' ? 'jichang' : 'airport'}_${rn}.png` }); }
       await p.close(); } }
   fs.writeFileSync(out + `results_${PART.replace(/,/g, '_')}.json`, JSON.stringify(R, null, 1)); await b.close(); })();

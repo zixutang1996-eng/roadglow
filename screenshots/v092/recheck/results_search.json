@@ -1,0 +1,182 @@
+{
+ "reveal": [],
+ "search": [
+  {
+   "region": "seattle",
+   "q": "Walmart",
+   "localTop": "Walmart Supercentre",
+   "top": [
+    {
+     "dbg": "6.5//14432/",
+     "name": "Walmart Neighborhood Market",
+     "address": "15063 Main Street, Bellevue, Washington, 98007",
+     "lat": 47.6087019,
+     "lng": -122.1396314,
+     "sem": false,
+     "cls": "shop=supermarket",
+     "km": 14.4
+    },
+    {
+     "dbg": "6.5//17061/",
+     "name": "Walmart Pharmacy",
+     "address": "743 Rainier Avenue South, Renton, Washington, 98057",
+     "lat": 47.4724946,
+     "lng": -122.220611,
+     "sem": false,
+     "cls": "amenity=pharmacy",
+     "km": 17
+    },
+    {
+     "dbg": "6.5//17087/",
+     "name": "Walmart Supercenter",
+     "address": "743 Rainier Avenue South, Renton, Washington, 98057",
+     "lat": 47.4720483,
+     "lng": -122.2210962,
+     "sem": false,
+     "cls": "shop=supermarket",
+     "km": 17.1
+    },
+    {
+     "dbg": "6.5//17437/",
+     "name": "Walmart Corp.",
+     "address": "801 Southwest 16th Street, Renton, Washington, 98057",
+     "lat": 47.4655052,
+     "lng": -122.2295386,
+     "sem": false,
+     "cls": "office=company",
+     "km": 17.4
+    },
+    {
+     "dbg": "6.5//22631/",
+     "name": "Walmart",
+     "address": "6797 State Highway 303 Northeast, Bremerton, Washington, 98311",
+     "lat": 47.6250265,
+     "lng": -122.6327313,
+     "sem": false,
+     "cls": "shop=department_store",
+     "km": 22.6
+    }
+   ],
+   "timedOut": false,
+   "ms": 3754
+  },
+  {
+   "region": "seattle",
+   "q": "Costco",
+   "localTop": "Costco Business Centre",
+   "top": [
+    {
+     "dbg": "6.5//4532/",
+     "name": "Costco",
+     "address": "4401 4th Avenue South, Georgetown, Seattle, Washington, 98134",
+     "lat": 47.5654639,
+     "lng": -122.3303106,
+     "sem": false,
+     "cls": "shop=wholesale",
+     "km": 4.5
+    },
+    {
+     "dbg": "6.5//13983/",
+     "name": "Costco",
+     "address": "8629 120th Avenue Northeast, Kirkland, Washington, 98033",
+     "lat": 47.680792,
+     "lng": -122.1818341,
+     "sem": false,
+     "cls": "shop=wholesale",
+     "km": 14
+    },
+    {
+     "dbg": "6.5//18811/",
+     "name": "Costco",
+     "address": "1175 North 205th Street, Edmonds, Washington, 98133",
+     "lat": 47.7751535,
+     "lng": -122.3448489,
+     "sem": false,
+     "cls": "shop=wholesale",
+     "km": 18.8
+    },
+    {
+     "dbg": "6.5//18950/",
+     "name": "Costco",
+     "address": "400 Costco Drive, Tukwila, Washington, 98188",
+     "lat": 47.4453494,
+     "lng": -122.2487203,
+     "sem": false,
+     "cls": "shop=wholesale",
+     "km": 18.9
+    },
+    {
+     "dbg": "6.5//19545/",
+     "name": "Costco",
+     "address": "7725 188th Avenue Northeast, Southeast Redmond, Redmond, Washington, 98052",
+     "lat": 47.6742424,
+     "lng": -122.091565,
+     "sem": false,
+     "cls": "shop=wholesale",
+     "km": 19.5
+    }
+   ],
+   "timedOut": false,
+   "ms": 4587
+  },
+  {
+   "region": "seattle",
+   "q": "Tim Hortons",
+   "localTop": "Tim Hortons",
+   "top": [
+    {
+     "dbg": "10//117699/",
+     "name": "Tim Hortons",
+     "address": "1950 Foul Bay Road, Oak Bay, British Columbia, V8R 5A7",
+     "lat": 48.4309981,
+     "lng": -123.323964,
+     "sem": false,
+     "cls": "amenity=cafe",
+     "km": 117.9
+    },
+    {
+     "dbg": "10//119034/",
+     "name": "Tim Hortons",
+     "address": "Fort Street, Downtown, Victoria, British Columbia, V8W 1G9",
+     "lat": 48.4245782,
+     "lng": -123.3637797,
+     "sem": false,
+     "cls": "amenity=cafe",
+     "km": 119.2
+    },
+    {
+     "dbg": "10//119411/",
+     "name": "Tim Hortons",
+     "address": "Lansdowne Road, Oaklands, Victoria, British Columbia, V8R 4M9",
+     "lat": 48.4461757,
+     "lng": -123.332596,
+     "sem": false,
+     "cls": "amenity=cafe",
+     "km": 119.6
+    },
+    {
+     "dbg": "10//120206/",
+     "name": "Tim Hortons",
+     "address": "2680 Blanshard Street, Burnside, Victoria, British Columbia, V8T 5E1",
+     "lat": 48.4381978,
+     "lng": -123.364138,
+     "sem": false,
+     "cls": "amenity=cafe",
+     "km": 120.4
+    },
+    {
+     "dbg": "10//120706/",
+     "name": "Tim Hortons",
+     "address": "3749 Shelbourne Street, Shelbourne, Saanich, British Columbia, V8P 5N4",
+     "lat": 48.4614959,
+     "lng": -123.331831,
+     "sem": false,
+     "cls": "amenity=cafe",
+     "km": 120.9
+    }
+   ],
+   "timedOut": false,
+   "ms": 5633
+  }
+ ]
+}
