@@ -24,7 +24,7 @@ export function startNavigation({ map, S, setMe, makePuck, reroute, drawRoutes, 
     ? `<svg width="54" height="54" viewBox="0 0 40 40"><defs><filter id="dr"><feTurbulence type="fractalNoise" baseFrequency="1" numOctaves="2" seed="7"/><feDisplacementMap in="SourceGraphic" scale="1.4"/></filter></defs><g filter="url(#dr)" fill="none" stroke="#20150b" stroke-linecap="round"><circle cx="20" cy="20" r="16" stroke-width="2" fill="rgba(246,236,214,.75)"/><circle cx="20" cy="20" r="12.5" stroke-width=".9" opacity=".7"/><path d="M12 12 28 28M28 12 12 28" stroke="#7c2e22" stroke-width="3.6"/></g></svg>`
     : `<svg width="54" height="54" viewBox="0 0 40 40" style="overflow:visible"><circle cx="20" cy="20" r="17" fill="none" stroke="#4fd6e8" stroke-width="1" opacity=".7"/><path d="M20 4 31 20 20 36 9 20Z" fill="#e0457a" stroke="#ffd25a" stroke-width="1.8"/><path d="M20 12 25.5 20 20 28 14.5 20Z" fill="#ffd25a"/></svg>`;
   const destMarker = new Marker({ element: dm }).setLngLat(endC).addTo(map);
-  const foot = document.createElement('div'); foot.id = 'navFoot'; foot.className = 'card'; document.body.appendChild(foot);
+  const foot = document.createElement('div'); foot.id = 'navFoot'; foot.className = 'card'; (document.querySelector('.navw') || document.body).appendChild(foot);
   // static buttons (never re-rendered, so taps can't be lost to the 1 Hz refresh)
   banner.innerHTML = `<button id="navX" title="${t('nav_end')}">✕</button><div id="navBody"></div>`; const navBody = banner.querySelector('#navBody');
   foot.innerHTML = `<div class="eta"></div><button class="ctl" id="hdgBtn" title="${t('compass')}">⬆</button><button class="btn red" id="endBtn"><span class="stopg" aria-hidden="true"></span>${t('nav_end')}</button>`;
