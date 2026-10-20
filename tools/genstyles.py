@@ -13,6 +13,15 @@ ICONMAP={'restaurant':['restaurant','fast_food'],'cafe':['cafe','ice_cream','bak
 ICON=['match',['get','class']]
 for k,v in ICONMAP.items(): ICON+= [v,k]
 ICON.append('generic')
+IMPORTANT=['hospital','railway','ferry_terminal','attraction','museum','stadium','college','town_hall','zoo','castle','monument','theatre']
+FOOD=['restaurant','fast_food','cafe']
+PRIO=['+',['match',['get','class'],IMPORTANT,0,['bus'],['match',['get','subclass'],['bus_station'],0,80],FOOD,20,['grocery','supermarket','fuel','pharmacy','lodging','park','library'],30,60],['coalesce',['get','rank'],50]]
+POIFILTER=['step',['zoom'],
+  ['all',['match',['get','class'],IMPORTANT,True,False],['<=',['coalesce',['get','rank'],99],4]],
+  14,['any',['match',['get','class'],IMPORTANT,True,False],['all',['match',['get','class'],FOOD,True,False],['<=',['coalesce',['get','rank'],99],12]],['<=',['coalesce',['get','rank'],99],6]],
+  15,['any',['match',['get','class'],IMPORTANT+FOOD,True,False],['<=',['coalesce',['get','rank'],99],16]],
+  16,['<=',['coalesce',['get','rank'],99],40],
+  17,True]
 def w(base):  # width by zoom
     return ['interpolate',['exponential',1.5],['zoom'],8,base*0.3,14,base*2,18,base*12]
 name=['coalesce',['get','name:zh'],['get','name'],['get','name:en']] # overridden by locale at runtime
@@ -47,7 +56,7 @@ def style(k,p):
      {'id':'boundary','type':'line','source':'omt','source-layer':'boundary','filter':['<=',['get','admin_level'],4],'layout':{'line-join':'round'},'paint':{'line-color':p['bnd'],'line-width':1.5,'line-dasharray':[4,2,1,2]}},
      {'id':'water-name','type':'symbol','source':'omt','source-layer':'water_name','layout':{'text-field':name,'text-font':p['fontb'],'text-size':14},'paint':{'text-color':p['waterline'],'text-halo-color':p['halo'],'text-halo-width':1.2}},
      {'id':'road-name','type':'symbol','source':'omt','source-layer':'transportation_name','minzoom':13,'layout':{'symbol-placement':'line','text-field':name,'text-font':p['font'],'text-size':['interpolate',['linear'],['zoom'],13,11,18,15],**({'text-transform':'uppercase','text-letter-spacing':0.12} if p['glow'] or 'neon' in k else {})},'paint':{'text-color':p['txt'],'text-halo-color':p['halo'],'text-halo-width':1.5}},
-     {'id':'poi','type':'symbol','source':'omt','source-layer':'poi','minzoom':14,'filter':['<=',['get','rank'],['step',['zoom'],6,15,12,16,20,17,40,18,99]],'layout':{'icon-image':ICON,'icon-size':0.9,'text-field':name,'text-font':p['fontb'] if west else p['font'],'text-size':12,'text-anchor':'top','text-offset':[0,0.9],'text-optional':True,'symbol-sort-key':['get','rank']},'paint':{'text-color':p['txt2'],'text-halo-color':p['halo'],'text-halo-width':1.2}},
+     {'id':'poi','type':'symbol','source':'omt','source-layer':'poi','minzoom':12,'filter':POIFILTER,'layout':{'icon-image':ICON,'icon-size':1.0,'text-field':name,'text-font':p['fontb'] if west else p['font'],'text-size':12,'text-anchor':'top','text-offset':[0,1.0],'text-optional':True,'symbol-sort-key':PRIO},'paint':{'text-color':p['txt2'],'text-halo-color':p['halo'],'text-halo-width':1.2}},
      {'id':'place-minor','type':'symbol','source':'omt','source-layer':'place','minzoom':11,'filter':['in',['get','class'],['literal',['suburb','neighbourhood','village','hamlet','quarter']]],'layout':{'text-field':name,'text-font':p['fontb'] if west else p['font'],'text-size':13,**({'text-transform':'uppercase','text-letter-spacing':0.2} )},'paint':{'text-color':p['txt'],'text-opacity':0.8,'text-halo-color':p['halo'],'text-halo-width':1.5}},
      {'id':'place-city','type':'symbol','source':'omt','source-layer':'place','minzoom':4,'filter':['in',['get','class'],['literal',['city','town']]],'layout':{'text-field':name,'text-font':p['fontb'] if not west else p['font'],'text-size':['interpolate',['linear'],['zoom'],4,12,12,24]},'paint':{'text-color':p['txt2'] if p['glow'] else p['txt'],'text-halo-color':p['halo'],'text-halo-width':2,'text-halo-blur':1 if p['glow'] else 0}},
     ]
@@ -57,8 +66,17 @@ def style(k,p):
     ]
     return {'version':8,'name':k,'glyphs':'{GLYPHS}','sprite':'{SPRITE}/'+k,'sources':{'omt':{'type':'vector','url':'https://tiles.openfreemap.org/planet'}},'layers':L,'metadata':{'route':p['route']}}
 MZ={'landuse':9,'wood':6,'waterway':10,'rail':10,'water-name':5,'water-edge':6}
+def scale(v,k):
+    if isinstance(v,(int,float)): return round(v*k,2)
+    if isinstance(v,list) and v and v[0]=='interpolate': return v[:3]+[x if i%2==0 else scale(x,k) for i,x in enumerate(v[3:])]
+    return v
 def fix(st):
     for l in st['layers']:
+        lay=l.get('layout',{}); pt=l.get('paint',{})
+        if 'text-size' in lay: lay['text-size']=scale(lay['text-size'],1.35)
+        if 'icon-size' in lay: lay['icon-size']=1.3
+        if 'text-halo-width' in pt: pt['text-halo-width']=round(pt['text-halo-width']+0.8,2); pt['text-halo-blur']=0.3
+        if 'text-max-width' not in lay and 'text-field' in lay: lay['text-max-width']=7
         if l['id'] in MZ: l['minzoom']=MZ[l['id']]
     return st
 for k,p in P.items(): json.dump(fix(style(k,p)),open(f'../assets/styles/{k}.json','w'))

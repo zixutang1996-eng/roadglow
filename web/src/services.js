@@ -103,22 +103,36 @@ export async function osrm(from, to, mode) {
   }));
 }
 
-/** Photo from wikimedia_commons / wikidata / image tags. */
-export async function photoFor(tags) {
-  if (tags.wikimedia_commons?.startsWith('File:')) return commons(tags.wikimedia_commons.slice(5));
-  if (tags.image?.includes('commons.wikimedia.org') && tags.image.includes('File:')) return commons(decodeURIComponent(tags.image.split('File:')[1]));
-  if (tags.wikidata) {
+/** Public photo: Wikimedia Commons (via tags/Wikidata P18) with author+licence; Panoramax street-level fallback. */
+export async function photoFor(tags, ll) {
+  let file = null;
+  if (tags.wikimedia_commons?.startsWith('File:')) file = tags.wikimedia_commons.slice(5);
+  else if (tags.image?.includes('commons.wikimedia.org') && tags.image.includes('File:')) file = decodeURIComponent(tags.image.split('File:')[1]);
+  else if (tags.wikidata) {
     try {
       const r = await fetch(`https://www.wikidata.org/wiki/Special:EntityData/${tags.wikidata}.json`, { signal: withTimeout(8000) });
-      const e = (await r.json()).entities[tags.wikidata];
-      const f = e?.claims?.P18?.[0]?.mainsnak?.datavalue?.value;
-      if (f) return commons(f);
+      file = (await r.json()).entities?.[tags.wikidata]?.claims?.P18?.[0]?.mainsnak?.datavalue?.value || null;
     } catch {}
   }
+  if (file) { try { return await commons(file); } catch {} }
+  if (ll) { try { return await panoramax(ll); } catch {} }
   return null;
 }
-const commons = f => ({ src: `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(f.replace(/ /g, '_'))}?width=480`,
-  page: `https://commons.wikimedia.org/wiki/File:${encodeURIComponent(f.replace(/ /g, '_'))}` });
+const strip = h => (h || '').replace(/<[^>]+>/g, '').trim();
+async function commons(f) {
+  const u = `https://commons.wikimedia.org/w/api.php?action=query&titles=File:${encodeURIComponent(f)}&prop=imageinfo&iiprop=url|extmetadata&iiurlwidth=640&format=json&origin=*`;
+  const p = Object.values((await (await fetch(u, { signal: withTimeout(8000) })).json()).query.pages)[0];
+  const i = p.imageinfo[0], m = i.extmetadata || {};
+  return { src: i.thumburl || i.url, page: i.descriptionurl, credit: `${strip(m.Artist?.value) || 'Wikimedia Commons'} · ${m.LicenseShortName?.value || ''} · Wikimedia Commons` };
+}
+async function panoramax(ll) {
+  const d = 0.0009;
+  const r = await fetch(`https://api.panoramax.xyz/api/search?bbox=${ll.lng - d * 1.7},${ll.lat - d},${ll.lng + d * 1.7},${ll.lat + d}&limit=1`, { signal: withTimeout(8000) });
+  const f = (await r.json()).features?.[0];
+  if (!f) return null;
+  const prov = (f.providers || []).map(p => p.name).filter(Boolean).join(', ');
+  return { src: f.assets?.sd?.href || f.assets?.thumb?.href, page: `https://api.panoramax.xyz/#focus=pic&pic=${f.id}`, credit: `${prov || 'Panoramax'} · ${f.properties?.license || 'CC-BY-SA-4.0'} · Panoramax (street-level, nearby)` };
+}
 
 export function haversine(a, b) {
   const R = 6371000, r = Math.PI / 180, dLat = (b.lat - a.lat) * r, dLon = (b.lng - a.lng) * r;

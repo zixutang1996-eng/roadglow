@@ -9,7 +9,7 @@ maplibregl.setWorkerUrl(workerUrl);
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const store = { get: (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } }, set: (k, v) => localStorage.setItem(k, JSON.stringify(v)) };
-const S = { theme: store.get('theme', 'neon'), mode: store.get('mode', 'auto'), me: null, place: null, routes: null, routeIdx: 0, travel: 'drive', from: null, catLayer: null };
+const S = { sat: store.get('sat', false), theme: store.get('theme', 'neon'), mode: store.get('mode', 'auto'), me: null, place: null, routes: null, routeIdx: 0, travel: 'drive', from: null, catLayer: null };
 const isDark = () => S.mode === 'dark' || (S.mode === 'auto' && matchMedia('(prefers-color-scheme: dark)').matches);
 const styleKey = () => `${S.theme}_${isDark() ? 'dark' : 'light'}`;
 const base = new URL(import.meta.env.BASE_URL, location.href).href;
@@ -47,6 +47,10 @@ function addOverlays() {
   map.addLayer({ id: 'route', type: 'line', source: 'route', layout: { 'line-join': 'round', 'line-cap': 'round' }, paint: { 'line-color': c, 'line-width': 6 } });
   map.addLayer({ id: 'cat', type: 'symbol', source: 'cat', layout: { 'icon-image': ['get', 'icon'], 'icon-allow-overlap': true, 'text-field': ['get', 'name'], 'text-font': map.getStyle().layers.find(l => l.id === 'poi')?.layout['text-font'] || ['Rajdhani SemiBold'], 'text-size': 12, 'text-offset': [0, 1.1], 'text-anchor': 'top', 'text-optional': true }, paint: { 'text-color': c, 'text-halo-color': dk ? '#000' : '#fff', 'text-halo-width': 1.4 } });
   map.addLayer({ id: 'pins', type: 'circle', source: 'pins', paint: { 'circle-radius': 9, 'circle-color': c, 'circle-stroke-width': 3, 'circle-stroke-color': dk ? '#000' : '#fff' } });
+  if (S.sat) addSatellite();
+  if (!map.getSource('saved')) map.addSource('saved', { type: 'geojson', data: savedFC() });
+  map.addLayer({ id: 'saved-dot', type: 'circle', source: 'saved', paint: { 'circle-radius': 8, 'circle-color': '#f2b600', 'circle-stroke-width': 2.5, 'circle-stroke-color': dk ? '#000' : '#fff' } });
+  map.addLayer({ id: 'saved-label', type: 'symbol', source: 'saved', layout: { 'text-field': ['get', 'name'], 'text-font': map.getStyle().layers.find(l => l.id === 'poi')?.layout['text-font'] || ['Rajdhani SemiBold'], 'text-size': 15, 'text-offset': [0, 1.1], 'text-anchor': 'top', 'text-allow-overlap': true }, paint: { 'text-color': dk ? '#ffd65c' : '#7a5600', 'text-halo-color': dk ? '#000' : '#fff', 'text-halo-width': 2 } });
   drawRoutes(); drawPin(); if (S.catData) map.getSource('cat').setData(S.catData);
 }
 map.on('load', addOverlays);
@@ -58,6 +62,21 @@ async function setStyle() {
 }
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => S.mode === 'auto' && setStyle());
 
+const savedFC = () => ({ type: 'FeatureCollection', features: store.get('saved', []).map(s => ({ type: 'Feature', properties: { name: s.name }, geometry: { type: 'Point', coordinates: [s.lng, s.lat] } })) });
+// Satellite: EOX Sentinel-2 cloudless 2024 (CC BY-NC-SA 4.0, personal non-commercial) (City of Edmonton orthophoto tiles block cross-origin browser use, so not included).
+
+function addSatellite() {
+  if (!map.getSource('eox')) map.addSource('eox', { type: 'raster', tileSize: 256, maxzoom: 15,
+    tiles: ['https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-2024_3857/default/g/{z}/{y}/{x}.jpg'],
+    attribution: '<a href="https://s2maps.eu" target="_blank">Sentinel-2 cloudless – s2maps.eu</a> by EOX IT Services GmbH (Contains modified Copernicus Sentinel data 2024), CC BY-NC-SA 4.0' });
+  const before = map.getLayer('landuse') ? 'landuse' : undefined;
+  map.addLayer({ id: 'sat-eox', type: 'raster', source: 'eox', paint: { 'raster-fade-duration': 150 } }, before);
+  for (const l of map.getStyle().layers) {
+    if (l.type === 'fill' || l.id === 'water-edge' || l.id === 'waterway') map.setLayoutProperty(l.id, 'visibility', 'none');
+    if (l.type === 'line' && !l.id.startsWith('route')) map.setPaintProperty(l.id, 'line-opacity', l.id.includes('glow') ? 0 : 0.55);
+    if (l.type === 'symbol' && l.paint?.['text-halo-color'] !== undefined) { map.setPaintProperty(l.id, 'text-halo-color', '#000000'); map.setPaintProperty(l.id, 'text-color', '#ffffff'); }
+  }
+}
 // ---------- my location ----------
 let puck;
 function setMe(pos) {
@@ -179,7 +198,7 @@ async function showPlace(p) {
   let tags = p.tags;
   if (!tags && p.osm) { try { const el = await osmElement(p.osm.type, p.osm.id); tags = el?.tags || {}; } catch { tags = {}; } if (S.place !== p) return; p.tags = tags; renderPlace(p, tags, null); }
   if (tags) {
-    const [lib, photo] = await Promise.all([tags.opening_hours ? ohLib() : null, photoFor(tags).catch(() => null)]);
+    const [lib, photo] = await Promise.all([tags.opening_hours ? ohLib() : null, photoFor(tags, p).catch(() => null)]);
     if (S.place !== p) return;
     renderPlace(p, tags, { oh: lib && ohStatus(lib, tags.opening_hours), photo });
   }
@@ -191,7 +210,7 @@ function renderPlace(p, tags, extra) {
   const cat = catLabel(tags.amenity ? 'amenity=' + tags.amenity : tags.shop ? 'shop=' + tags.shop : tags.tourism ? 'tourism=' + tags.tourism : tags.leisure ? 'leisure=' + tags.leisure : p.category);
   const web = tags.website || tags['contact:website'], tel = tags.phone || tags['contact:phone'];
   openPanel(`<div class="pc">
-    ${extra?.photo ? `<a href="${esc(extra.photo.page)}" target="_blank" rel="noopener"><img class="photo" src="${esc(extra.photo.src)}" alt="" loading="lazy"></a>` : ''}
+    ${extra?.photo ? `<a href="${esc(extra.photo.page)}" target="_blank" rel="noopener"><img class="photo" src="${esc(extra.photo.src)}" alt="" loading="lazy"></a><div class="credit">📷 ${esc(extra.photo.credit || '')}</div>` : ''}
     <h2>${esc(tags[lang === 'zh' ? 'name:zh' : 'name:en'] || p.name)}</h2><div class="cat">${esc(cat)}${tags.cuisine ? ' · ' + esc(tags.cuisine.replace(/;/g, ', ')) : ''}</div>
     <div class="acts">
       <button class="act primary" data-a="dir"><span class="b">➦</span>${t('directions')}</button>
@@ -211,7 +230,7 @@ function renderPlace(p, tags, extra) {
     const a = e.target.closest('.act')?.dataset.a;
     if (a === 'dir') openDirections(p);
     if (a === 'start') openDirections(p, true);
-    if (a === 'save') { let s = store.get('saved', []); s = saved ? s.filter(x => !(Math.abs(x.lat - p.lat) < 1e-5 && Math.abs(x.lng - p.lng) < 1e-5)) : [{ name: p.name, address: addr || p.address, lat: p.lat, lng: p.lng, osm: p.osm }, ...s]; store.set('saved', s); renderPlace(p, tags, extra); renderDrawer(); }
+    if (a === 'save') { let s = store.get('saved', []); s = saved ? s.filter(x => !(Math.abs(x.lat - p.lat) < 1e-5 && Math.abs(x.lng - p.lng) < 1e-5)) : [{ name: p.name, address: addr || p.address, lat: p.lat, lng: p.lng, osm: p.osm }, ...s]; store.set('saved', s); map.getSource('saved')?.setData(savedFC()); renderPlace(p, tags, extra); renderDrawer(); }
     if (a === 'share') share(p);
   };
 }
@@ -222,15 +241,16 @@ async function share(p) {
 }
 
 // POI click with hit tolerance (any rendered POI / category result)
-const hitLayers = () => ['cat', 'poi'].filter(l => map.getLayer(l));
+const hitLayers = () => ['cat', 'saved-dot', 'poi'].filter(l => map.getLayer(l));
 map.on('click', e => {
-  if (S.nav?.active) return;
+  if (S.nav?.active || S.picking) return;
   const pad = 10, b = [[e.point.x - pad, e.point.y - pad], [e.point.x + pad, e.point.y + pad]];
   const fs = map.queryRenderedFeatures(b, { layers: hitLayers() });
   if (!fs.length) return;
-  const f = fs.sort((a, b2) => (a.layer.id === 'cat' ? -1 : 0) - (b2.layer.id === 'cat' ? -1 : 0))[0];
+  const f = fs.sort((a, b2) => (a.layer.id === 'poi' ? 1 : 0) - (b2.layer.id === 'poi' ? 1 : 0))[0];
   const [lng, lat] = f.geometry.coordinates;
   if (f.layer.id === 'cat') { const it = S.catItems[f.properties.i]; showPlace(it); return; }
+  if (f.layer.id === 'saved-dot') { const sv = store.get('saved', []).find(x => x.name === f.properties.name); if (sv) return showPlace(sv); }
   // OpenMapTiles/Planetiler feature id = osm_id * 10 + (1 node | 2 way | 3 relation)
   const id = typeof f.id === 'number' ? f.id : null;
   const osm = id ? { type: ['N', 'N', 'W', 'R'][id % 10] || 'N', id: Math.floor(id / 10) } : null;
@@ -251,21 +271,56 @@ async function dropPin(ll) {
 }
 
 // ---------- directions ----------
-function openDirections(dest, autostart = false) {
-  S.dest = dest; S.routes = null;
-  openPanel(`<div class="dir">
-    <div class="seg" id="modeSeg"><button data-m="drive">🚗 ${t('drive')}</button><button data-m="walk">🚶 ${t('walk')}</button><button disabled title="${t('transit')}">🚌 ${t('transit')}</button></div>
-    <div class="fld"><span>◯</span><input id="fromIn" value="${esc(S.from?.name || t('mylocation'))}" readonly></div>
-    <div class="fld"><span>📍</span><input id="toIn" value="${esc(dest.name)}" readonly></div>
-  </div><div id="alts"><div class="row">${t('searching')}</div></div><div id="steps"></div>`);
-  const seg = $('#modeSeg'); const mark = () => seg.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.m === S.travel)); mark();
-  seg.onclick = e => { const m = e.target.closest('button')?.dataset.m; if (m) { S.travel = m; mark(); route(autostart); } };
-  route(autostart);
+// S.from / S.dest: {name,lat,lng} or {gps:true}
+function attachAC(input, onPick) {
+  const box = document.createElement('div'); box.className = 'acl hidden'; input.parentElement.appendChild(box);
+  let tm, items = [];
+  const extra = () => [{ gps: true, name: t('mylocation'), address: 'GPS' }, { pickMap: true, name: lang === 'zh' ? '在地图上选择' : 'Choose on map', address: '' },
+    ...store.get('saved', []).slice(0, 3), ...store.get('recents', []).slice(0, 4)];
+  const render = list => { items = list; box.innerHTML = list.map((r, i) => `<div class="sug" data-i="${i}"><div class="i">${r.gps ? '◎' : r.pickMap ? '⌖' : '📍'}</div><div><div class="t">${esc(r.name)}</div><div class="s">${esc(r.address || '')}</div></div></div>`).join(''); box.classList.toggle('hidden', !list.length); };
+  input.addEventListener('focus', () => { input.select(); render(extra()); });
+  input.addEventListener('input', () => { clearTimeout(tm); const v = input.value.trim(); if (v.length < 2) return render(extra());
+    tm = setTimeout(async () => { try { render(await photon(v, map.getCenter(), 6)); } catch {} }, 280); });
+  box.addEventListener('pointerdown', e => { const el = e.target.closest('.sug'); if (!el) return; e.preventDefault(); box.classList.add('hidden'); input.blur(); onPick(items[+el.dataset.i]); });
+  input.addEventListener('blur', () => setTimeout(() => box.classList.add('hidden'), 150));
 }
+function pickOnMap() {
+  return new Promise(res => {
+    closePanelTemp(true);
+    const bar = document.createElement('div'); bar.className = 'card pickbar'; bar.innerHTML = `<span>${lang === 'zh' ? '点按地图选择位置' : 'Tap the map to choose'}</span><button class="btn ghost">${lang === 'zh' ? '取消' : 'Cancel'}</button>`;
+    document.body.appendChild(bar); S.picking = true;
+    const done = v => { S.picking = false; bar.remove(); map.off('click', onClick); closePanelTemp(false); res(v); };
+    const onClick = async e => { const ll = e.lngLat; let name = `${ll.lat.toFixed(5)}, ${ll.lng.toFixed(5)}`; try { const r = await photonReverse(ll); if (r) name = r.name; } catch {} done({ name, lat: ll.lat, lng: ll.lng }); };
+    bar.querySelector('button').onclick = () => done(null);
+    setTimeout(() => map.on('click', onClick), 0);
+  });
+}
+const closePanelTemp = hide => { panel.style.visibility = hide ? 'hidden' : ''; };
+function openDirections(dest, autostart = false) {
+  if (dest !== undefined) S.dest = dest; S.from = S.from || { gps: true, name: t('mylocation') }; S.routes = null;
+  openPanel(`<button class="xbtn" id="dirX" title="${lang === 'zh' ? '关闭路线' : 'Close directions'}">✕</button><div class="dir">
+    <div class="seg" id="modeSeg" style="margin-right:48px"><button data-m="drive">🚗 ${t('drive')}</button><button data-m="walk">🚶 ${t('walk')}</button><button disabled title="${t('transit')}">🚌 ${t('transit')}</button></div>
+    <div class="row2"><div style="flex:1">
+      <div class="fld"><span>◯</span><div class="acbox" style="flex:1"><input id="fromIn" value="${esc(S.from.name)}"></div></div>
+      <div class="fld"><span>📍</span><div class="acbox" style="flex:1"><input id="toIn" value="${esc(S.dest?.name || '')}" placeholder="${t('to')}"></div></div>
+    </div><button class="swap" id="swapBtn" title="swap">⇅</button></div>
+  </div><div id="alts">${S.dest ? `<div class="row">${t('searching')}</div>` : ''}</div><div id="steps"></div>`);
+  const seg = $('#modeSeg'); const mark = () => seg.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.m === S.travel)); mark();
+  seg.onclick = e => { const m = e.target.closest('button')?.dataset.m; if (m) { S.travel = m; mark(); route(false); } };
+  const set = which => async v => { if (!v) return; if (v.pickMap) { v = await pickOnMap(); if (!v) return openDirections(); } S[which] = v.gps ? { gps: true, name: t('mylocation') } : { name: v.name, lat: v.lat, lng: v.lng }; openDirections(); };
+  attachAC($('#fromIn'), set('from')); attachAC($('#toIn'), set('dest'));
+  $('#swapBtn').onclick = () => { const f = S.from; S.from = S.dest || { gps: true, name: t('mylocation') }; S.dest = f.gps ? null : f; if (!S.dest && S.from.gps) {} openDirections(); };
+  $('#dirX').onclick = closeDirections;
+  if (S.dest && !S.dest.gps) route(autostart); else if (S.dest?.gps) route(autostart);
+}
+function closeDirections() { S.routes = null; S.from = null; drawRoutes(); closePanel(); }
+const gpsNow = () => new Promise(res => navigator.geolocation ? navigator.geolocation.getCurrentPosition(p => { setMe(p); res(S.me); }, () => res(null), { timeout: 8000, enableHighAccuracy: true }) : res(null));
+async function resolveEnd(e) { if (!e) return null; if (!e.gps) return e; return S.me || await gpsNow(); }
 async function route(autostart) {
-  const from = S.from || S.me || await new Promise(res => navigator.geolocation?.getCurrentPosition(p => { setMe(p); res(S.me); }, () => res(null), { timeout: 8000 })) || (() => { const c = map.getCenter(); return { lat: c.lat, lng: c.lng }; })();
+  const from = await resolveEnd(S.from), to = await resolveEnd(S.dest);
+  if (!from || !to) { $('#alts').innerHTML = `<div class="row">${!from ? t('err') + ': GPS' : ''}</div>`; return; }
   try {
-    S.routes = await osrm(from, S.dest, S.travel); S.routeIdx = 0; drawRoutes(); fitRoute(); renderAlts();
+    S.routes = await osrm(from, to, S.travel); S.routeIdx = 0; drawRoutes(); fitRoute(); renderAlts();
     if (autostart) startNav();
   } catch (e) { $('#alts').innerHTML = `<div class="row">${t('err')}: ${esc(e.message)}</div>`; }
 }
@@ -290,10 +345,10 @@ function fitRoute() {
 async function startNav() {
   const { startNavigation } = await import('./nav.js'); // lazy: only loaded when navigating
   closePanel();
-  S.nav = startNavigation({ map, S, setMe: (c) => { S.me = c; if (puck) puck.setLngLat(c); }, getPuck: () => puck, makePuck: c => { setMe({ coords: { latitude: c.lat, longitude: c.lng } }); return puck; }, reroute: async from => (await osrm(from, S.dest, S.travel))[0], drawRoutes, onEnd: () => { S.nav = null; $('#top').classList.remove('hidden'); } });
+  S.nav = startNavigation({ map, S, setMe: (c) => { S.me = c; if (puck) puck.setLngLat(c); }, getPuck: () => puck, makePuck: c => { setMe({ coords: { latitude: c.lat, longitude: c.lng } }); return puck; }, reroute: async from => (await osrm(from, await resolveEnd(S.dest), S.travel)), drawRoutes, onEnd: () => { S.nav = null; S.routes = null; drawRoutes(); $('#top').classList.remove('hidden'); } });
   $('#top').classList.add('hidden');
 }
-$('#dirBtn').onclick = () => { if (S.place) openDirections(S.place); else q.focus(); };
+$('#dirBtn').onclick = () => openDirections(S.place || null);
 
 // ---------- controls ----------
 $('#zin').onclick = () => map.zoomIn(); $('#zout').onclick = () => map.zoomOut();
@@ -303,8 +358,10 @@ $('#layersBtn').onclick = () => { renderLayersPop(); $('#layersPop').classList.t
 function renderLayersPop() {
   $('#layersPop').innerHTML = `<div style="font-weight:600;margin-bottom:8px">${t('styles')}</div>
    <div class="grid2">${['neon', 'west'].map(th => `<button class="opt${S.theme === th ? ' on' : ''}" data-th="${th}"><img src="${base}previews/${th}_${isDark() ? 'dark' : 'light'}.png" alt="">${t(th)}</button>`).join('')}</div>
-   <div class="seg" style="margin-top:10px">${['auto', 'light', 'dark'].map(m => `<button data-md="${m}" class="${S.mode === m ? 'on' : ''}">${t(m)}</button>`).join('')}</div>`;
-  $('#layersPop').onclick = e => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.th) S.theme = b.dataset.th; if (b.dataset.md) S.mode = b.dataset.md; setStyle(); };
+   <div class="seg" style="margin-top:10px">${['auto', 'light', 'dark'].map(m => `<button data-md="${m}" class="${S.mode === m ? 'on' : ''}">${t(m)}</button>`).join('')}</div>
+   <div class="seg" style="margin-top:10px"><button data-sat="0" class="${!S.sat ? 'on' : ''}">${lang === 'zh' ? '地图' : 'Map'}</button><button data-sat="1" class="${S.sat ? 'on' : ''}">${lang === 'zh' ? '卫星' : 'Satellite'}</button></div>
+   <div style="font-size:12px;color:var(--muted);margin-top:6px">${lang === 'zh' ? '卫星：EOX Sentinel‑2 无云（非商业）+ 埃德蒙顿市航拍' : 'Satellite: EOX Sentinel‑2 cloudless (non‑commercial) + City of Edmonton orthophoto'}</div>`;
+  $('#layersPop').onclick = e => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.th) S.theme = b.dataset.th; if (b.dataset.md) S.mode = b.dataset.md; if (b.dataset.sat) { S.sat = b.dataset.sat === '1'; store.set('sat', S.sat); } setStyle(); };
 }
 
 // ---------- drawer ----------

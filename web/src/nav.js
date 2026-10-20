@@ -7,7 +7,7 @@ const bearingOf = (a, b) => { const r = Math.PI / 180, y = Math.sin((b.lng - a.l
 const angDiff = (a, b) => ((b - a + 540) % 360) - 180;
 
 export function startNavigation({ map, S, setMe, makePuck, reroute, drawRoutes, onEnd }) {
-  let route = S.routes[S.routeIdx], step = 1, spoken = new Set(), off = 0, rerouting = false;
+  let route = S.routes[S.routeIdx], step = 1, spoken = new Set(), off = 0, rerouting = false, lastSwitch = Date.now(), lastCheck = Date.now(), etaNow = route.duration;
   let follow = true, headingUp = true, smBearing = map.getBearing(), lastPos = null;
   const st = { active: true };
   const sim = new URLSearchParams(location.search).has('sim') || !navigator.geolocation;
@@ -41,16 +41,17 @@ export function startNavigation({ map, S, setMe, makePuck, reroute, drawRoutes, 
     if (follow) camera(p);
     // progress
     const d = distToLine(p, route.geometry.coordinates);
-    if (d > 40 + Math.min(60, p.acc || 10)) { if (++off >= 3 && !rerouting) doReroute(p); } else off = 0;
+    if (d > 30 + Math.min(20, p.acc || 10)) { if (++off >= 2 && !rerouting) doReroute(p); } else off = 0;
+    if (!rerouting && Date.now() - lastCheck > 150000) { lastCheck = Date.now(); checkBetter(p); }
     while (step < route.steps.length - 1 && haversine(p, route.steps[step].loc) < 18) step++;
     const s = route.steps[step], toNext = haversine(p, s.loc);
     let rem = toNext; for (let i = step; i < route.steps.length; i++) rem += route.steps[i].distance;
-    const eta = rem / Math.max(route.distance / route.duration, 1);
-    banner.innerHTML = `<div class="ar">${arrowOf(s)}</div><div><div class="dd">${fmtDist(toNext)}</div><div class="tx">${instruction(s)}</div></div>`;
+    const eta = rem / Math.max(route.distance / route.duration, 1); etaNow = eta;
+    banner.innerHTML = `<button id="navX" title="${t('nav_end')}">✕</button><div class="ar">${arrowOf(s)}</div><div><div class="dd">${fmtDist(toNext)}</div><div class="tx">${instruction(s)}</div></div>`;
     const at = new Date(Date.now() + eta * 1000).toLocaleTimeString(lang === 'zh' ? 'zh-CN' : 'en-CA', { hour: 'numeric', minute: '2-digit' });
     foot.innerHTML = `<div class="eta"><b>${fmtDur(eta)}</b><div style="font-size:13px;color:var(--muted)">${fmtDist(rem)} · ${at}</div></div>
       <button class="ctl" id="hdgBtn" title="${t('compass')}">${headingUp ? '⬆' : 'N'}</button><button class="btn red" id="endBtn">${t('nav_end')}</button>`;
-    foot.querySelector('#endBtn').onclick = end; foot.querySelector('#hdgBtn').onclick = toggleHeading;
+    foot.querySelector('#endBtn').onclick = end; banner.querySelector('#navX').onclick = end; foot.querySelector('#hdgBtn').onclick = toggleHeading;
     if (s.type === 'arrive' && toNext < 25) { speak(t('arrive')); return end(); }
     for (const th of [800, 200, 40]) {
       const k = step + '@' + th;
@@ -60,8 +61,20 @@ export function startNavigation({ map, S, setMe, makePuck, reroute, drawRoutes, 
   }
   async function doReroute(p) {
     rerouting = true; speak(t('reroute'));
-    try { route = await reroute(p); S.routes = [route]; S.routeIdx = 0; drawRoutes(); step = 1; spoken.clear(); if (simState) simState.coords = route.geometry.coordinates; } catch {}
+    try { route = (await reroute(p))[0]; lastSwitch = Date.now(); S.routes = [route]; S.routeIdx = 0; drawRoutes(); step = 1; spoken.clear(); if (simState) { simState.coords = route.geometry.coordinates; simState.i = 0; simState.frac = 0; } } catch {}
     off = 0; rerouting = false;
+  }
+  // Periodic re-evaluation from the current position; switch only if clearly better (anti-flapping).
+  async function checkBetter(p) {
+    try {
+      const best = (await reroute(p))[0];
+      const gain = etaNow - best.duration;
+      if (gain > Math.max(60, etaNow * 0.1) && Date.now() - lastSwitch > 120000 && st.active) {
+        route = best; S.routes = [route]; S.routeIdx = 0; drawRoutes(); step = 1; spoken.clear(); lastSwitch = Date.now();
+        if (simState) { simState.coords = route.geometry.coordinates; simState.i = 0; simState.frac = 0; }
+        speak(lang === 'zh' ? `找到更快的路线，节省${Math.round(gain / 60)}分钟` : `Faster route found, saves ${Math.round(gain / 60)} min`);
+      }
+    } catch {}
   }
   function toggleHeading() { headingUp = !headingUp; follow = true; rc.classList.add('hidden'); if (lastPos) camera(lastPos, 700); }
 
@@ -94,7 +107,7 @@ export function startNavigation({ map, S, setMe, makePuck, reroute, drawRoutes, 
     map.easeTo({ pitch: 0, bearing: 0, padding: { top: 0, bottom: 0, left: 0, right: 0 }, duration: 600 });
     onEnd();
   }
-  st.end = end; st.toggleHeading = toggleHeading;
+  st.end = end; st.toggleHeading = toggleHeading; st.checkBetter = () => lastPos && checkBetter(lastPos); st.inject = p => onPos(p); st.route = () => route; st._force = () => { lastSwitch = 0; };
   return st;
 }
 const arrowOf = s => s.type === 'arrive' ? '⚑' : s.modifier.includes('left') ? '⬅' : s.modifier.includes('right') ? '➡' : s.modifier === 'uturn' ? '⮌' : '⬆';
