@@ -3,7 +3,7 @@ import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import './style.css';
 import { t, lang, setLang, fmtDist, fmtDur, instruction } from './i18n.js';
-import { photon, photonReverse, nominatim, osmElement, nearbyCategory, nearbyCategoryNominatim, osrm, photoFor, photosFor, haversine, overpass, photonBox } from './services.js';
+import { photon, photonReverse, nominatim, osmElement, nearbyCategory, nearbyCategoryNominatim, osrm, photoFor, photosFor, haversine, overpass, photonBox, reverseAddr } from './services.js';
 let placeExtras = null; const tools = {}; let drawerExtra = () => '';
 const ZH = lang === 'zh', L = (zh, en) => ZH ? zh : en;
 
@@ -53,13 +53,38 @@ function addOverlays() {
   if (!map.getSource('saved')) map.addSource('saved', { type: 'geojson', data: savedFC() });
   map.addLayer({ id: 'saved-dot', type: 'circle', source: 'saved', paint: { 'circle-radius': 8, 'circle-color': '#f2b600', 'circle-stroke-width': 2.5, 'circle-stroke-color': dk ? '#000' : '#fff' } });
   map.addLayer({ id: 'saved-label', type: 'symbol', source: 'saved', layout: { 'text-field': ['get', 'name'], 'text-font': map.getStyle().layers.find(l => l.id === 'poi')?.layout['text-font'] || ['Rajdhani SemiBold'], 'text-size': 15, 'text-offset': [0, 1.1], 'text-anchor': 'top', 'text-allow-overlap': true }, paint: { 'text-color': dk ? '#ffd65c' : '#7a5600', 'text-halo-color': dk ? '#000' : '#fff', 'text-halo-width': 2 } });
+  addAccLayer(); addImportant(); setTimeout(applySizes, 0);
   drawRoutes(); drawPin(); if (S.catData) map.getSource('cat').setData(S.catData);
 }
 map.on('load', addOverlays);
+// v0.6: snappier zoom (≈30% shorter tap/button animations, faster wheel)
+map.scrollZoom.setWheelZoomRate(1 / 320); map.scrollZoom.setZoomRate(1 / 75);
+{ const ez = map.easeTo.bind(map); map.easeTo = (o, ev) => { if (o && o.duration === 300 && o.zoom !== undefined && ev?.originalEvent) o = { ...o, duration: 210 }; return ez(o, ev); }; }
+// important POIs for z11.5–14 (prebuilt from the OSM Alberta extract; tiles take over from z14)
+function addImportant() {
+  if (!map.getSource('imp')) map.addSource('imp', { type: 'geojson', data: `${base}important_yeg.geojson` });
+  const poi = map.getStyle().layers.find(l => l.id === 'poi'); if (!poi) return;
+  const T = ['get', 'tier'], REV = [11.3, 11.6, 12.3, 13.0];
+  const ramp = (lo, hi, d = 0, fo = false) => ['interpolate', ['linear'], ['zoom'], ...[11, 11.25, 11.5, 11.75, 12, 12.25, 12.5, 12.75, 13, 13.25, 13.5, 13.75, 14].flatMap(z => { const f = fo ? Math.min(1, Math.max(0, (14 - z) / 0.5)) : 1; return [z, ['match', T, ...REV.flatMap((r, i) => [i, +((lo + (hi - lo) * Math.min(1, Math.max(0, (z - r - d) / 0.6))) * f).toFixed(2)]), hi * f]]; })];
+  const fade = v => ['interpolate', ['linear'], ['zoom'], 13.6, v, 14, 0];
+  map.addLayer({ id: 'imp', type: 'symbol', source: 'imp', minzoom: 11, maxzoom: 14, filter: ['<=', T, ['step', ['zoom'], 1, 12, 2, 12.5, 3]],
+    layout: { 'icon-image': poi.layout['icon-image'], 'icon-size': ramp(0.75, 1.1), 'text-field': poi.layout['text-field'], 'text-font': poi.layout['text-font'], 'text-size': baseSizes.poi?.t ?? poi.layout['text-size'], 'text-anchor': 'top', 'text-offset': [0, 1.1], 'text-optional': true, 'text-max-width': 7, 'symbol-sort-key': T },
+    paint: { 'icon-opacity': ramp(0, 1, 0, true), 'text-opacity': ramp(0, 1, 0.3, true), 'text-color': poi.paint['text-color'], 'text-halo-color': poi.paint['text-halo-color'], 'text-halo-width': poi.paint['text-halo-width'] } }, 'poi');
+}
+// custom scale bar with round metric steps
+const scaleEl = document.createElement('div'); scaleEl.id = 'scale'; scaleEl.innerHTML = '<div class="sbar"></div><span></span>'; document.body.appendChild(scaleEl);
+const STEPS = [5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000, 500000, 1000000];
+function updScale() {
+  const y = map.getContainer().clientHeight / 2, a = map.unproject([0, y]), b = map.unproject([100, y]);
+  const mpp = haversine({ lat: a.lat, lng: a.lng }, { lat: b.lat, lng: b.lng }) / 100, maxW = 130;
+  let m = STEPS[0]; for (const s of STEPS) if (s / mpp <= maxW) m = s;
+  scaleEl.querySelector('.sbar').style.width = Math.round(m / mpp) + 'px'; scaleEl.querySelector('span').textContent = m >= 1000 ? `${m / 1000} ${ZH ? '公里' : 'km'}` : `${m} ${ZH ? '米' : 'm'}`;
+}
+map.on('move', updScale); map.on('load', updScale);
 async function setStyle() {
   store.set('theme', S.theme); store.set('mode', S.mode); applyBodyClass();
   map.setStyle(await loadStyle(), { diff: false });
-  map.once('style.load', addOverlays);
+  map.once('style.load', addOverlays); if (puck) puck.getElement().innerHTML = puckSvg();
   renderLayersPop(); renderDrawer();
 }
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => S.mode === 'auto' && setStyle());
@@ -81,10 +106,31 @@ function addSatellite() {
 }
 // ---------- my location ----------
 let puck;
+// original player-marker style pucks (drawn for this project)
+function puckSvg() {
+  const dk = isDark();
+  if (S.theme === 'west') return `<svg width="48" height="48" viewBox="0 0 32 32"><defs><filter id="pr"><feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="3"/><feDisplacementMap in="SourceGraphic" scale="1.3"/></filter></defs>
+    <g filter="url(#pr)"><path d="M16 2.5C17.3 8.5 22.5 19.5 27 28.5 22.3 25.6 19.2 24.6 16 24.9 12.8 24.6 9.7 25.6 5 28.5 9.5 19.5 14.7 8.5 16 2.5Z" fill="${dk ? '#efe2c2' : '#f7edd6'}" stroke="#20150b" stroke-width="2.3" stroke-linejoin="round"/>
+    <path d="M16 7.5 16 22" stroke="#20150b" stroke-width="1" opacity=".55"/></g></svg>`;
+  return `<svg width="50" height="50" viewBox="0 0 32 32" style="overflow:visible"><circle cx="16" cy="16" r="14.5" fill="none" stroke="#4fd6e8" stroke-width="1" opacity="${dk ? .55 : .8}"/>
+    <path d="M16 3 27 27.5 16 21.5 5 27.5Z" fill="#ffd25a" stroke="${dk ? '#4fd6e8' : '#0f3a44'}" stroke-width="1.6" stroke-linejoin="miter"/><path d="M16 9 16 19.5" stroke="#7a5a00" stroke-width="1.2"/></svg>`;
+}
+function accCircle(c, r) { const pts = []; for (let i = 0; i <= 48; i++) { const a = i / 48 * 2 * Math.PI; pts.push([c.lng + r / (111320 * Math.cos(c.lat * Math.PI / 180)) * Math.cos(a), c.lat + r / 110540 * Math.sin(a)]); } return { type: 'Feature', properties: {}, geometry: { type: 'Polygon', coordinates: [pts] } }; }
+function updAcc() {
+  if (!map.getSource('acc')) return;
+  map.getSource('acc').setData({ type: 'FeatureCollection', features: S.me?.acc && S.me.acc < 3000 ? [accCircle(S.me, S.me.acc)] : [] });
+}
+function addAccLayer() {
+  const c = S.theme === 'west' ? (isDark() ? '#d9c7a2' : '#5a3d22') : (isDark() ? '#4fd6e8' : '#1d6f7c');
+  if (!map.getSource('acc')) map.addSource('acc', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+  map.addLayer({ id: 'acc', type: 'fill', source: 'acc', paint: { 'fill-color': c, 'fill-opacity': 0.12 } });
+  map.addLayer({ id: 'acc-line', type: 'line', source: 'acc', paint: { 'line-color': c, 'line-width': 1.5, 'line-opacity': 0.6, ...(S.theme === 'west' ? { 'line-dasharray': [3, 2] } : {}) } });
+  updAcc(); if (puck) puck.getElement().innerHTML = puckSvg();
+}
 function setMe(pos) {
   S.me = { lat: pos.coords.latitude, lng: pos.coords.longitude, heading: pos.coords.heading, speed: pos.coords.speed, acc: pos.coords.accuracy };
-  if (!puck) { const el = document.createElement('div'); el.className = 'puck'; puck = new maplibregl.Marker({ element: el, rotationAlignment: 'map', pitchAlignment: 'map' }).setLngLat(S.me).addTo(map); }
-  puck.setLngLat(S.me);
+  if (!puck) { const el = document.createElement('div'); el.className = 'puck'; el.innerHTML = puckSvg(); puck = new maplibregl.Marker({ element: el, rotationAlignment: 'map', pitchAlignment: 'map' }).setLngLat(S.me).addTo(map); }
+  puck.setLngLat(S.me); if (S.me.heading != null && !isNaN(S.me.heading) && !S.nav?.active) puck.setRotation(S.me.heading); updAcc();
 }
 export const locate = (fly = true) => navigator.geolocation?.getCurrentPosition(p => { setMe(p); fly && map.flyTo({ center: S.me, zoom: Math.max(map.getZoom(), 15) }); }, () => toast(t('err') + ': GPS'), { enableHighAccuracy: true, timeout: 10000 });
 
@@ -96,7 +142,7 @@ q.addEventListener('input', () => {
   clearTimeout(sugTimer);
   const v = q.value.trim();
   if (v.length < 2) { renderSuggest(v ? [] : recentItems()); return; }
-  sugTimer = setTimeout(() => runSearch(v), 280);
+  renderLocal(v); sugTimer = setTimeout(() => runSearch(v), 200);
 });
 q.addEventListener('focus', () => { if (!q.value) renderSuggest(recentItems()); });
 q.addEventListener('keydown', e => {
@@ -105,20 +151,44 @@ q.addEventListener('keydown', e => {
   if (e.key === 'Escape') { $('#suggest').classList.add('hidden'); q.blur(); }
 });
 $('#clearBtn').onclick = () => { q.value = ''; $('#clearBtn').classList.add('hidden'); closePanel(); clearCat(); S.place = null; drawPin(); q.focus(); };
+// instant local hits: loaded vector-tile POIs + offline index (no network)
+function localHits(v) {
+  const x = v.toLowerCase(), c = map.getCenter(), out = [], seen = new Set();
+  for (const f of map.queryRenderedFeatures({ layers: ['poi', 'imp'].filter(l => map.getLayer(l)) })) {
+    const n = f.properties[ZH ? 'name:zh' : 'name:en'] || f.properties.name; if (!n || !(n.toLowerCase().includes(x) || (f.properties.name || '').toLowerCase().includes(x))) continue;
+    const [lng, lat] = f.geometry.coordinates, k = n + lat.toFixed(4); if (seen.has(k)) continue; seen.add(k);
+    const id = typeof f.id === 'number' ? f.id : null;
+    out.push({ name: n, address: catLabel(f.properties.subclass || f.properties.class), lat, lng, category: f.properties.class, osm: id ? { type: ['N', 'N', 'W', 'R'][id % 10] || 'N', id: Math.floor(id / 10) } : (f.properties.osm ? { type: f.properties.osm[0], id: +f.properties.osm.slice(1) } : null), dist: haversine(c, { lat, lng }), local: 1 });
+  }
+  for (const o of offlineSearch(v)) if (!seen.has(o.name + o.lat.toFixed(4))) out.push(o);
+  return out.sort((a, b) => a.dist - b.dist).slice(0, 8);
+}
+function chainEntry(v, list) {
+  const x = v.trim().toLowerCase(); if (x.length < 3) return null;
+  const known = SEM.flatMap(e => e.brands).find(b => b.toLowerCase().replace(/[’']/g, '') === x.replace(/[’']/g, '') || (x.length > 4 && b.toLowerCase().startsWith(x)));
+  const same = list.filter(r => r.name && r.name.toLowerCase().includes(x)); const multi = new Set(same.map(r => r.name.toLowerCase())).size < same.length;
+  if (!known && !multi) return null;
+  const nm = known || same[0].name;
+  return { sem: { chain: 1, t: nm, k: [nm.toLowerCase()], icon: 'generic', name: reEsc(nm).replace(/['’]/g, '.?'), brands: [nm], qids: [] }, name: `${L('显示所有「', 'All 「')}${nm}${L('」分店与同名地点', '」 branches & same-named places')}`, address: L('当前范围及附近 · 列表 + 地图标记', 'In view & nearby · list + map markers') };
+}
+function renderLocal(v) { if (v.length < 2) return; const lh = localHits(v); if (!lh.length) return; const ce = chainEntry(v, lh); renderSuggest([...(semMatch(v) ? [{ sem: semMatch(v), name: `${L('在此区域搜索', 'Search this area for')}「${semMatch(v).t}」`, address: '' }] : ce ? [ce] : []), ...lh], false, v); }
+let searchAbort = null;
 async function runSearch(v) {
-  lastQ = v;
+  lastQ = v; searchAbort?.abort(); const ac = new AbortController(); searchAbort = ac;
   try {
     const B = map.getBounds(), c = map.getCenter(), z = map.getZoom();
-    const [inView, near] = await Promise.all([photonBox(v, B, c, z).catch(() => []), photon(v, c, 10, z).catch(() => [])]);
+    const [inView, near] = await Promise.all([photonBox(v, B, c, z, 10, ac.signal).catch(() => []), photon(v, c, 10, z, ac.signal).catch(() => [])]);
+    if (ac.signal.aborted) return;
     if (lastQ !== v) return;
     const inB = x => B.contains([x.lng, x.lat]);
     const sc = x => (inB(x) ? 0 : 1e7) + haversine(c, x) * (inB(x) ? 0.2 : 1);
-    let r = [...inView, ...near]; if (!r.length) r = offlineSearch(v);
+    let r = [...localHits(v), ...inView, ...near];
     r = r.sort((a, b) => sc(a) - sc(b)).map(x => ({ ...x, dist: haversine(c, x) }));
     const sem = semMatch(v); if (sem || r.some(x => x.dist < 50000)) r = r.filter(x => x.dist < 150000 || inB(x));
+    const ce = !sem && chainEntry(v, r); if (ce) r.unshift(ce);
     if (sem) r.unshift({ sem, name: `${L('在此区域搜索', 'Search this area for')}「${sem.t}」`, address: L('附近所有相关地点（含连锁品牌）', 'All matching places nearby, incl. chains') });
     if (!r.filter(x => !x.sem).length && /^\d/.test(v)) { try { r.push(...await nominatim(v, c)); } catch {} }
-    const seen = new Set(); renderSuggest(r.filter(x => { const key = x.name + '|' + x.address; if (seen.has(key)) return false; seen.add(key); return true; }), false, v);
+    const seen = new Set(); renderSuggest(r.filter(x => { const key = x.sem ? 'sem' + x.name : x.name.toLowerCase() + '|' + (x.lat ?? 0).toFixed(3) + (x.lng ?? 0).toFixed(3); if (seen.has(key)) return false; seen.add(key); return true; }), false, v);
   } catch { renderSuggest([], false, v); }
 }
 async function nominatimSearch(v) {
@@ -213,8 +283,10 @@ function dismissOnTap() {
   return did;
 }
 function drawPin() {
+  if (dropMarker) { dropMarker.remove(); dropMarker = null; }
+  if (S.place?.dropped) { const el = document.createElement('div'); el.className = 'droppin'; el.innerHTML = pinSvg(); dropMarker = new maplibregl.Marker({ element: el, anchor: 'bottom' }).setLngLat([S.place.lng, S.place.lat]).addTo(map); }
   const src = map.getSource('pins'); if (!src) return;
-  src.setData({ type: 'FeatureCollection', features: S.place && !S.place.fromPoi ? [{ type: 'Feature', properties: {}, geometry: { type: 'Point', coordinates: [S.place.lng, S.place.lat] } }] : [] });
+  src.setData({ type: 'FeatureCollection', features: S.place && !S.place.fromPoi && !S.place.dropped ? [{ type: 'Feature', properties: {}, geometry: { type: 'Point', coordinates: [S.place.lng, S.place.lat] } }] : [] });
 }
 const catLabel = c => (c || '').replace(/^(amenity|shop|tourism|leisure|place|building|highway|office|craft)=/, '').replace(/_/g, ' ');
 async function showPlace(p) {
@@ -242,16 +314,17 @@ function renderPlace(p, tags, extra) {
       <button class="act" data-a="start"><span class="b">▲</span>${t('start')}</button>
       <button class="act" data-a="save"><span class="b">${saved ? '★' : '☆'}</span>${saved ? t('saved_ok') : t('save')}</button>
       <button class="act" data-a="share"><span class="b">⇪</span>${t('share')}</button>
+      ${p.dropped ? `<button class="act" data-a="measure"><span class="b">📏</span>${L('从这里测距', 'Measure from here')}</button>` : ''}
     </div>
     ${tags.opening_hours ? `<div class="row"><span class="i">🕘</span><div>${extra?.oh ? extra.oh.badge : esc(tags.opening_hours)}${extra?.oh ? `<div class="hrs">${esc(extra.oh.table)}</div>` : ''}</div></div>` : ''}
     ${p.desc ? `<div class="desc">${esc(p.desc)}</div>` : ''}
     ${p.quest ? `<div class="row"><span class="i">✦</span><div><button class="btn${questDone().includes(p.quest.id) ? ' ghost' : ''}" id="qDone">${questDone().includes(p.quest.id) ? L('✔ 已完成（点按取消）', '✔ Completed (tap to undo)') : L('标记为已完成', 'Mark as completed')}</button><div style="font-size:13px;color:var(--muted);margin-top:4px"><a href="https://www.wikidata.org/wiki/${p.quest.id}" target="_blank" rel="noopener">Wikidata ${p.quest.id}</a></div></div></div>` : ''}
     <div id="wx"></div>
-    <div class="row"><span class="i">📍</span><div>${esc(addr || p.address || tags._display || '')}</div></div>
+    <div class="row" id="addrRow"><span class="i">📍</span><div style="flex:1"><div id="addrTx">${esc(fmtAddr(tags) || p.address || tags._display || '')}</div><div id="addrNote" style="font-size:calc(13px * var(--ts,1));color:var(--muted)">${p._approx ? L('大致地址（按坐标反查）', 'Approx. address (from coordinates)') : ''}</div></div><button class="btn ghost" id="copyAddr" style="flex:none;padding:6px 12px">${L('复制', 'Copy')}</button></div>
     ${tel ? `<div class="row"><span class="i">☎</span><a href="tel:${esc(tel)}">${esc(tel)}</a></div>` : ''}
     ${web ? `<div class="row"><span class="i">🌐</span><a href="${esc(web.startsWith('http') ? web : 'https://' + web)}" target="_blank" rel="noopener">${esc(web.replace(/^https?:\/\//, ''))}</a></div>` : ''}
     ${tags.wheelchair ? `<div class="row"><span class="i">♿</span><div>${esc(tags.wheelchair)}</div></div>` : ''}
-    <div class="row"><span class="i">⌖</span><div>${p.lat.toFixed(5)}, ${p.lng.toFixed(5)}</div></div>
+    <div class="row"><span class="i">⌖</span><div style="flex:1">${p.lat.toFixed(6)}, ${p.lng.toFixed(6)}</div><button class="btn ghost" id="copyLL" style="flex:none;padding:6px 12px">${L('复制', 'Copy')}</button></div>
     ${p.osm ? `<div class="tags"><a href="https://www.openstreetmap.org/${{ N: 'node', W: 'way', R: 'relation' }[p.osm.type] || p.osm.type}/${p.osm.id}" target="_blank" rel="noopener">OpenStreetMap</a></div>` : ''}
   </div>`, tags[lang === 'zh' ? 'name:zh' : 'name:en'] || p.name, 'place');
   $('#panelBody .acts').onclick = e => {
@@ -260,9 +333,12 @@ function renderPlace(p, tags, extra) {
     if (a === 'start') openDirections(p, true);
     if (a === 'save') { const doSave = list => { let s = store.get('saved', []); s = saved ? s.filter(x => !(Math.abs(x.lat - p.lat) < 1e-5 && Math.abs(x.lng - p.lng) < 1e-5)) : [{ name: p.name, address: addr || p.address, lat: p.lat, lng: p.lng, osm: p.osm, list }, ...s]; store.set('saved', s); map.getSource('saved')?.setData(savedFC()); renderPlace(p, tags, extra); renderDrawer(); if (list) toast(L('已保存到 ', 'Saved to ') + list); }; saved ? doSave() : chooseList(p, doSave); }
     if (a === 'share') share(p);
+    if (a === 'measure') { closePanel(); S.place = null; drawPin(); tools.measure({ lat: p.lat, lng: p.lng }); }
   };
   if ($('#qDone')) $('#qDone').onclick = () => { const d = questDone(), i = d.indexOf(p.quest.id); i >= 0 ? d.splice(i, 1) : d.push(p.quest.id); store.set('questDone', d); renderPlace(p, tags, extra); updQuestLayer(); };
-  placeExtras?.(p);
+  placeExtras?.(p); fillAddress(p, tags);
+  $('#copyLL').onclick = async () => { const tx = `${p.lat.toFixed(6)}, ${p.lng.toFixed(6)}`; try { await navigator.clipboard.writeText(tx); toast(L('坐标已复制', 'Coordinates copied')); } catch { prompt('', tx); } };
+  $('#copyAddr').onclick = async () => { const tx = $('#addrTx').textContent; try { await navigator.clipboard.writeText(tx); toast(L('地址已复制', 'Address copied')); } catch { prompt(L('地址', 'Address'), tx); } };
   if (extra?.photo?.length) bindGallery($('#panelBody .gal'), extra.photo);
 }
 async function share(p) {
@@ -272,9 +348,11 @@ async function share(p) {
 }
 
 // POI click with hit tolerance (any rendered POI / category result)
-const hitLayers = () => ['quests', 'cat', 'saved-dot', 'poi'].filter(l => map.getLayer(l));
+const hitLayers = () => ['quests', 'cat', 'saved-dot', 'imp', 'poi'].filter(l => map.getLayer(l));
 map.on('click', e => {
   if (S.nav?.active || S.picking || S.measuring) return;
+  if (S.lpSuppress) { S.lpSuppress = false; return; }
+  if (S.place?.dropped && !panel.classList.contains('hidden')) { closePanel(); S.place = null; drawPin(); return; }
   if (dismissOnTap()) return;
   const pad = 10, b = [[e.point.x - pad, e.point.y - pad], [e.point.x + pad, e.point.y + pad]];
   const fs = map.queryRenderedFeatures(b, { layers: hitLayers() });
@@ -284,6 +362,7 @@ map.on('click', e => {
   if (f.layer.id === 'quests') return showQuest(QDATA[f.properties.i]);
   if (f.layer.id === 'cat') { const it = S.catItems[f.properties.i]; showPlace(it); return; }
   if (f.layer.id === 'saved-dot') { const sv = store.get('saved', []).find(x => x.name === f.properties.name); if (sv) return showPlace(sv); }
+  if (f.layer.id === 'imp') { const o = f.properties.osm; return showPlace({ name: f.properties[lang === 'zh' ? 'name:zh' : 'name:en'] || f.properties.name, address: '', lat, lng, osm: { type: o[0], id: +o.slice(1) }, category: f.properties.class, fromPoi: true }); }
   // OpenMapTiles/Planetiler feature id = osm_id * 10 + (1 node | 2 way | 3 relation)
   const id = typeof f.id === 'number' ? f.id : null;
   const osm = id ? { type: ['N', 'N', 'W', 'R'][id % 10] || 'N', id: Math.floor(id / 10) } : null;
@@ -293,16 +372,36 @@ map.on('click', e => {
 for (const l of ['poi', 'cat']) { map.on('mouseenter', l, () => map.getCanvas().style.cursor = 'pointer'); map.on('mouseleave', l, () => map.getCanvas().style.cursor = ''); }
 
 // Long-press / right-click: drop pin + reverse geocode ("What's here?")
-let lpTimer;
-map.on('contextmenu', e => dropPin(e.lngLat));
-map.on('touchstart', e => { if (e.originalEvent.touches.length !== 1) return; lpTimer = setTimeout(() => dropPin(e.lngLat), 550); });
-for (const ev of ['touchend', 'touchmove', 'movestart']) map.on(ev, () => clearTimeout(lpTimer));
-async function dropPin(ll) {
-  const p = { name: t('dropped'), address: `${ll.lat.toFixed(5)}, ${ll.lng.toFixed(5)}`, lat: ll.lat, lng: ll.lng };
-  showPlace(p);
-  try { const r = await photonReverse(ll); if (r && S.place === p) { p.name = r.address ? [r.name, ''].join('') : r.name; p.address = r.address; renderPlace(p, {}, null); } } catch {}
+// Long-press (≈850 ms) to drop a pin: touch or mouse hold; right-click also works. Cancels on move > 9 px, 2nd finger, or any map motion.
+let lp = null;
+const lpRing = document.createElement('div'); lpRing.className = 'lpring hidden'; document.body.appendChild(lpRing);
+function lpCancel() { if (!lp) return; clearTimeout(lp.t); lp = null; lpRing.classList.add('hidden'); }
+const lpXY = ev => { const t = ev.touches ? ev.touches[0] || ev.changedTouches?.[0] : ev; return t ? [t.clientX, t.clientY] : null; };
+let lpTouchT = 0;
+function lpStart(oe) {
+  if (oe.touches) lpTouchT = Date.now(); else if (Date.now() - lpTouchT < 1500) return; // ignore emulated mouse after touch
+  S.lpSuppress = false; if (lp) return lpCancel();
+  if ((oe.touches && oe.touches.length !== 1) || (!oe.touches && oe.button !== 0) || S.nav?.active || S.picking || S.measuring) return;
+  const [cx, cy] = lpXY(oe), r = map.getCanvasContainer().getBoundingClientRect(), pt = { x: cx - r.left, y: cy - r.top };
+  lp = { x: cx, y: cy, t: setTimeout(() => { const ll = map.unproject([pt.x, pt.y]); lpCancel(); S.lpSuppress = true; navigator.vibrate?.(25); dropPin(ll); }, 850) };
+  lpRing.style.transform = `translate(${cx - 28}px,${cy - 28}px)`; lpRing.classList.remove('hidden', 'go'); void lpRing.offsetWidth; lpRing.classList.add('go');
 }
-
+const lpMove = oe => { if (!lp) return; const xy = lpXY(oe); if ((oe.touches?.length || 1) > 1 || !xy || Math.hypot(xy[0] - lp.x, xy[1] - lp.y) > 9) lpCancel(); };
+{ const c = map.getCanvasContainer(), o = { capture: true, passive: true };
+  c.addEventListener('touchstart', lpStart, o); c.addEventListener('mousedown', lpStart, o);
+  c.addEventListener('touchmove', lpMove, o); window.addEventListener('mousemove', lpMove, o);
+  for (const ev of ['touchend', 'touchcancel']) c.addEventListener(ev, lpCancel, o);
+  window.addEventListener('mouseup', lpCancel, o); }
+for (const ev of ['movestart', 'zoomstart', 'rotatestart', 'pitchstart', 'dragstart']) map.on(ev, lpCancel);
+map.on('contextmenu', e => { e.originalEvent?.preventDefault(); lpCancel(); S.lpSuppress = true; navigator.vibrate?.(25); dropPin(e.lngLat); });
+let dropMarker = null;
+function pinSvg() { return S.theme === 'west'
+  ? `<svg width="40" height="52" viewBox="0 0 40 52"><path d="M20 50C17 40 5 30 5 18a15 15 0 0 1 30 0c0 12-12 22-15 32z" fill="#f3e7cb" stroke="#20150b" stroke-width="2.4"/><path d="M14 12l12 12M26 12 14 24" stroke="#7c2e22" stroke-width="3.2" stroke-linecap="round"/></svg>`
+  : `<svg width="40" height="52" viewBox="0 0 40 52" style="overflow:visible"><path d="M20 50 20 36" stroke="#4fd6e8" stroke-width="2"/><path d="M20 2 34 18 20 36 6 18Z" fill="#e0457a" stroke="#ffd25a" stroke-width="2"/><path d="M20 11 27 18 20 27 13 18Z" fill="#ffd25a"/></svg>`; }
+function dropPin(ll) {
+  const p = { name: t('dropped'), address: '', lat: ll.lat, lng: ll.lng, dropped: true, tags: {} };
+  showPlace(p);
+}
 // ---------- directions ----------
 // S.from / S.dest: {name,lat,lng} or {gps:true}
 function attachAC(input, onPick) {
@@ -380,13 +479,13 @@ function fitRoute() {
 async function startNav() {
   const { startNavigation } = await import('./nav.js'); // lazy: only loaded when navigating
   closePanel();
-  S.nav = startNavigation({ map, S, setMe: (c) => { S.me = c; if (puck) puck.setLngLat(c); }, getPuck: () => puck, makePuck: c => { setMe({ coords: { latitude: c.lat, longitude: c.lng } }); return puck; }, reroute: async from => (await osrm(from, await resolveEnd(S.dest), S.travel)), drawRoutes, onEnd: () => { S.nav = null; S.routes = null; drawRoutes(); $('#top').classList.remove('hidden'); } });
+  S.nav = startNavigation({ map, S, setMe: (c) => { S.me = c; if (puck) puck.setLngLat(c); updAcc(); }, getPuck: () => puck, makePuck: c => { setMe({ coords: { latitude: c.lat, longitude: c.lng } }); return puck; }, reroute: async from => (await osrm(from, await resolveEnd(S.dest), S.travel)), drawRoutes, onEnd: () => { S.nav = null; S.routes = null; drawRoutes(); $('#top').classList.remove('hidden'); } });
   $('#top').classList.add('hidden');
 }
 $('#dirBtn').onclick = () => openDirections(S.place || null);
 
 // ---------- controls ----------
-$('#zin').onclick = () => map.zoomIn(); $('#zout').onclick = () => map.zoomOut();
+$('#zin').onclick = () => map.zoomIn({ duration: 350 }); $('#zout').onclick = () => map.zoomOut({ duration: 350 });
 $('#compassBtn').onclick = () => { if (S.nav?.active) return S.nav.toggleHeading(); map.easeTo({ bearing: 0, pitch: 0 }); };
 $('#locBtn').onclick = () => locate(true);
 $('#layersBtn').onclick = () => { renderLayersPop(); $('#layersPop').classList.toggle('hidden'); };
@@ -415,10 +514,15 @@ function renderDrawer() {
    <div class="ds"><div class="di"><span class="i">⚙</span><b>${t('settings')}</b></div>
      <div style="padding:0 22px 10px 58px"><div style="font-size:13px;color:var(--muted);margin-bottom:6px">${t('language')}</div><div class="seg">
      <button data-lang="" class="${!localStorage.getItem('lang') ? 'on' : ''}">${t('lang_auto')}</button><button data-lang="zh" class="${localStorage.getItem('lang') === 'zh' ? 'on' : ''}">中文</button><button data-lang="en" class="${localStorage.getItem('lang') === 'en' ? 'on' : ''}">English</button></div></div></div>
+   <div class="ds"><div class="di"><span class="i">Aa</span><b>${L('文字与图标大小', 'Text & icon size')}</b></div><div style="padding:0 22px 12px 58px">${sizeHtml()}</div></div>
+   <div class="ds"><div class="di"><span class="i">🔊</span><b>${L('导航语音包', 'Voice pack')}</b></div><div style="padding:0 22px 12px 58px" id="voiceBox">${voiceHtml()}</div></div>
    <div class="ds"><div class="di"><span class="i">ⓘ</span><b>${t('about')}</b></div><div class="sub">${t('about_text')}</div></div>`;
   $('#drawer').onclick = e => {
-    const el = e.target.closest('[data-s],[data-r],[data-th],[data-md],[data-lang],[data-clear],[data-close],[data-sq],[data-tool]'); if (!el) return;
+    const el = e.target.closest('[data-s],[data-r],[data-th],[data-md],[data-lang],[data-clear],[data-close],[data-sq],[data-tool],[data-vp],[data-vtest],[data-szreset]'); if (!el) return;
     if (el.dataset.close) return closeDrawer();
+    if (el.dataset.szreset) { store.set('textScale', 1); store.set('iconScale', 1); applySizes(); return renderDrawer(); }
+    if (el.dataset.vp) { localStorage.setItem('voicePack', el.dataset.vp); localStorage.removeItem('voiceName'); return renderDrawer(); }
+    if (el.dataset.vtest) return import('./voice.js').then(m => m.say(m.phrase('test')));
     if (el.dataset.sq) { closeDrawer(); return openSideQuests(); }
     if (el.dataset.tool) { closeDrawer(); return tools[el.dataset.tool]?.(el.dataset.arg); }
     if (el.dataset.s) { closeDrawer(); pick(saved[+el.dataset.s]); }
@@ -432,7 +536,6 @@ function renderDrawer() {
 const openDrawer = () => { renderDrawer(); $('#drawer').classList.add('open'); $('#scrim').classList.remove('hidden'); };
 const closeDrawer = () => { $('#drawer').classList.remove('open'); $('#scrim').classList.add('hidden'); };
 $('#menuBtn').onclick = openDrawer; $('#scrim').onclick = closeDrawer;
-renderDrawer();
 
 let toastT; export function toast(s) { const el = $('#toast'); el.textContent = s; el.classList.remove('hidden'); clearTimeout(toastT); toastT = setTimeout(() => el.classList.add('hidden'), 2200); }
 
@@ -482,7 +585,7 @@ function semOverpass(e, bb) {
 function semTiles(e) {
   const re = new RegExp([e.name, ...e.brands.map(reEsc)].filter(Boolean).join('|') || '^$', 'i');
   const cls = new Set([...(e.amen || '').split('|'), ...(e.shop || '').split('|'), ...(e.tour || '').split('|'), e.icon]);
-  return map.queryRenderedFeatures({ layers: ['poi'] }).filter(f => (re.source !== '^$' && re.test(f.properties.name || '')) || (!e.cuisine && (cls.has(f.properties.subclass) || cls.has(f.properties.class)))).map(f => {
+  return map.queryRenderedFeatures({ layers: ['poi'] }).filter(f => (re.source !== '^$' && re.test(f.properties.name || '')) || (!e.cuisine && !e.chain && (cls.has(f.properties.subclass) || cls.has(f.properties.class)))).map(f => {
     const id = typeof f.id === 'number' ? f.id : null; return { type: id ? ['node', 'node', 'way', 'relation'][id % 10] : 'node', id: id ? Math.floor(id / 10) : 0, lat: f.geometry.coordinates[1], lon: f.geometry.coordinates[0], tags: { name: f.properties.name, amenity: f.properties.subclass } }; });
 }
 async function semanticSearch(e, raw) {
@@ -517,6 +620,32 @@ async function semanticSearch(e, raw) {
 }
 let lastNomS = 0; const nomWait = async () => { const w = Math.max(0, lastNomS + 1100 - Date.now()); await new Promise(r => setTimeout(r, w)); lastNomS = Date.now(); };
 
+// ---------- full formatted address (local format) ----------
+const PROV = { Alberta: 'AB', 'British Columbia': 'BC', Saskatchewan: 'SK', Manitoba: 'MB', Ontario: 'ON', Quebec: 'QC', 'Québec': 'QC', 'New Brunswick': 'NB', 'Nova Scotia': 'NS', 'Prince Edward Island': 'PE', 'Newfoundland and Labrador': 'NL', Yukon: 'YT', 'Northwest Territories': 'NT', Nunavut: 'NU', 阿尔伯塔省: 'AB', 艾伯塔省: 'AB', 不列颠哥伦比亚省: 'BC', 安大略省: 'ON', 魁北克省: 'QC', 萨斯喀彻温省: 'SK', 曼尼托巴省: 'MB' };
+const ABBR = [[/\bNorthwest\b/g, 'NW'], [/\bNortheast\b/g, 'NE'], [/\bSouthwest\b/g, 'SW'], [/\bSoutheast\b/g, 'SE'], [/\bAvenue\b/g, 'Ave'], [/\bStreet\b/g, 'St'], [/\bRoad\b/g, 'Rd'], [/\bDrive\b/g, 'Dr'], [/\bBoulevard\b/g, 'Blvd'], [/\bTrail\b/g, 'Trl'], [/\bCrescent\b/g, 'Cres'], [/\bPlace\b/g, 'Pl'], [/\bCourt\b/g, 'Crt'], [/\bWay\b/g, 'Way']];
+function fmtAddr(t) {
+  const hn = t['addr:housenumber'], st = t['addr:street'] && ABBR.reduce((s, [r, v]) => s.replace(r, v), t['addr:street']), unit = t['addr:unit'] || t['addr:flats'] || t['_n:unit'];
+  const city = t['addr:city'], pc = t['addr:postcode'] || t['_n:postcode'], state = t['addr:province'] || t['addr:state'] || t['_n:state'], cc = (t['addr:country'] || t['_n:cc'] || '').toUpperCase();
+  const line1 = (st && hn && st.startsWith(hn + ' ') ? [unit ? unit + '-' + st : st] : [unit && hn ? `${unit}-${hn}` : hn, st]).filter(Boolean).join(' ');
+  if (!line1 && !city) return '';
+  const parts = String(state || '').split(/[;；]/), hit = parts.find(x => PROV[x.trim()]); const prov = hit ? PROV[hit.trim()] : parts[0]; const ca = cc === 'CA' || !!hit;
+  const tail = [prov, pc].filter(Boolean).join(ca ? ' ' : ', ');
+  return [line1 || null, city, tail || null, ca ? null : (t['addr:country'] ? null : t['_n:country'])].filter(Boolean).join(', ');
+}
+const complete = t => t['addr:housenumber'] && t['addr:street'] && t['addr:city'] && (t['addr:postcode'] || t['_n:postcode']) && (t['addr:province'] || t['addr:state'] || t['_n:state']);
+async function fillAddress(p, tags) {
+  if (complete(tags)) return; const has = tags['addr:housenumber'] || tags['addr:street'];
+  try {
+    let extra = null;
+    if (has && p.osm && !tags._display) { const el = await osmElement(p.osm.type, p.osm.id); extra = el?.tags; }
+    if (!extra || !fmtAddr({ ...extra, ...tags })) extra = { ...(await reverseAddr(p)), _approx: !has };
+    if (extra._approx) p._approx = true;
+    if (S.place !== p || !$('#addrTx')) return;
+    const merged = { ...extra, ...Object.fromEntries(Object.entries(tags).filter(([, v]) => v)) }; Object.assign(tags, Object.fromEntries(Object.entries(merged).filter(([k]) => k.startsWith('_n:') || !tags[k])));
+    $('#addrTx').textContent = fmtAddr(has ? merged : extra) || $('#addrTx').textContent;
+    if (extra._approx) $('#addrNote').textContent = L('大致地址（按坐标反查）', 'Approx. address (from coordinates)');
+  } catch {}
+}
 // ---------- photo gallery (scroll-snap = native smooth swipe) ----------
 function galleryHtml(ph, fs = false) {
   return `<div class="gal${fs ? ' fs' : ''}"><div class="gtrack">${ph.map((x, i) => `<figure><img ${i < 2 ? '' : 'data-'}src="${esc(x.src)}" alt="" decoding="async"><figcaption>📷 <a href="${esc(x.page || '#')}" target="_blank" rel="noopener">${esc(x.credit || '')}</a></figcaption></figure>`).join('')}</div>
@@ -535,6 +664,42 @@ function bindGallery(g, ph, start = 0) {
   else { const close = () => { g.remove(); removeEventListener('keydown', kd); }; const kd = e => { if (e.key === 'Escape') close(); if (e.key === 'ArrowLeft') go(cur() - 1); if (e.key === 'ArrowRight') go(cur() + 1); };
     addEventListener('keydown', kd); g.querySelector('.gx').onclick = close; }
 }
+// ---------- user-adjustable sizes (no style reload: rescale stored base expressions) ----------
+const SZ = [0.8, 1, 1.25, 1.5, 1.75, 2];
+const sz = () => ({ t: store.get('textScale', 1), i: store.get('iconScale', 1) });
+let baseSizes = {};
+function scaleExpr(v, k) {
+  if (typeof v === 'number') return +(v * k).toFixed(3);
+  if (Array.isArray(v) && v[0] === 'interpolate') return [...v.slice(0, 3), ...v.slice(3).map((x, i) => i % 2 ? (typeof x === 'number' ? +(x * k).toFixed(3) : ['*', k, x]) : x)];
+  if (Array.isArray(v) && v[0] === 'step') return [v[0], v[1], ...v.slice(2).map((x, i) => i % 2 === 0 ? (typeof x === 'number' ? +(x * k).toFixed(3) : ['*', k, x]) : x)];
+  return ['*', k, v];
+}
+function applySizes() {
+  const { t: ts, i: is } = sz();
+  document.documentElement.style.setProperty('--ts', ts); document.documentElement.style.setProperty('--is', is);
+  if (!map.isStyleLoaded()) return;
+  for (const l of map.getStyle().layers) {
+    if (l.type !== 'symbol') continue;
+    const b = baseSizes[l.id] ||= { t: l.layout?.['text-size'], i: l.layout?.['icon-size'] };
+    try { if (b.t !== undefined) map.setLayoutProperty(l.id, 'text-size', scaleExpr(b.t, ts)); if (b.i !== undefined) map.setLayoutProperty(l.id, 'icon-size', scaleExpr(b.i, is)); } catch (e) { console.warn('size', l.id, e.message); }
+  }
+}
+map.on('style.load', () => { baseSizes = {}; setTimeout(applySizes, 60); });
+applySizes();
+function sizeHtml() { const { t: ts, i: is } = sz(); const row = (k, v, lab) => `<div class="szrow"><span>${lab}</span><input type="range" min="0" max="5" step="1" value="${Math.max(0, SZ.indexOf(v))}" data-sz="${k}"><b id="szv_${k}">${Math.round(v * 100)}%</b></div>`;
+  return row('textScale', ts, L('文字', 'Text')) + row('iconScale', is, L('图标', 'Icons')) + `<button class="btn ghost" data-szreset="1">${L('重置为默认', 'Reset')}</button>`; }
+document.addEventListener('input', e => { const k = e.target.dataset?.sz; if (!k) return; const v = SZ[+e.target.value]; store.set(k, v); $('#szv_' + k).textContent = Math.round(v * 100) + '%'; applySizes(); });
+// ---------- voice pack settings (voice.js is tiny; loaded with the drawer) ----------
+import { PACKS, voices, voicePack } from './voice.js';
+function voiceHtml() {
+  const cur = voicePack(), vs = voices(), sel = localStorage.getItem('voiceName') || '';
+  return `<div class="vpgrid">${Object.entries(PACKS).map(([k, p]) => `<button class="btn ghost${k === cur ? ' on' : ''}" data-vp="${k}">${esc(p.label[ZH ? 'zh' : 'en'])}</button>`).join('')}</div>
+    <select id="voiceSel" class="vsel"><option value="">${L('自动选择声音', 'Auto voice')}</option>${vs.map(v => `<option${v.name === sel ? ' selected' : ''}>${esc(v.name)}</option>`).join('')}</select>
+    <button class="btn" data-vtest="1" style="margin-top:8px">▶ ${L('试听', 'Test')}</button>
+    <div style="font-size:13px;color:var(--muted);margin-top:4px">${L('口音取决于设备已安装的语音', 'Accent depends on the voices installed on this device')}</div>`;
+}
+document.addEventListener('change', e => { if (e.target.id === 'voiceSel') { e.target.value ? localStorage.setItem('voiceName', e.target.value) : localStorage.removeItem('voiceName'); } });
+if (window.speechSynthesis) speechSynthesis.onvoiceschanged = () => { if ($('#drawer').classList.contains('open')) renderDrawer(); };
 // ---------- side quests (Wikidata CC0 + Wikimedia Commons) ----------
 function questDone() { return store.get('questDone', []); }
 const QK = { ghost: L('鬼镇 / 废弃村落', 'Ghost town / abandoned village'), ruin: L('废墟', 'Ruins'), odd: L('奇特建筑 / 路边奇观', 'Oddity / roadside attraction'), view: L('观景点', 'Viewpoint'), nature: L('奇特地貌', 'Odd landform') };
@@ -559,7 +724,7 @@ function addQuestLayer() {
   if (!S.questsOn || !map.isStyleLoaded()) return;
   if (!map.getSource('quests')) map.addSource('quests', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
   if (!map.getLayer('quests')) map.addLayer({ id: 'quests', type: 'symbol', source: 'quests', layout: { 'icon-image': 'quest', 'icon-size': ['interpolate', ['linear'], ['zoom'], 4, 0.7, 12, 1.15], 'icon-allow-overlap': true, 'text-field': ['step', ['zoom'], '', 8, ['get', 'name']], 'text-font': map.getStyle().layers.find(l => l.id === 'poi')?.layout['text-font'] || ['Rajdhani SemiBold'], 'text-size': 15, 'text-offset': [0, 1.3], 'text-anchor': 'top', 'text-optional': true }, paint: { 'icon-opacity': ['case', ['==', ['get', 'done'], 1], 0.55, 1], 'text-color': isDark() ? '#ffe08a' : '#5a3d00', 'text-halo-color': isDark() ? '#000' : '#fff', 'text-halo-width': 2 } });
-  updQuestLayer();
+  updQuestLayer(); applySizes();
 }
 map.on('style.load', () => setTimeout(addQuestLayer, 50));
 function showQuest(o) {
@@ -619,8 +784,8 @@ async function routeTransit(from, to) {
 const clearTransit = () => map.getSource('transit')?.setData({ type: 'FeatureCollection', features: [] });
 
 // ---------- distance measuring ----------
-tools.measure = () => {
-  if (S.measuring) return; S.measuring = true; closePanel(); const pts = [];
+tools.measure = (start) => {
+  if (S.measuring) return; S.measuring = true; closePanel(); const pts = start && typeof start === 'object' ? [start] : [];
   if (!map.getSource('measure')) { map.addSource('measure', { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
     map.addLayer({ id: 'measure-line', type: 'line', source: 'measure', filter: ['==', ['geometry-type'], 'LineString'], paint: { 'line-color': routeColor(), 'line-width': 4, 'line-dasharray': [2, 1] } });
     map.addLayer({ id: 'measure-pt', type: 'circle', source: 'measure', filter: ['==', ['geometry-type'], 'Point'], paint: { 'circle-radius': 7, 'circle-color': '#fff', 'circle-stroke-color': routeColor(), 'circle-stroke-width': 3 } }); }
@@ -707,4 +872,5 @@ tools.offline = async () => {
 };
 function offlineSearch(v) { const x = v.toLowerCase(), c = map.getCenter(); return store.get('offlineIdx', []).filter(o => (o.name + ' ' + o.n2).toLowerCase().includes(x)).map(o => ({ name: o.name, address: L('离线 · ', 'offline · ') + (o.cls || ''), lat: o.lat, lng: o.lng, category: o.cls, dist: haversine(c, o) })).sort((a, b) => a.dist - b.dist).slice(0, 12); }
 
-window._app = { sunTimes, offlineSearch, semanticSearch, semMatch, S, openSideQuests, showQuest, questData, tools, showPlace, openDirections, startNav, pick, openDrawer, closeDrawer, runSearch, setStyle, nominatimSearch };
+window._app = { applySizes, setMe, updScale, sunTimes, offlineSearch, semanticSearch, semMatch, S, openSideQuests, showQuest, questData, tools, showPlace, openDirections, startNav, pick, openDrawer, closeDrawer, runSearch, setStyle, nominatimSearch };
+renderDrawer(); // re-render once all menu sections (lists, tools) are defined

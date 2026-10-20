@@ -3,17 +3,17 @@ import { lang } from './i18n.js';
 
 const withTimeout = (ms) => { const c = new AbortController(); setTimeout(() => c.abort(), ms); return c.signal; };
 
-export async function photonBox(q, B, center, zoom, limit = 10) { // results strictly inside (1.5x) the current view
+export async function photonBox(q, B, center, zoom, limit = 10, signal) { // results strictly inside (1.5x) the current view
   const dx = (B.getEast() - B.getWest()) * 0.25, dy = (B.getNorth() - B.getSouth()) * 0.25;
   const u = new URL('https://photon.komoot.io/api/');
   u.search = new URLSearchParams({ q, limit, lat: center.lat, lon: center.lng, zoom: Math.round(zoom), location_bias_scale: 0.1, bbox: [B.getWest() - dx, B.getSouth() - dy, B.getEast() + dx, B.getNorth() + dy].map(x => x.toFixed(5)).join(','), ...(lang === 'en' ? { lang: 'en' } : {}) });
-  const r = await fetch(u, { signal: withTimeout(8000) }); if (!r.ok) throw new Error('Photon ' + r.status);
+  const r = await fetch(u, { signal: signal ? AbortSignal.any([signal, withTimeout(8000)]) : withTimeout(8000) }); if (!r.ok) throw new Error('Photon ' + r.status);
   return (await r.json()).features.map(fromPhoton);
 }
-export async function photon(q, center, limit = 8, zoom = 12) {
+export async function photon(q, center, limit = 8, zoom = 12, signal) {
   const u = new URL('https://photon.komoot.io/api/');
   u.search = new URLSearchParams({ q, limit, lat: center.lat, lon: center.lng, location_bias_scale: 0.2, zoom: Math.round(zoom), ...(lang === 'en' ? { lang: 'en' } : {}) });
-  const r = await fetch(u, { signal: withTimeout(8000) });
+  const r = await fetch(u, { signal: signal ? AbortSignal.any([signal, withTimeout(8000)]) : withTimeout(8000) });
   if (!r.ok) throw new Error('Photon ' + r.status);
   return (await r.json()).features.map(fromPhoton);
 }
@@ -24,7 +24,7 @@ export async function photonReverse(ll) {
 }
 function fromPhoton(f) {
   const p = f.properties;
-  const street = [p.housenumber, p.street].filter(Boolean).join(' ');
+  const street = p.street && p.housenumber && String(p.street).startsWith(p.housenumber + ' ') ? p.street : [p.housenumber, p.street].filter(Boolean).join(' ');
   return {
     name: p.name || street || p.city || '?',
     address: [p.name ? street : null, p.district, p.city, p.state, p.postcode].filter(Boolean).join(', '),
@@ -76,7 +76,7 @@ export async function osmElement(type, id) {
     if (x) {
       const a = x.address || {};
       return { tags: { ...(x.namedetails || {}), ...(x.extratags || {}), [x.category]: x.type, name: x.name,
-        'addr:housenumber': a.house_number, 'addr:street': a.road, 'addr:city': a.city || a.town, _display: x.display_name } };
+        'addr:housenumber': a.house_number, 'addr:street': a.road, 'addr:city': a.city || a.town || a.village, '_n:postcode': a.postcode, '_n:state': a.state, '_n:cc': a.country_code, '_n:country': a.country, '_n:unit': a.unit, _display: x.display_name } };
     }
   } catch {}
   const els = await overpass(`[out:json][timeout:12];${T[type]}(${id});out tags center;`);
@@ -105,7 +105,7 @@ export async function osrm(from, to, mode) {
   if (j.code !== 'Ok') throw new Error('OSRM ' + j.code);
   return j.routes.map(rt => ({
     geometry: rt.geometry, distance: rt.distance, duration: rt.duration,
-    steps: rt.legs.flatMap(l => l.steps.map(s => ({ type: s.maneuver.type, modifier: s.maneuver.modifier || '', name: s.name, distance: s.distance,
+    steps: rt.legs.flatMap(l => l.steps.map(s => ({ type: s.maneuver.type, mode: s.mode, modifier: s.maneuver.modifier || '', name: s.name, distance: s.distance,
       exit: s.maneuver.exit, loc: { lng: s.maneuver.location[0], lat: s.maneuver.location[1] } }))),
   }));
 }
@@ -187,4 +187,15 @@ export async function photosFor(tags, ll) {
   }
   if (!out.length && ll) { try { const p = await panoramax(ll); if (p) out.push(p); } catch {} }
   return out;
+}
+
+// Reverse geocode (Nominatim, queued 1 req/s, cached in memory + localStorage)
+const revCache = new Map(Object.entries(JSON.parse(localStorage.getItem('revCache') || '{}')));
+export async function reverseAddr(ll) {
+  const k = ll.lat.toFixed(5) + ',' + ll.lng.toFixed(5); if (revCache.has(k)) return revCache.get(k);
+  await nomQueue();
+  const x = await (await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${ll.lat}&lon=${ll.lng}&format=jsonv2&addressdetails=1&zoom=18&accept-language=${lang === 'zh' ? 'zh,en' : 'en'}`, { signal: withTimeout(8000) })).json();
+  const a = x.address || {}; const r = { 'addr:housenumber': a.house_number, 'addr:street': a.road, 'addr:city': a.city || a.town || a.village || a.municipality, '_n:postcode': a.postcode, '_n:state': a.state, '_n:cc': a.country_code, '_n:country': a.country };
+  revCache.set(k, r); try { localStorage.setItem('revCache', JSON.stringify(Object.fromEntries([...revCache].slice(-300)))); } catch {}
+  return r;
 }

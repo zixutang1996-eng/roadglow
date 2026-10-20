@@ -52,9 +52,9 @@ const GROUP = { restaurant: 'food', cafe: 'food', bar: 'food', supermarket: 'sho
   school: 'edu', library: 'edu', transit: 'trans', ferry: 'trans', fuel: 'trans', parking: 'trans', museum: 'culture', park: 'park',
   bank: 'service', generic: 'service', hotel: 'lodge', quest: 'quest' };
 // hues per group (light / dark variants per theme); fills auto-darkened until glyph contrast >= 4.5
-const HUE = {
-  neon:  { food: '#e0567a', shop: '#8a5cf0', health: '#e5484d', edu: '#d99a1e', trans: '#2f8fe0', culture: '#c2309a', park: '#25a86b', service: '#4a8a9a', lodge: '#5b62d6', quest: '#e8b400' },
-  west:  { food: '#a8452a', shop: '#6d5a9a', health: '#9e2a22', edu: '#a77a1e', trans: '#3d6a8a', culture: '#7a3d6a', park: '#4f7a3a', service: '#5a6a6a', lodge: '#6a4a2e', quest: '#b8862a' },
+const HUE = { // game-inspired palettes (v0.6): neon = muted teal/cyan, warm yellow, magenta-red; west = inked legend: oxblood, sepia, ochre, dusty teal
+  neon:  { food: '#b23a5e', shop: '#8c3f86', health: '#c0383f', edu: '#e2b84a', trans: '#1d6f7c', culture: '#7b4aa0', park: '#1f6b5c', service: '#35596a', lodge: '#3c4f86', quest: '#f0c650' },
+  west:  { food: '#7c2e22', shop: '#3f6a66', health: '#6a1e1a', edu: '#a07a2c', trans: '#3b4047', culture: '#5f3a41', park: '#56613b', service: '#5b4630', lodge: '#6e4b2c', quest: '#b08a34' },
 };
 // 40x43 viewBox shapes, centre ~ (20,21)
 const SHAPE = {
@@ -69,32 +69,34 @@ const lum = h => { const c = [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16) 
 const cr = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
 const mix = (h, t, k) => '#' + [1, 3, 5].map(i => Math.round(parseInt(h.slice(i, i + 2), 16) * (1 - k) + parseInt(t.slice(i, i + 2), 16) * k).toString(16).padStart(2, '0')).join('');
 const STY = {
-  neon_light: { th: 'neon', glyph: '#ffffff', edge: '#ffffff', dark: false },
-  neon_dark:  { th: 'neon', glyph: '#f4f1e6', edge: '#0f1118', dark: true },
-  west_light: { th: 'west', glyph: '#fbf3df', edge: '#3a2616', dark: false },
-  west_dark:  { th: 'west', glyph: '#f1e2c2', edge: '#17130f', dark: true },
+  neon_light: { th: 'neon', glyph: '#ffffff', dglyph: '#14161f', edge: '#ffffff', dark: false },
+  neon_dark:  { th: 'neon', glyph: '#f1eee2', dglyph: '#101219', edge: '#0d0f16', dark: true },
+  west_light: { th: 'west', glyph: '#f6ead0', dglyph: '#24170c', edge: '#2a1d12', dark: false },
+  west_dark:  { th: 'west', glyph: '#efe0bf', dglyph: '#1a120a', edge: '#120d08', dark: true },
 };
 export const CONTRAST = {};
 function fillFor(s, grp) {
-  let f = HUE[s.th][grp]; if (s.dark) f = mix(f, '#1a1c24', 0.35); // muted in dark mode
-  let k = 0; while (cr(f, s.glyph) < 4.6 && k++ < 40) f = mix(f, '#000000', 0.05);
-  return f;
+  let f = HUE[s.th][grp]; if (s.dark) f = mix(f, s.th === 'neon' ? '#151823' : '#1c1610', 0.3); // muted in dark mode
+  // pick the glyph colour with more contrast; only darken the fill if neither reaches 4.5:1
+  let g = cr(f, s.glyph) >= cr(f, s.dglyph) ? s.glyph : s.dglyph;
+  let k = 0; while (cr(f, g) < 4.6 && k++ < 40) f = mix(f, g === s.glyph ? '#000000' : '#ffffff', 0.05);
+  return [f, g];
 }
 function svgFor(name, s, px, key) {
-  const grp = GROUP[name], fill = fillFor(s, grp), shape = SHAPE[s.th][grp];
-  (CONTRAST[key] ||= {})[grp] = +cr(fill, s.glyph).toFixed(2);
+  const grp = GROUP[name], [fill, glyph] = fillFor(s, grp), shape = SHAPE[s.th][grp];
+  (CONTRAST[key] ||= {})[grp] = +cr(fill, glyph).toFixed(2);
   const rough = s.th === 'west' ? 'filter="url(#r)"' : '';
   const ring = s.th === 'neon' ? `<path d="${shape}" fill="none" stroke="${s.dark ? mix(fill, '#ffffff', 0.45) : '#ffffff'}" stroke-width="1.2" transform="translate(20 21) scale(.84) translate(-20 -21)" opacity="${s.dark ? 0.7 : 0.85}"/>`
-    : `<path d="${shape}" fill="none" stroke="${s.glyph}" stroke-width="0.9" opacity="0.6" transform="translate(20 21) scale(.83) translate(-20 -21)"/>`;
+    : `<path d="${shape}" fill="none" stroke="${glyph}" stroke-width="0.9" opacity="0.6" transform="translate(20 21) scale(.83) translate(-20 -21)"/>`;
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${px}" height="${px * 43 / 40}" viewBox="-2 -1 44 45">
     <defs><filter id="r"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="${name.length}"/><feDisplacementMap in="SourceGraphic" scale="0.8"/></filter></defs>
     <g ${rough}><path d="${shape}" fill="${fill}" stroke="${s.edge}" stroke-width="2.2" stroke-linejoin="round"/>${ring}</g>
-    <g transform="translate(20 21) scale(.92) translate(-12 -12)" fill="${s.glyph}" fill-rule="evenodd"><path d="${G[name]}"/></g></svg>`;
+    <g transform="translate(20 21) scale(.92) translate(-12 -12)" fill="${glyph}" fill-rule="evenodd"><path d="${G[name]}"/></g></svg>`;
 }
 fs.mkdirSync('public/sprites', { recursive: true });
 for (const [sty, s] of Object.entries(STY)) {
   for (const ratio of [1, 2]) {
-    const px = 30 * ratio, names = Object.keys(G), cols = 6;
+    const px = 33 * ratio, names = Object.keys(G), cols = 6;
     const imgs = names.map(n => { const r = new Resvg(svgFor(n, s, px, sty)).render(); return { n, w: r.width, h: r.height, data: r.pixels }; });
     const cw = Math.max(...imgs.map(i => i.w)), ch = Math.max(...imgs.map(i => i.h));
     const out = new PNG({ width: cw * cols, height: ch * Math.ceil(names.length / cols) });
@@ -110,6 +112,7 @@ for (const [sty, s] of Object.entries(STY)) {
     const suf = ratio === 2 ? '@2x' : '';
     fs.writeFileSync(`public/sprites/${sty}${suf}.png`, PNG.sync.write(out));
     fs.writeFileSync(`public/sprites/${sty}${suf}.json`, JSON.stringify(idx));
+    if (ratio === 2) fs.writeFileSync(`tools/legend_${sty}.json`, JSON.stringify(Object.fromEntries(names.map(n => [n, GROUP[n]]))));
   }
 }
 console.log('sprites ok', JSON.stringify(CONTRAST));

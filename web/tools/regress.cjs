@@ -1,5 +1,5 @@
 const puppeteer = require('/workspace/pixelnav/node_modules/puppeteer-core');
-const path = require('path'); const out = path.join(__dirname, '../../screenshots/' + (process.env.V || 'v04') + '/regress/'); require('fs').mkdirSync(out, { recursive: true });
+const path = require('path'); const out = path.join(__dirname, '../../screenshots/' + (process.env.V || 'v06') + '/regress/'); require('fs').mkdirSync(out, { recursive: true });
 const BASE = process.env.URL || 'http://127.0.0.1:18781/';
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const only = process.argv[2];

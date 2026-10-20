@@ -1,5 +1,5 @@
 const puppeteer = require('/workspace/pixelnav/node_modules/puppeteer-core');
-const path = require('path'); const out = path.join(__dirname, '../../screenshots/v05/'); require('fs').mkdirSync(out, { recursive: true });
+const path = require('path'); const out = path.join(__dirname, '../../screenshots/' + (process.env.V5 || 'v06/v05feat') + '/'); require('fs').mkdirSync(out, { recursive: true });
 const BASE = 'http://127.0.0.1:18781/'; const sleep = ms => new Promise(r => setTimeout(r, ms)); const only = process.argv.slice(2);
 (async () => {
   const b = await puppeteer.launch({ executablePath: '/usr/bin/google-chrome', args: ['--no-sandbox', '--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'], headless: 'new' });

@@ -1,0 +1,26 @@
+const puppeteer = require('/workspace/pixelnav/node_modules/puppeteer-core');
+const out = require('path').join(__dirname, '../../screenshots/v06/');
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+(async () => {
+  const b = await puppeteer.launch({ executablePath: '/usr/bin/google-chrome', args: ['--no-sandbox', '--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'], headless: 'new' });
+  const p = await b.newPage(); await p.setViewport({ width: 390, height: 844, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
+  await p.evaluateOnNewDocument(() => { Object.defineProperty(navigator, 'language', { get: () => 'zh-CN' }); localStorage.setItem('theme', '"west"'); localStorage.setItem('mode', '"light"');
+    window._lt = []; new PerformanceObserver(l => l.getEntries().forEach(e => window._lt.push([window._phase, Math.round(e.duration)]))).observe({ type: 'longtask', buffered: true }); window._phase = 'load'; });
+  await p.goto('http://127.0.0.1:18781/#15/53.5418/-113.4935', { waitUntil: 'networkidle0' }); await sleep(3000);
+  await p.tracing.start({ path: out + 'perf_trace.json', categories: ['devtools.timeline', 'disabled-by-default-devtools.timeline.frame'] });
+  const phase = n => p.evaluate(n => window._phase = n, n);
+  const fps = async (n, fn) => { await phase(n); const f0 = await p.evaluate(() => { window._f = 0; const tick = () => { window._f++; window._raf = requestAnimationFrame(tick); }; tick(); return performance.now(); }); await fn(); const r = await p.evaluate(t0 => { cancelAnimationFrame(window._raf); return [window._f, performance.now() - t0]; }, f0); return { phase: n, fps: +(r[0] / (r[1] / 1000)).toFixed(1) }; };
+  const res = [];
+  res.push(await fps('pan', async () => { for (let i = 0; i < 20; i++) { await p.evaluate(i => window._map.panBy([i % 2 ? 40 : -40, 25], { duration: 120 }), i); await sleep(130); } }));
+  res.push(await fps('zoom', async () => { for (const z of [16, 14, 15.5, 13]) { await p.evaluate(z => window._map.easeTo({ zoom: z, duration: 250 }), z); await sleep(300); } }));
+  res.push(await fps('rotate', async () => { await p.evaluate(() => window._map.easeTo({ bearing: 90, duration: 600 })); await sleep(700); await p.evaluate(() => window._map.easeTo({ bearing: 0, duration: 400 })); await sleep(500); }));
+  res.push(await fps('drawer', async () => { await p.evaluate(() => window._app.openDrawer()); await sleep(300); await p.evaluate(() => window._app.closeDrawer()); await sleep(300); }));
+  res.push(await fps('panel', async () => { await p.evaluate(() => window._app.showPlace({ name: 'Test', lat: 53.5418, lng: -113.4935 })); await sleep(400); await p.touchscreen.tap(200, 250); await sleep(300); }));
+  res.push(await fps('typing', async () => { await p.click('#q'); await p.keyboard.type('tim hortons', { delay: 90 }); await sleep(1500); }));
+  await p.tracing.stop();
+  const lt = await p.evaluate(() => window._lt);
+  console.log(JSON.stringify(res)); const by = {}; lt.forEach(([ph, d]) => (by[ph] ||= []).push(d)); console.log('long tasks (>50ms) by phase', JSON.stringify(by));
+  console.log('suggest after typing', await p.$$eval('#suggest .sug', e => e.slice(0, 6).map(x => x.innerText.replace(/\n/g, ' | '))));
+  await p.screenshot({ path: out + 'mobile_search_tim_hortons.png' });
+  await b.close();
+})();
