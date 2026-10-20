@@ -2,8 +2,11 @@
 // Polyfills the Web APIs the app already uses (geolocation, wakeLock, speech) with native plugins,
 // so the web code stays identical on web / Android / (later) iOS.
 import { Capacitor, registerPlugin } from '@capacitor/core';
+// v0.9.2h: if storage is blocked (tracking prevention / strict privacy), fall back to memory so boot never throws
+try { const k = '__rg_t'; localStorage.setItem(k, '1'); localStorage.removeItem(k); } catch {
+  const m = new Map(); try { Object.defineProperty(window, 'localStorage', { configurable: true, value: { getItem: k => m.has(k) ? m.get(k) : null, setItem: (k, v) => m.set(k, String(v)), removeItem: k => m.delete(k), clear: () => m.clear(), key: i => [...m.keys()][i] ?? null, get length() { return m.size; } } }); } catch {} }
 export const NATIVE = Capacitor.isNativePlatform();
-const ZH = (localStorage.getItem('lang') ? JSON.parse(localStorage.getItem('lang') || '""') || navigator.language : navigator.language || '').toLowerCase().startsWith('zh');
+let ZH = false; try { ZH = String(localStorage.getItem('lang')?.replace(/"/g, '') || navigator.language || '').toLowerCase().startsWith('zh'); } catch { ZH = (navigator.language || '').startsWith('zh'); }
 const L = (z, e) => ZH ? z : e;
 
 if (NATIVE) {

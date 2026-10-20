@@ -48,11 +48,30 @@ function applyBodyClass() { const tc = document.getElementById('themeColor'); if
 
 // ---------- map ----------
 const hash = location.hash.slice(1).split('/').map(Number);
-const map = new maplibregl.Map({
-  container: 'map', style: await loadStyle(),
+// v0.9.2h robust boot: sanitize old settings, style the chrome first, never die on a bad skin, explain missing WebGL2
+if (!['neon', 'west'].includes(S.theme)) { S.theme = 'neon'; store.set('theme', 'neon'); }
+if (!['auto', 'light', 'dark'].includes(S.mode)) { S.mode = 'auto'; store.set('mode', 'auto'); }
+for (const k of ['textScale', 'iconScale']) { const v = store.get(k, 1); if (!(v >= 0.8 && v <= 2)) store.set(k, 1); }
+try { applyBodyClass(); } catch (e) { console.warn('bodyclass', e); }
+let bootStyle;
+try { bootStyle = await loadStyle(); } catch (e) { console.warn('style/skin failed, falling back to built-in', e); S.skin = null; store.set('skin', null); window.__skinTok = null; try { bootStyle = await loadStyle(); } catch (e2) { S.theme = 'neon'; store.set('theme', 'neon'); bootStyle = await loadStyle(); } }
+function bootFail(e) {
+  const gl = /WebGL/i.test(e?.message || '');
+  const el = document.createElement('div'); el.className = 'card'; el.id = 'bootFail'; el.setAttribute('role', 'alert');
+  el.style.cssText = 'position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:50;max-width:min(520px,90vw);padding:18px 20px;line-height:1.5';
+  el.innerHTML = gl ? `<b>${L('地图无法显示：浏览器未启用 WebGL2', 'The map can’t be shown: WebGL2 is not available in this browser')}</b>
+    <div style="margin-top:8px">${L('请在浏览器设置中开启“使用图形加速/硬件加速”，然后完全重启浏览器。Edge：edge://settings/system；Chrome：chrome://settings/system；Firefox：about:preferences 中的“使用推荐的性能设置”。也可打开 edge://gpu 或 chrome://gpu 检查 WebGL2 状态，或更新显卡驱动。',
+      'Turn on “Use graphics/hardware acceleration when available” and fully restart the browser. Edge: edge://settings/system · Chrome: chrome://settings/system · Firefox: about:preferences → Performance. You can check edge://gpu or chrome://gpu for “WebGL2”, or update your graphics driver.')}</div>`
+    : `<b>${L('地图加载失败', 'The map failed to load')}</b><div style="margin-top:8px">${esc(e?.message || e)}</div><button class="btn" style="margin-top:10px" onclick="localStorage.removeItem('skin');location.reload()">${L('重置皮肤并重新加载', 'Reset skin and reload')}</button>`;
+  document.body.appendChild(el);
+}
+let map;
+try { map = new maplibregl.Map({
+  container: 'map', style: bootStyle,
   center: hash.length >= 3 && !hash.some(isNaN) ? [hash[2], hash[1]] : [-113.4938, 53.5461], zoom: hash.length >= 3 && !isNaN(hash[0]) ? hash[0] : 12,
   attributionControl: { compact: true }, hash: false, maxPitch: 70, fadeDuration: 150, localIdeographFontFamily: '"PingFang SC","Noto Sans CJK SC","Microsoft YaHei",sans-serif',
-});
+
+}); } catch (e) { bootFail(e); throw e; }
 window._map = map; if (NATIVE) map.once('load', () => setTimeout(() => import('./updates.js').then(m => m.initUpdates({ toast, L, store })).catch(e => console.warn(e)), 4000)); SK.hookMissingImages(map); refreshSkins(); window._skins = { ...SK, refresh: refreshSkins, use: async id => { S.skin = id; store.set('skin', id); await setStyle(); } }; window._sug = () => sugItems.map(r => ({ dbg: [r.ts, r.sc, Math.round(r.dist), r.src].join('/'), name: r.name, address: r.address, lat: r.lat, lng: r.lng, sem: !!r.sem, src: r.src, cls: r.cls || r.category }));
 applyBodyClass();
 const updHash = () => { const c = map.getCenter(); history.replaceState(null, '', `${location.pathname}${location.search}#${map.getZoom().toFixed(2)}/${c.lat.toFixed(5)}/${c.lng.toFixed(5)}`); };
