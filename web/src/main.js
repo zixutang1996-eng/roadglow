@@ -5,7 +5,7 @@ import './style.css';
 import { ic, iconDefs, catIc } from './uiicons.js';
 import * as AC from './ac.js';
 import * as ios from './ios.js';
-const AV = '?v=0.9'; // asset version: busts caches for styles + important-POI data
+const AV = '?v=0.9.1'; // asset version: busts caches for styles + important-POI data
 document.body.insertAdjacentHTML('afterbegin', iconDefs());
 for (const [id, k] of [['menuBtn', 'menu'], ['clearBtn', 'close'], ['dirBtn', 'dir'], ['layersBtn', 'layers'], ['locBtn', 'locate']]) { const el = document.getElementById(id); if (el) el.innerHTML = ic(k); }
 import { t, lang, setLang, fmtDist, fmtDur, instruction } from './i18n.js';
@@ -71,7 +71,7 @@ map.scrollZoom.setWheelZoomRate(1 / 320); map.scrollZoom.setZoomRate(1 / 75);
 // v0.7b continuous rank-based POI reveal: all named Edmonton-area POIs (prebuilt from OSM, tools/genpois.py) each carry a reveal zoom rz.
 // Layer filters are evaluated at integer zoom, but layer minzoom is fractional, so features are banded into 0.25-zoom layers:
 // band b has minzoom b and fades in from b to b+0.6. More important bands are added last (on top) so they win collisions.
-const BANDS = []; for (let b = 10.75; b <= 17.5; b += 0.25) BANDS.push(+b.toFixed(2));
+const BANDS = []; for (let b = 9.75; b <= 17.5; b += 0.25) BANDS.push(+b.toFixed(2));
 const IMP = BANDS.map(b => 'rp' + String(b).replace('.', '_'));
 const YEG = [[-113.85, 53.35], [-113.15, 53.35], [-113.15, 53.72], [-113.85, 53.72], [-113.85, 53.35]];
 function addImportant() {

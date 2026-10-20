@@ -100,18 +100,26 @@ F = sorted(best.values(), key=lambda f: -f['properties']['sc'])
 # score minus a penalty for categories already visible in the 3x3 neighbourhood, so variety (hospital, transit, mall, food, park, school,
 # hotel, fuel...) is present from the first zoom. A mild score floor keeps trivial places from appearing at city scale.
 Z0, Z1, STEP, K, A = 10.75, 17.0, 0.05, 0.62, 390 * 844
+ZE = 9.75  # v0.9.1: early reveal from the 5 km scale bar (mobile scale shows 5 km at z9.25-10.20)
+MAJOR = {'hospital', 'airport', 'mall', 'university', 'railway', 'stadium', 'museum', 'attraction', 'college'}
 GRP = {'restaurant': 'food', 'fast_food': 'food', 'cafe': 'cafe', 'ice_cream': 'cafe', 'bar': 'food', 'pub': 'food', 'supermarket': 'grocery', 'grocery': 'grocery',
        'hospital': 'health', 'doctors': 'health', 'dentist': 'health', 'pharmacy': 'health', 'railway': 'transit', 'bus': 'transit', 'school': 'edu', 'college': 'edu',
        'university': 'edu', 'kindergarten': 'edu', 'library': 'edu', 'park': 'park', 'garden': 'park', 'playground': 'park', 'lodging': 'lodge', 'fuel': 'fuel',
        'museum': 'culture', 'attraction': 'culture', 'theatre': 'culture', 'cinema': 'culture', 'art_gallery': 'culture', 'monument': 'culture', 'bank': 'service', 'parking': 'parking'}
 n = len(F)
-for i, f in enumerate(F): f['properties']['_fl'] = Z0 - 0.3 + 2.6 * (i / n) ** 1.6
+def major(f, i):
+    c, sc = f['properties']['class'], f['properties']['sc']
+    return (c in ('hospital', 'university', 'railway', 'college', 'attraction', 'museum', 'stadium') and sc >= 90) or (c == 'shop' and sc >= 100) or (c == 'park' and sc >= 85) or sc >= 125
+for i, f in enumerate(F): f['properties']['_fl'] = ZE + 0.6 * (i / n) if major(f, i) else max(10.5, Z0 - 0.3 + 2.6 * (i / n) ** 1.6)
 G = [GRP.get(f['properties']['class'], 'shop' if f['properties']['class'] in ('shop', 'clothing_store', 'shoe', 'furniture', 'florist', 'mobile_phone', 'jewelry', 'optician', 'alcohol_shop', 'hardware', 'books', 'gift', 'car') else 'other') for f in F]
 def mercx(lon, z): return (lon + 180) / 360 * 256 * 2 ** z
 def mercy(lat, z): r = math.radians(lat); return (1 - math.log(math.tan(r) + 1 / math.cos(r)) / math.pi) / 2 * 256 * 2 ** z
-rz = {}; z = Z0 - 0.3
+def target(z):
+    if z >= 11.5: return 25 * 6 ** ((z - Z0) / (Z1 - Z0))
+    n15 = 25 * 6 ** ((11.5 - Z0) / (Z1 - Z0)); return 12 * (n15 / 12) ** ((z - ZE) / (11.5 - ZE))
+rz = {}; z = ZE
 while z <= Z1 + 1e-9:
-    Nz = 25 * 6 ** ((z - Z0) / (Z1 - Z0)); cpx = (K - 0.2 * max(0, z - 13) / 4) * math.sqrt(A / Nz)
+    Nz = target(z); cpx = (K - 0.2 * max(0, z - 13) / 4) * math.sqrt(A / Nz)
     occ = defaultdict(list); cand = defaultdict(list)
     for i, f in enumerate(F):
         x, y = f['geometry']['coordinates']; cell = (int(mercx(x, z) // cpx), int(mercy(y, z) // cpx))
@@ -121,10 +129,11 @@ while z <= Z1 + 1e-9:
         if occ.get(cell): continue
         cx, cy = cell; seen = Counter(g for dx in (-1, 0, 1) for dy in (-1, 0, 1) for g in occ.get((cx + dx, cy + dy), ()))
         best = max(lst[:40], key=lambda i: F[i]['properties']['sc'] - 28 * seen[G[i]])
-        rz[best] = round(max(z, Z0), 2); occ[cell].append(G[best])
+        rz[best] = round(z, 2); occ[cell].append(G[best])
     z += STEP
 for i, f in enumerate(F):
     p = f['properties']; p['rz'] = rz.get(i, 16.75 if p['name'] else 17.0); del p['_fl']
+    if p['sc'] >= 150 and p['class'] not in ('generic', 'bus'): p['rz'] = min(p['rz'], round(9.75 + max(0, 190 - p['sc']) / 40, 2))  # landmarks always early
 out = [f for f in F if f['properties']['rz'] <= 17.5] + h.unnamed
 json.dump({'type': 'FeatureCollection', 'features': out}, open('public/pois_yeg.geojson', 'w'), ensure_ascii=False, separators=(',', ':'))
 hist = Counter(min(17.5, math.floor(f['properties']['rz'] * 4) / 4) for f in out)

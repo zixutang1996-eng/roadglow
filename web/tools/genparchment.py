@@ -39,7 +39,7 @@ def fill(n, light, seed):
             x, y = int(x0 + np.cos(ang) * t) % n, int(y0 + np.sin(ang) * t) % n; c[y, x] *= (.93 if light else 1.08)
     return np.clip(c, 0, 255).astype(np.uint8)
 
-def edge(S, light, seed, amp, nicks):
+def edge(S, light, seed, amp, nicks, rc=16, fe=8):
     """9-slice source: size 3S, slice S (2x px). Gentle low-frequency undulation (period = S, i.e. 40-64 css px per repeat),
     amplitude `amp` (2x px), a few small nicks, feathered thin scorch, soft alpha."""
     N = 3 * S; r = np.random.default_rng(seed)
@@ -53,9 +53,14 @@ def edge(S, light, seed, amp, nicks):
         return p + 2
     L, R, T, B = (prof(k) for k in range(4))
     yy, xx = np.mgrid[0:N, 0:N]
-    d = np.minimum.reduce([xx - L[yy], (N - 1 - xx) - R[yy], yy - T[xx], (N - 1 - yy) - B[xx]])
+    dl, dr, dt, db = xx - L[yy], (N - 1 - xx) - R[yy], yy - T[xx], (N - 1 - yy) - B[xx]
+    d = np.minimum.reduce([dl, dr, dt, db]).astype(float)
+    # v0.9.1 rounded (slightly irregular) corners: radius rc (2x px) varies +-25% per corner
+    for hx, hy in [(dl, dt), (dr, dt), (dl, db), (dr, db)]:
+        rr = rc * r.uniform(.75, 1.25); m = (hx < rr) & (hy < rr)
+        d = np.where(m, np.minimum(d, rr - np.hypot(rr - hx, rr - hy)), d)
     nz = pnoise(S, 2.0, seed + 9); nz = nz[yy % S, xx % S]
-    alpha = np.clip((d + 1.2) / 2.6, 0, 1)                      # soft anti-aliased edge
+    alpha = np.clip(d / fe, 0, 1) ** 1.3                          # v0.9.1 feathered alpha falloff (fe 2x px)
     mask = np.zeros((N, N, 4), np.uint8); mask[..., 3] = (alpha * 255).astype(np.uint8)
     w = S * .16 * (0.75 + 0.5 * nz)                             # narrow feathered scorch (~5-10 css px)
     q = np.clip(d / w, 0, 1)
@@ -68,9 +73,9 @@ def edge(S, light, seed, amp, nicks):
 
 for light, name in [(True, 'light'), (False, 'dark')]:
     Image.fromarray(fill(384, light, 11 if light else 21)).save(f'{OUT}/parch_{name}.webp', quality=80)
-for size, S, amp, nk in [('s', 24, 2.0, 0), ('m', 40, 4.0, 1), ('l', 64, 6.0, 1)]:
+for size, S, amp, nk, rc, fe in [('s', 24, 1.5, 0, 12, 6), ('m', 40, 3.0, 1, 16, 9), ('l', 64, 4.5, 1, 20, 12)]:
     for light, name in [(True, 'light'), (False, 'dark')]:
-        rim, mask = edge(S * 2, light, 100 + S, amp, nk)   # rendered at 2x for retina; CSS slices at S*2 and draws at S px
+        rim, mask = edge(S * 2, light, 100 + S, amp, nk, rc, fe)   # rendered at 2x for retina; CSS slices at S*2 and draws at S px
         Image.fromarray(rim, 'RGBA').save(f'{OUT}/rim_{size}_{name}.webp', quality=82)
     Image.fromarray(mask, 'RGBA').save(f'{OUT}/torn_{size}.png', optimize=True)
 # contrast report: text vs lightest/darkest 1% of fill

@@ -35,9 +35,9 @@ const WB = 'M3.5 4.2L20 3l16.6 1.4L36 20l.8 16.3L20 37.2 3.2 36.4 4 20z'; // rou
 const NB = 'M10 2.5h20L37.5 10v20L30 37.5H10L2.5 30V10z';               // cut-corner neon frame
 export function iconDefs() {
   const sym = Object.entries(P).map(([k, d]) => `
-<symbol id="uiw-${k}" viewBox="0 0 40 40"><path d="${WB}" fill="#14100c" stroke="var(--icr,#14100c)" stroke-width="1.6"/><path transform="translate(8 8)" d="${d}" fill="#fff" fill-rule="evenodd"/></symbol>
+<symbol id="uiw-${k}" viewBox="0 0 40 40"><path d="${WB}" fill="var(--ink,#3a322a)" stroke="var(--icr,#241c15)" stroke-width="1.6" filter="url(#uiink)"/><path transform="translate(8 8)" d="${d}" fill="#efe3c8" fill-rule="evenodd"/></symbol>
 <symbol id="uin-${k}" viewBox="0 0 40 40"><path d="${NB}" fill="var(--icb,none)" stroke="var(--ic1,#2fd3e6)" stroke-width="2.2" stroke-linejoin="miter"/><path d="M10 2.5h6M37.5 24v6" stroke="var(--ic2,#ffd25a)" stroke-width="2.6"/><path transform="translate(9 9) scale(.917)" d="${d}" fill="var(--ic2,#ffd25a)" fill-rule="evenodd"/></symbol>`).join('');
-  return `<svg width="0" height="0" style="position:absolute" aria-hidden="true">${sym}</svg>`;
+  return `<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><filter id="uiink"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="2" seed="3"/><feDisplacementMap in="SourceGraphic" scale="1.2"/></filter></defs>${sym}</svg>`;
 }
 export const ic = (k, cls = '') => P[k] ? `<svg class="uic ${cls}" aria-hidden="true"><use class="w" href="#uiw-${k}"/><use class="n" href="#uin-${k}"/></svg>` : '';
 import { PG } from './poiglyphs.js';

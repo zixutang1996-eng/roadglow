@@ -1,0 +1,378 @@
+{
+ "ok": 47,
+ "n": 52,
+ "out": [
+  {
+   "q": "5408 101 Ave NW",
+   "rank": 0,
+   "top": "5408 101 Ave NW",
+   "ms": 69.6
+  },
+  {
+   "q": "5408-101 avenue",
+   "rank": 0,
+   "top": "5408 101 Ave NW",
+   "ms": 0.6
+  },
+  {
+   "q": "5408 101 Ave",
+   "rank": 0,
+   "top": "5408 101 Ave NW",
+   "ms": 0.5
+  },
+  {
+   "q": "5408 101ave nw edmonton",
+   "rank": 0,
+   "top": "5408 101 Ave NW",
+   "ms": 0.7
+  },
+  {
+   "q": "5408 101th avenue nw",
+   "rank": 0,
+   "top": "5408 101 Ave NW",
+   "ms": 0.3
+  },
+  {
+   "reverse": "5408 101 AVENUE NW",
+   "got": "5408 101 Ave NW",
+   "m": 4.3
+  },
+  {
+   "q": "9730 96 St NW",
+   "rank": 0,
+   "top": "9730 96 St NW",
+   "ms": 52.7
+  },
+  {
+   "q": "9730-96 street",
+   "rank": 0,
+   "top": "9730 96 St NW",
+   "ms": 0.5
+  },
+  {
+   "q": "9730 96 St",
+   "rank": 0,
+   "top": "9730 96 St NW",
+   "ms": 0.4
+  },
+  {
+   "q": "9730 96st nw edmonton",
+   "rank": 0,
+   "top": "9730 96 St NW",
+   "ms": 0.9
+  },
+  {
+   "q": "9730 96th street nw",
+   "rank": 0,
+   "top": "9730 96 St NW",
+   "ms": 0.7
+  },
+  {
+   "reverse": "9730 96 STREET NW",
+   "got": "9730 96 St NW",
+   "m": 3.7
+  },
+  {
+   "q": "2353 27 Ave NW",
+   "rank": 0,
+   "top": "2353 27 Ave NW",
+   "ms": 30.5
+  },
+  {
+   "q": "2353-27 avenue",
+   "rank": 0,
+   "top": "2353 27 Ave NW",
+   "ms": 0.8
+  },
+  {
+   "q": "2353 27 Ave",
+   "rank": 0,
+   "top": "2353 27 Ave NW",
+   "ms": 0.7
+  },
+  {
+   "q": "2353 27ave nw edmonton",
+   "rank": 0,
+   "top": "2353 27 Ave NW",
+   "ms": 0.7
+  },
+  {
+   "q": "2353 27th avenue nw",
+   "rank": 0,
+   "top": "2353 27 Ave NW",
+   "ms": 0.7
+  },
+  {
+   "reverse": "2353 27 AVENUE NW",
+   "got": "2353 27 Ave NW",
+   "m": 3.8
+  },
+  {
+   "q": "15716 84 Ave NW",
+   "rank": 0,
+   "top": "15716 84 Ave NW",
+   "ms": 37.3
+  },
+  {
+   "q": "15716-84 avenue",
+   "rank": 0,
+   "top": "15716 84 Ave NW",
+   "ms": 0.8
+  },
+  {
+   "q": "15716 84 Ave",
+   "rank": 0,
+   "top": "15716 84 Ave NW",
+   "ms": 0.6
+  },
+  {
+   "q": "15716 84ave nw edmonton",
+   "rank": 0,
+   "top": "15716 84 Ave NW",
+   "ms": 0.5
+  },
+  {
+   "q": "15716 84th avenue nw",
+   "rank": 0,
+   "top": "15716 84 Ave NW",
+   "ms": 0.6
+  },
+  {
+   "reverse": "15716 84 AVENUE NW",
+   "got": "15716 84 Ave NW",
+   "m": 3.6
+  },
+  {
+   "q": "12005 127 Ave NW",
+   "rank": -1,
+   "top": "12005 127 Ave NW",
+   "ms": 22.3
+  },
+  {
+   "q": "12005-127 avenue",
+   "rank": -1,
+   "top": "12005 127 Ave NW",
+   "ms": 0.7
+  },
+  {
+   "q": "12005 127 Ave",
+   "rank": -1,
+   "top": "12005 127 Ave NW",
+   "ms": 0.5
+  },
+  {
+   "q": "12005 127ave nw edmonton",
+   "rank": -1,
+   "top": "12005 127 Ave NW",
+   "ms": 0.4
+  },
+  {
+   "q": "12005 127th avenue nw",
+   "rank": -1,
+   "top": "12005 127 Ave NW",
+   "ms": 0.4
+  },
+  {
+   "reverse": "12005 127 AVENUE NW",
+   "got": "12704 120 St NW",
+   "m": 108.8
+  },
+  {
+   "q": "12969 113 St NW",
+   "rank": 0,
+   "top": "12969 113 St NW",
+   "ms": 29.5
+  },
+  {
+   "q": "12969-113 street",
+   "rank": 0,
+   "top": "12969 113 St NW",
+   "ms": 0.3
+  },
+  {
+   "q": "12969 113 St",
+   "rank": 0,
+   "top": "12969 113 St NW",
+   "ms": 0.2
+  },
+  {
+   "q": "12969 113st nw edmonton",
+   "rank": 0,
+   "top": "12969 113 St NW",
+   "ms": 0.1
+  },
+  {
+   "q": "12969 113th street nw",
+   "rank": 0,
+   "top": "12969 113 St NW",
+   "ms": 0.2
+  },
+  {
+   "reverse": "12969 113 STREET NW",
+   "got": "12969 113 St NW",
+   "m": 4.2
+  },
+  {
+   "q": "10135 71 St NW",
+   "rank": 0,
+   "top": "10135 71 St NW",
+   "ms": 32.8
+  },
+  {
+   "q": "10135-71 street",
+   "rank": 0,
+   "top": "10135 71 St NW",
+   "ms": 0.1
+  },
+  {
+   "q": "10135 71 St",
+   "rank": 0,
+   "top": "10135 71 St NW",
+   "ms": 0.1
+  },
+  {
+   "q": "10135 71st nw edmonton",
+   "rank": 0,
+   "top": "10135 71 St NW",
+   "ms": 0.1
+  },
+  {
+   "q": "10135 71th street nw",
+   "rank": 0,
+   "top": "10135 71 St NW",
+   "ms": 0.1
+  },
+  {
+   "reverse": "10135 71 STREET NW",
+   "got": "10135 71 St NW",
+   "m": 3.7
+  },
+  {
+   "q": "1904 68 St NW",
+   "rank": 0,
+   "top": "1904 68 St NW",
+   "ms": 35.6
+  },
+  {
+   "q": "1904-68 street",
+   "rank": 0,
+   "top": "1904 68 St NW",
+   "ms": 0.1
+  },
+  {
+   "q": "1904 68 St",
+   "rank": 0,
+   "top": "1904 68 St NW",
+   "ms": 0.1
+  },
+  {
+   "q": "1904 68st nw edmonton",
+   "rank": 0,
+   "top": "1904 68 St NW",
+   "ms": 0.1
+  },
+  {
+   "q": "1904 68th street nw",
+   "rank": 0,
+   "top": "1904 68 St NW",
+   "ms": 0.1
+  },
+  {
+   "reverse": "1904 68 STREET NW",
+   "got": "1904 68 St NW",
+   "m": 3.6
+  },
+  {
+   "q": "671 lewis greens drive nw",
+   "rank": 0,
+   "top": "671 Lewis Greens Dr NW",
+   "ms": 20.3
+  },
+  {
+   "q": "671 lewis greens dr",
+   "rank": 0,
+   "top": "671 Lewis Greens Dr NW",
+   "ms": 0.1
+  },
+  {
+   "q": "671 lewis",
+   "rank": 0,
+   "top": "671 Lewis Greens Dr NW",
+   "ms": 0
+  },
+  {
+   "reverse": "671 LEWIS GREENS DRIVE NW",
+   "got": "671 Lewis Greens Dr NW",
+   "m": 4.3
+  },
+  {
+   "q": "5765 keeping crescent sw",
+   "rank": 0,
+   "top": "5765 Keeping Cres SW",
+   "ms": 17.3
+  },
+  {
+   "q": "5765 keeping cr",
+   "rank": 0,
+   "top": "5765 Keeping Cres SW",
+   "ms": 0.1
+  },
+  {
+   "q": "5765 keeping",
+   "rank": 0,
+   "top": "5765 Keeping Cres SW",
+   "ms": 0.1
+  },
+  {
+   "reverse": "5765 KEEPING CRESCENT SW",
+   "got": "5765 Keeping Cres SW",
+   "m": 3.6
+  },
+  {
+   "q": "923 jordan crescent nw",
+   "rank": 0,
+   "top": "923 Jordan Cres NW",
+   "ms": 16.4
+  },
+  {
+   "q": "923 jordan cr",
+   "rank": 0,
+   "top": "923 Jordan Cres NW",
+   "ms": 0.1
+  },
+  {
+   "q": "923 jordan",
+   "rank": 0,
+   "top": "923 Jordan Cres NW",
+   "ms": 0.1
+  },
+  {
+   "reverse": "923 JORDAN CRESCENT NW",
+   "got": "923 Jordan Cres NW",
+   "m": 3.7
+  },
+  {
+   "q": "131 laurier drive nw",
+   "rank": 0,
+   "top": "131 Laurier Dr NW",
+   "ms": 16.2
+  },
+  {
+   "q": "131 laurier dr",
+   "rank": 0,
+   "top": "131 Laurier Dr NW",
+   "ms": 0.1
+  },
+  {
+   "q": "131 laurier",
+   "rank": 0,
+   "top": "131 Laurier Dr NW",
+   "ms": 0.2
+  },
+  {
+   "reverse": "131 LAURIER DRIVE NW",
+   "got": "131 Laurier Dr NW",
+   "m": 3.7
+  }
+ ]
+}

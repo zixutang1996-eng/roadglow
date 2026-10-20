@@ -23,3 +23,15 @@ html body.west #panelHead{background:var(--vig),var(--pf) 0 0/192px repeat;backg
 html body.west a{color:var(--accent)}
 html body.west #panel{padding-top:6px}
 html body.west #endBtn{background:#7a2e22 !important;color:#fbf1dc !important;border-image:none !important;-webkit-mask-box-image:url(torn_s.png) 48 fill/11px round;box-shadow:inset 0 0 0 2px #4a1a12;font-family:var(--head)}
+/* ===== v0.9.1 ===== harmonious ink tones (body >= 7:1, secondary >= 4.5:1 measured over the texture) */
+html body.west:not(.dark){--fg:#3b2a1a;--muted:#6a4f33;--ink:#3a322a;--icr:#241c15}
+html body.west.dark{--fg:#e6d6b4;--muted:#c4ae86;--ink:#4a4036;--icr:rgba(138,115,80,.7)}
+/* soft feathered edges come from torn_*.png (rounded irregular corners + blurred alpha); faint soft shadow via drop-shadow on an unmasked wrapper is impossible
+   with mask-border, so the shadow is painted by an outer halo on the element's own box (outline-free) */
+html body.west :is(.xbig,.xbtn,#navX,.gx,.popx,#panelX){background:var(--ink) !important;color:#efe3c8 !important;clip-path:none !important;
+  border-radius:9px 6px 10px 7px / 7px 10px 6px 9px !important;box-shadow:0 0 0 1px rgba(36,28,21,.55),0 1px 4px rgba(40,25,10,.25) !important}
+html body.west.dark :is(.xbig,.xbtn,#navX,.gx,.popx,#panelX){background:var(--ink) !important;color:#efe3c8 !important;box-shadow:0 0 0 1px rgba(138,115,80,.6) !important}
+html body.west .act .b{clip-path:none;border-radius:8px 6px 9px 7px / 6px 9px 7px 8px !important}
+html body.west .garr{clip-path:none;border-radius:8px 6px 9px 7px !important;background:var(--ink)}
+html body.west .chip.on{background:var(--ink);color:#efe3c8}html body.west.dark .chip.on{background:#e6d6b4;color:#3b2a1a}
+html body.west #compassBtn{border-radius:50% !important;-webkit-mask-box-image:none !important;mask-border:none !important;border-image:none !important;background:var(--ink) !important;color:#efe3c8 !important;box-shadow:0 1px 4px rgba(40,25,10,.3)}

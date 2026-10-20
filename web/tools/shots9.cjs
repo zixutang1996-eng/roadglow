@@ -1,6 +1,6 @@
 // v0.9 feature screenshots: drawer sections, theme close buttons, address search, puck card, search-this-area pill; 4 variants.
 const puppeteer = require('/workspace/pixelnav/node_modules/puppeteer-core'); const sl = ms => new Promise(r => setTimeout(r, ms));
-const BASE = process.env.URL || 'http://127.0.0.1:18781/'; const out = '/workspace/gamenav/screenshots/v09/feat/'; require('fs').mkdirSync(out, { recursive: true });
+const BASE = process.env.URL || 'http://127.0.0.1:18781/'; const out = '/workspace/gamenav/screenshots/' + (process.env.OUTV || 'v09') + '/feat/'; require('fs').mkdirSync(out, { recursive: true });
 const log = []; const ok = (k, v) => { log.push([k, v]); console.log(k, v); };
 (async () => { const b = await puppeteer.launch({ executablePath: '/usr/bin/google-chrome', args: ['--no-sandbox', '--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'], headless: 'new' });
   for (const [th, md] of [['west', 'light'], ['west', 'dark'], ['neon', 'light'], ['neon', 'dark']]) {
@@ -16,7 +16,7 @@ const log = []; const ok = (k, v) => { log.push([k, v]); console.log(k, v); };
     const st = await p.evaluate(() => localStorage.getItem('drawerOpen')); ok(v + ' drawerOpen stored', st);
     await p.reload({ waitUntil: 'networkidle0' }); await sl(1500); await p.click('#menuBtn'); await sl(400);
     ok(v + ' settings open after reload', await p.evaluate(() => document.querySelector('[data-sec="settings"]').classList.contains('open')));
-    await p.click('[data-sech="settings"]'); await sl(300); await p.click('#scrim').catch(() => {}); await sl(300);
+    await p.click('[data-sech="settings"]'); await sl(300); await p.click('[data-close]').catch(() => {}); await sl(400);
     // address search
     await p.click('#q'); await p.type('#q', '10220-104 avenue', { delay: 40 }); await sl(2500);
     const sug = await p.evaluate(() => [...document.querySelectorAll('#suggest .sg, #suggest > div')].slice(0, 4).map(e => e.textContent.trim().slice(0, 60)));

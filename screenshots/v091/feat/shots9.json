@@ -1,0 +1,98 @@
+[
+ [
+  "west_light drawerOpen stored",
+  "{\"mine\":1,\"settings\":1}"
+ ],
+ [
+  "west_light settings open after reload",
+  true
+ ],
+ [
+  "west_light addr suggest",
+  "[\"✕\",\"10220 104 Ave NWEdmonton, AB\",\"Search more with Nominatim\"]"
+ ],
+ [
+  "west_light puck addr",
+  "10220 104 Ave NW, Edmonton, AB T5J 4Y8 | Nearest address point (City of Edmonton, ~5 m)"
+ ],
+ [
+  "west_light pill shown after pan",
+  true
+ ],
+ [
+  "west_light pill rerun",
+  "{\"before\":4,\"after\":[0,0],\"pillHiddenAfter\":true}"
+ ],
+ [
+  "west_dark drawerOpen stored",
+  "{\"mine\":1,\"settings\":1}"
+ ],
+ [
+  "west_dark settings open after reload",
+  true
+ ],
+ [
+  "west_dark addr suggest",
+  "[\"✕\",\"10220 104 Ave NWEdmonton, AB\",\"Search more with Nominatim\"]"
+ ],
+ [
+  "west_dark puck addr",
+  "10220 104 Ave NW, Edmonton, AB T5J 4Y8 | Nearest address point (City of Edmonton, ~5 m)"
+ ],
+ [
+  "west_dark pill shown after pan",
+  true
+ ],
+ [
+  "west_dark pill rerun",
+  "{\"before\":4,\"after\":[0,0],\"pillHiddenAfter\":true}"
+ ],
+ [
+  "neon_light drawerOpen stored",
+  "{\"mine\":1,\"settings\":1}"
+ ],
+ [
+  "neon_light settings open after reload",
+  true
+ ],
+ [
+  "neon_light addr suggest",
+  "[\"✕\",\"10220 104 Ave NWEdmonton, AB\",\"Search more with Nominatim\"]"
+ ],
+ [
+  "neon_light puck addr",
+  "10220 104 Ave NW, Edmonton, AB T5J 4Y8 | Nearest address point (City of Edmonton, ~5 m)"
+ ],
+ [
+  "neon_light pill shown after pan",
+  true
+ ],
+ [
+  "neon_light pill rerun",
+  "{\"before\":4,\"after\":[0,0],\"pillHiddenAfter\":true}"
+ ],
+ [
+  "neon_dark drawerOpen stored",
+  "{\"mine\":1,\"settings\":1}"
+ ],
+ [
+  "neon_dark settings open after reload",
+  true
+ ],
+ [
+  "neon_dark addr suggest",
+  "[\"✕\",\"10220 104 Ave NWEdmonton, AB\",\"Search more with Nominatim\"]"
+ ],
+ [
+  "neon_dark puck addr",
+  "10220 104 Ave NW, Edmonton, AB T5J 4Y8 | Nearest address point (City of Edmonton, ~5 m)"
+ ],
+ [
+  "neon_dark pill shown after pan",
+  true
+ ],
+ [
+  "neon_dark pill rerun",
+  "{\"before\":4,\"after\":[0,0],\"pillHiddenAfter\":true}"
+ ]
+]

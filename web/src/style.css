@@ -263,3 +263,19 @@ body.neon :is(.gidx,.tl,.opt,.opt img,.vsel,.dir input,.acl,.seg,#toast,.prog,.s
 body.neon :is(.opt,.vsel,.dir input,#toast){clip-path:polygon(0 0,calc(100% - 7px) 0,100% 7px,100% 100%,7px 100%,0 calc(100% - 7px))}
 .dsec .dsh{border-radius:0}
 .gfold>summary.fsum{padding:8px 18px;font-weight:600;color:var(--muted)}.fsum .uic{width:20px;height:20px}
+/* v0.9.1 typographic hierarchy: name semibold ~1.13x the detail text, details muted (all scale with --ts) */
+.sug .t{font-size:calc(18.6px * var(--ts,1));font-weight:600;color:var(--fg)}.sug .s{font-size:calc(16.5px * var(--ts,1));color:var(--muted);font-weight:400}
+.acl .sug .t{font-size:calc(18.6px * var(--ts,1))}
+.list .it>div:first-child{font-size:calc(18.6px * var(--ts,1));font-weight:600;color:var(--fg)}.list .it .s{font-size:calc(16.5px * var(--ts,1));color:var(--muted)}
+.pc h2{font-size:calc(31px * var(--ts,1));font-weight:600;color:var(--fg)}.pc .cat{font-size:calc(18.5px * var(--ts,1));color:var(--muted)}
+.pc .row .s,#addrNote{color:var(--muted)}
+/* v0.9.1 neon text tones */
+body.neon:not(.dark){--fg:#1b2a33;--muted:#44586a}
+body.neon.dark{--fg:#e3ecef;--muted:#a9bcc8}
+/* v0.9.1 200% size: map controls grow with the icon scale so their glyphs no longer spill past the right edge */
+#controls .ctl{width:calc(48px * max(1, var(--is,1) * .85));height:calc(48px * max(1, var(--is,1) * .85))}
+#controls{right:calc(12px + env(safe-area-inset-right,0px));max-width:calc(100vw - 24px)}
+#controls .ctl .uic,#controls .ctl>span{max-width:100%;max-height:100%}
+#searchbar{min-width:0}#searchbar input{min-width:0}#searchbar .ic{flex:none;width:min(calc(46px * var(--is,1)),56px);height:min(calc(46px * var(--is,1)),56px)}#searchbar .ic .uic{width:min(calc(28px * var(--is,1)),40px) !important;height:min(calc(28px * var(--is,1)),40px) !important}
+#drawer .dsec.open{color:inherit;font-weight:inherit} /* v0.9.1: don't inherit the opening-hours .open colour */
+.act{word-break:keep-all;overflow-wrap:normal;font-size:calc(16.5px * var(--ts,1))}
