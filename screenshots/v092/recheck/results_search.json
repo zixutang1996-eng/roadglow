@@ -2,181 +2,375 @@
  "reveal": [],
  "search": [
   {
-   "region": "seattle",
-   "q": "Walmart",
-   "localTop": "Walmart Supercentre",
+   "region": "calgary",
+   "q": "airport",
+   "localTop": "Calgary International Airport",
    "top": [
     {
-     "dbg": "6.5//14432/",
-     "name": "Walmart Neighborhood Market",
-     "address": "15063 Main Street, Bellevue, Washington, 98007",
-     "lat": 47.6087019,
-     "lng": -122.1396314,
+     "dbg": "8/199/8110/idx",
+     "name": "Calgary International Airport",
+     "address": "",
+     "lat": 51.110043,
+     "lng": -114.011539,
      "sem": false,
-     "cls": "shop=supermarket",
-     "km": 14.4
+     "src": "idx",
+     "cls": "aerodrome",
+     "km": 8.1
     },
     {
-     "dbg": "6.5//17061/",
-     "name": "Walmart Pharmacy",
-     "address": "743 Rainier Avenue South, Renton, Washington, 98057",
-     "lat": 47.4724946,
-     "lng": -122.220611,
+     "dbg": "8/185/30662/idx",
+     "name": "Cheadle Airport",
+     "address": "",
+     "lat": 51.057413,
+     "lng": -113.624917,
      "sem": false,
-     "cls": "amenity=pharmacy",
-     "km": 17
+     "src": "idx",
+     "cls": "aerodrome",
+     "km": 30.6
     },
     {
-     "dbg": "6.5//17087/",
-     "name": "Walmart Supercenter",
-     "address": "743 Rainier Avenue South, Renton, Washington, 98057",
-     "lat": 47.4720483,
-     "lng": -122.2210962,
+     "dbg": "8/185/35606/idx",
+     "name": "Calgary Okotoks Air Park",
+     "address": "",
+     "lat": 50.73461,
+     "lng": -113.93645,
      "sem": false,
-     "cls": "shop=supermarket",
-     "km": 17.1
+     "src": "idx",
+     "cls": "aerodrome",
+     "km": 35.5
     },
     {
-     "dbg": "6.5//17437/",
-     "name": "Walmart Corp.",
-     "address": "801 Southwest 16th Street, Renton, Washington, 98057",
-     "lat": 47.4655052,
-     "lng": -122.2295386,
+     "dbg": "8/185/36507/idx",
+     "name": "Strathmore (D.J. Murray) Airport",
+     "address": "",
+     "lat": 51.133212,
+     "lng": -113.559758,
      "sem": false,
-     "cls": "office=company",
-     "km": 17.4
+     "src": "idx",
+     "cls": "aerodrome",
+     "km": 36.5
     },
     {
-     "dbg": "6.5//22631/",
-     "name": "Walmart",
-     "address": "6797 State Highway 303 Northeast, Bremerton, Washington, 98311",
-     "lat": 47.6250265,
-     "lng": -122.6327313,
+     "dbg": "8/175/22264/idx",
+     "name": "Springbank Airport",
+     "address": "",
+     "lat": 51.102105,
+     "lng": -114.368395,
      "sem": false,
-     "cls": "shop=department_store",
-     "km": 22.6
+     "src": "idx",
+     "cls": "aerodrome",
+     "km": 22.2
     }
    ],
    "timedOut": false,
-   "ms": 3754
+   "ms": 4649
   },
   {
-   "region": "seattle",
-   "q": "Costco",
-   "localTop": "Costco Business Centre",
+   "region": "calgary",
+   "q": "university",
+   "localTop": "University of Calgary Downtown Campus",
    "top": [
     {
-     "dbg": "6.5//4532/",
-     "name": "Costco",
-     "address": "4401 4th Avenue South, Georgetown, Seattle, Washington, 98134",
-     "lat": 47.5654639,
-     "lng": -122.3303106,
+     "dbg": "8/70/1345/tile",
+     "name": "University of Calgary Downtown Campus",
+     "address": "university",
+     "lat": 51.04640579338002,
+     "lng": -114.08214390277863,
      "sem": false,
-     "cls": "shop=wholesale",
-     "km": 4.5
+     "src": "tile",
+     "cls": "college",
+     "km": 1.3
     },
     {
-     "dbg": "6.5//13983/",
-     "name": "Costco",
-     "address": "8629 120th Avenue Northeast, Kirkland, Washington, 98033",
-     "lat": 47.680792,
-     "lng": -122.1818341,
+     "dbg": "8/70/2765/",
+     "name": "Alberta University of the Arts (AUArts)",
+     "address": "1407 14 Avenue NW, Calgary, Alberta",
+     "lat": 51.0620427,
+     "lng": -114.0914556,
      "sem": false,
-     "cls": "shop=wholesale",
-     "km": 14
+     "cls": "college",
+     "km": 2.8
     },
     {
-     "dbg": "6.5//18811/",
-     "name": "Costco",
-     "address": "1175 North 205th Street, Edmonds, Washington, 98133",
-     "lat": 47.7751535,
-     "lng": -122.3448489,
+     "dbg": "8/70/5897/",
+     "name": "University of Calgary",
+     "address": "2500 University Drive NW, Calgary, Alberta",
+     "lat": 51.0783651,
+     "lng": -114.1283072,
      "sem": false,
-     "cls": "shop=wholesale",
-     "km": 18.8
+     "cls": "college",
+     "km": 5.9
     },
     {
-     "dbg": "6.5//18950/",
-     "name": "Costco",
-     "address": "400 Costco Drive, Tukwila, Washington, 98188",
-     "lat": 47.4453494,
-     "lng": -122.2487203,
+     "dbg": "8/70/5990/",
+     "name": "Mount Royal University",
+     "address": "Sarcee Road SW, Calgary, Alberta",
+     "lat": 51.0116203,
+     "lng": -114.1307018,
      "sem": false,
-     "cls": "shop=wholesale",
-     "km": 18.9
+     "cls": "college",
+     "km": 6
     },
     {
-     "dbg": "6.5//19545/",
-     "name": "Costco",
-     "address": "7725 188th Avenue Northeast, Southeast Redmond, Redmond, Washington, 98052",
-     "lat": 47.6742424,
-     "lng": -122.091565,
+     "dbg": "8/70/6276/",
+     "name": "University of Calgary",
+     "address": "2500 University Drive NW, University of Calgary, Calgary, Alberta, T2N 1N4",
+     "lat": 51.075054,
+     "lng": -114.138805,
      "sem": false,
-     "cls": "shop=wholesale",
-     "km": 19.5
+     "cls": "amenity=university",
+     "km": 6.3
     }
    ],
    "timedOut": false,
-   "ms": 4587
+   "ms": 6591
   },
   {
-   "region": "seattle",
-   "q": "Tim Hortons",
-   "localTop": "Tim Hortons",
+   "region": "calgary",
+   "q": "hospital",
+   "localTop": "Sheldon M. Chumir Centre",
    "top": [
     {
-     "dbg": "10//117699/",
-     "name": "Tim Hortons",
-     "address": "1950 Foul Bay Road, Oak Bay, British Columbia, V8R 5A7",
-     "lat": 48.4309981,
-     "lng": -123.323964,
+     "dbg": "8/30/5513/",
+     "name": "Foothills Medical Centre",
+     "address": "1403 29 Street NW, Calgary, Alberta",
+     "lat": 51.0651621,
+     "lng": -114.1349388,
      "sem": false,
-     "cls": "amenity=cafe",
-     "km": 117.9
+     "cls": "hospital",
+     "km": 5.5
     },
     {
-     "dbg": "10//119034/",
-     "name": "Tim Hortons",
-     "address": "Fort Street, Downtown, Victoria, British Columbia, V8W 1G9",
-     "lat": 48.4245782,
-     "lng": -123.3637797,
+     "dbg": "8/30/6443/",
+     "name": "Rockyview General Hospital",
+     "address": "75 Avenue SW, Calgary, Alberta",
+     "lat": 50.9908499,
+     "lng": -114.0971138,
      "sem": false,
-     "cls": "amenity=cafe",
-     "km": 119.2
+     "cls": "hospital",
+     "km": 6.4
     },
     {
-     "dbg": "10//119411/",
-     "name": "Tim Hortons",
-     "address": "Lansdowne Road, Oaklands, Victoria, British Columbia, V8R 4M9",
-     "lat": 48.4461757,
-     "lng": -123.332596,
+     "dbg": "8/30/6808/",
+     "name": "Alberta Children's Hospital",
+     "address": "28 Oki Drive NW, Calgary, Alberta",
+     "lat": 51.0746658,
+     "lng": -114.1480515,
      "sem": false,
-     "cls": "amenity=cafe",
-     "km": 119.6
+     "cls": "hospital",
+     "km": 6.8
     },
     {
-     "dbg": "10//120206/",
-     "name": "Tim Hortons",
-     "address": "2680 Blanshard Street, Burnside, Victoria, British Columbia, V8T 5E1",
-     "lat": 48.4381978,
-     "lng": -123.364138,
+     "dbg": "8/0/785/tile",
+     "name": "Sheldon M. Chumir Centre",
+     "address": "hospital",
+     "lat": 51.04121513276269,
+     "lng": -114.0728634595871,
      "sem": false,
-     "cls": "amenity=cafe",
-     "km": 120.4
+     "src": "tile",
+     "cls": "hospital",
+     "km": 0.8
     },
     {
-     "dbg": "10//120706/",
-     "name": "Tim Hortons",
-     "address": "3749 Shelbourne Street, Shelbourne, Saanich, British Columbia, V8P 5N4",
-     "lat": 48.4614959,
-     "lng": -123.331831,
+     "dbg": "8/0/6695/",
+     "name": "Peter Lougheed Centre",
+     "address": "3500 26 Avenue NE, Calgary, Alberta",
+     "lat": 51.0792148,
+     "lng": -113.9845974,
      "sem": false,
-     "cls": "amenity=cafe",
-     "km": 120.9
+     "cls": "hospital",
+     "km": 6.7
     }
    ],
    "timedOut": false,
-   "ms": 5633
+   "ms": 4963
+  },
+  {
+   "region": "toronto",
+   "q": "airport",
+   "localTop": "Billy Bishop Toronto City Airport",
+   "top": [
+    {
+     "dbg": "8/150/19951/",
+     "name": "Toronto Pearson International Airport",
+     "address": "Shawson Drive, Mississauga, Ontario",
+     "lat": 43.6782236,
+     "lng": -79.6288047,
+     "sem": false,
+     "cls": "aerodrome",
+     "km": 19.9
+    },
+    {
+     "dbg": "8/60/2956/tile",
+     "name": "Billy Bishop Toronto City Airport",
+     "address": "aerodrome",
+     "lat": 43.628270963826225,
+     "lng": -79.39596176147461,
+     "sem": false,
+     "src": "tile",
+     "cls": "aerodrome",
+     "km": 3
+    },
+    {
+     "dbg": "8/20/39042/",
+     "name": "Ajax Airport",
+     "address": "Fielding Court, Ajax, Ontario",
+     "lat": 43.9072219,
+     "lng": -79.0474825,
+     "sem": false,
+     "cls": "aerodrome",
+     "km": 39
+    },
+    {
+     "dbg": "8/20/41238/",
+     "name": "Brampton-Caledon Airport",
+     "address": "13691 McLaughlin Road, Caledon, Ontario",
+     "lat": 43.7586673,
+     "lng": -79.8750421,
+     "sem": false,
+     "cls": "aerodrome",
+     "km": 41.2
+    },
+    {
+     "dbg": "8/20/44314/",
+     "name": "Burlington Executive Airport",
+     "address": "Bell School Line, Milton, Ontario",
+     "lat": 43.4420867,
+     "lng": -79.8495622,
+     "sem": false,
+     "cls": "aerodrome",
+     "km": 44.2
+    }
+   ],
+   "timedOut": false,
+   "ms": 5173
+  },
+  {
+   "region": "toronto",
+   "q": "university",
+   "localTop": "University of Toronto Faculty of Dentistry",
+   "top": [
+    {
+     "dbg": "8/70/464/tile",
+     "name": "University of Toronto Faculty of Dentistry",
+     "address": "university",
+     "lat": 43.65629921471293,
+     "lng": -79.3870621919632,
+     "sem": false,
+     "src": "tile",
+     "cls": "college",
+     "km": 0.5
+    },
+    {
+     "dbg": "8/70/669/tile",
+     "name": "OCAD University",
+     "address": "university",
+     "lat": 43.65328350591196,
+     "lng": -79.39151465892792,
+     "sem": false,
+     "src": "tile",
+     "cls": "college",
+     "km": 0.7
+    },
+    {
+     "dbg": "8/70/705/tile",
+     "name": "Toronto Metropolitan University",
+     "address": "university",
+     "lat": 43.658534700323884,
+     "lng": -79.37846839427948,
+     "sem": false,
+     "src": "tile",
+     "cls": "college",
+     "km": 0.7
+    },
+    {
+     "dbg": "8/70/954/tile",
+     "name": "Smith School of Business Queen’s University",
+     "address": "university",
+     "lat": 43.64483716283917,
+     "lng": -79.38583374023438,
+     "sem": false,
+     "src": "tile",
+     "cls": "college",
+     "km": 1
+    },
+    {
+     "dbg": "8/70/972/tile",
+     "name": "Northeastern University",
+     "address": "university",
+     "lat": 43.649103180336255,
+     "lng": -79.39387500286102,
+     "sem": false,
+     "src": "tile",
+     "cls": "college",
+     "km": 1
+    }
+   ],
+   "timedOut": false,
+   "ms": 5568
+  },
+  {
+   "region": "toronto",
+   "q": "hospital",
+   "localTop": "St. Michael's Hospital",
+   "top": [
+    {
+     "dbg": "8/30/436/tile",
+     "name": "St. Michael's Hospital",
+     "address": "hospital",
+     "lat": 43.65363670486255,
+     "lng": -79.37780857086182,
+     "sem": false,
+     "src": "tile",
+     "cls": "hospital",
+     "km": 0.4
+    },
+    {
+     "dbg": "8/30/520/",
+     "name": "Hospital for Sick Children Patient Support Centre",
+     "address": "175 Elizabeth Street, Toronto, Ontario, M5G 2C0",
+     "lat": 43.6575024,
+     "lng": -79.3857355,
+     "sem": false,
+     "cls": "building=hospital",
+     "km": 0.5
+    },
+    {
+     "dbg": "8/30/572/tile",
+     "name": "Hospital for Sick Children",
+     "address": "hospital",
+     "lat": 43.657265606726014,
+     "lng": -79.38756108283997,
+     "sem": false,
+     "src": "tile",
+     "cls": "hospital",
+     "km": 0.6
+    },
+    {
+     "dbg": "8/30/721/tile",
+     "name": "Toronto General Hospital",
+     "address": "hospital",
+     "lat": 43.658596795958374,
+     "lng": -79.3881618976593,
+     "sem": false,
+     "src": "tile",
+     "cls": "hospital",
+     "km": 0.7
+    },
+    {
+     "dbg": "8/30/743/tile",
+     "name": "Mount Sinai Hospital, Toronto",
+     "address": "hospital",
+     "lat": 43.65745189737419,
+     "lng": -79.39031839370728,
+     "sem": false,
+     "src": "tile",
+     "cls": "hospital",
+     "km": 0.7
+    }
+   ],
+   "timedOut": false,
+   "ms": 6929
   }
  ]
 }

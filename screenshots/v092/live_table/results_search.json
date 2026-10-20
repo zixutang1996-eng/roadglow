@@ -1,0 +1,6249 @@
+{
+ "reveal": [],
+ "search": [
+  {
+   "region": "edmonton",
+   "q": "airport",
+   "localTop": "Edmonton International Airport",
+   "top": [
+    {
+     "dbg": "8/199/26357/idx",
+     "name": "Edmonton International Airport",
+     "address": "",
+     "lat": 53.308687,
+     "lng": -113.56554,
+     "sem": false,
+     "src": "idx",
+     "cls": "aerodrome",
+     "km": 26.3
+    },
+    {
+     "dbg": "8/175/23670/idx",
+     "name": "Edmonton / Twin Island Airpark",
+     "address": "",
+     "lat": 53.471546,
+     "lng": -113.155622,
+     "sem": false,
+     "src": "idx",
+     "cls": "aerodrome",
+     "km": 23.6
+    },
+    {
+     "dbg": "8/175/27616/idx",
+     "name": "Villeneuve Airport",
+     "address": "",
+     "lat": 53.66808,
+     "lng": -113.853931,
+     "sem": false,
+     "src": "idx",
+     "cls": "aerodrome",
+     "km": 27.6
+    },
+    {
+     "dbg": "8/175/27879/idx",
+     "name": "Edmonton/Cooking Lake Airport",
+     "address": "",
+     "lat": 53.42839,
+     "lng": -113.117707,
+     "sem": false,
+     "src": "idx",
+     "cls": "aerodrome",
+     "km": 27.8
+    },
+    {
+     "dbg": "8/175/33869/idx",
+     "name": "Edmonton/Josephburg Aerodrome",
+     "address": "",
+     "lat": 53.72766,
+     "lng": -113.086511,
+     "sem": false,
+     "src": "idx",
+     "cls": "aerodrome",
+     "km": 33.9
+    }
+   ],
+   "timedOut": false,
+   "ms": 6796
+  },
+  {
+   "region": "edmonton",
+   "q": "gas station",
+   "localTop": "Petro Canada",
+   "top": [
+    {
+     "dbg": "8/57.8/1074/idx",
+     "name": "Petro Canada",
+     "address": "",
+     "lat": 53.538531,
+     "lng": -113.508788,
+     "sem": false,
+     "src": "idx",
+     "cls": "fuel",
+     "km": 1.1
+    },
+    {
+     "dbg": "8/57/1491/idx",
+     "name": "Esso",
+     "address": "",
+     "lat": 53.555203,
+     "lng": -113.49418,
+     "sem": false,
+     "src": "idx",
+     "cls": "fuel",
+     "km": 1.5
+    },
+    {
+     "dbg": "8/54.4/1393/idx",
+     "name": "Tempo",
+     "address": "",
+     "lat": 53.548552,
+     "lng": -113.475735,
+     "sem": false,
+     "src": "idx",
+     "cls": "fuel",
+     "km": 1.4
+    },
+    {
+     "dbg": "8/59.4/2194/idx",
+     "name": "Esso",
+     "address": "",
+     "lat": 53.559216,
+     "lng": -113.509111,
+     "sem": false,
+     "src": "idx",
+     "cls": "fuel",
+     "km": 2.2
+    },
+    {
+     "dbg": "8/76.2/8602/idx",
+     "name": "Flying J",
+     "address": "",
+     "lat": 53.57163,
+     "lng": -113.613658,
+     "sem": false,
+     "src": "idx",
+     "cls": "fuel",
+     "km": 8.6
+    }
+   ],
+   "timedOut": false,
+   "ms": 6466
+  },
+  {
+   "region": "edmonton",
+   "q": "hospital",
+   "localTop": "Royal Alexandra Hospital",
+   "top": [
+    {
+     "dbg": "8/186.2/1736/idx",
+     "name": "Royal Alexandra Hospital",
+     "address": "",
+     "lat": 53.557216,
+     "lng": -113.497662,
+     "sem": false,
+     "src": "idx",
+     "cls": "hospital",
+     "km": 1.7
+    },
+    {
+     "dbg": "8/182.7/2044/idx",
+     "name": "Glenrose Rehabilitation Hospital",
+     "address": "",
+     "lat": 53.559995,
+     "lng": -113.497945,
+     "sem": false,
+     "src": "idx",
+     "cls": "hospital",
+     "km": 2
+    },
+    {
+     "dbg": "8/174.7/3000/idx",
+     "name": "University of Alberta Hospital",
+     "address": "",
+     "lat": 53.521243,
+     "lng": -113.5229,
+     "sem": false,
+     "src": "idx",
+     "cls": "hospital",
+     "km": 3
+    },
+    {
+     "dbg": "8/185.4/9897/idx",
+     "name": "Grey Nuns Community Hospital",
+     "address": "",
+     "lat": 53.461303,
+     "lng": -113.429642,
+     "sem": false,
+     "src": "idx",
+     "cls": "hospital",
+     "km": 9.9
+    },
+    {
+     "dbg": "8/188.7/13229/idx",
+     "name": "Alberta Hospital Edmonton",
+     "address": "",
+     "lat": 53.636538,
+     "lng": -113.372266,
+     "sem": false,
+     "src": "idx",
+     "cls": "hospital",
+     "km": 13.2
+    }
+   ],
+   "timedOut": false,
+   "ms": 7266
+  },
+  {
+   "region": "edmonton",
+   "q": "Walmart",
+   "localTop": "Walmart Supercentre",
+   "top": [
+    {
+     "dbg": "6.5/106.6/11095/idx",
+     "name": "Walmart Supercentre",
+     "address": "",
+     "lat": 53.47898,
+     "lng": -113.363142,
+     "sem": false,
+     "src": "idx",
+     "cls": "supermarket",
+     "km": 11.1
+    },
+    {
+     "dbg": "6.5/106.4/11306/idx",
+     "name": "Walmart Supercentre",
+     "address": "",
+     "lat": 53.440356,
+     "lng": -113.48201,
+     "sem": false,
+     "src": "idx",
+     "cls": "supermarket",
+     "km": 11.3
+    },
+    {
+     "dbg": "6.5/104.8/8916/idx",
+     "name": "Walmart",
+     "address": "",
+     "lat": 53.600506,
+     "lng": -113.401518,
+     "sem": false,
+     "src": "idx",
+     "cls": "shop",
+     "km": 8.9
+    },
+    {
+     "dbg": "6.5/103.3/7385/idx",
+     "name": "Walmart Supercentre",
+     "address": "",
+     "lat": 53.475386,
+     "lng": -113.494084,
+     "sem": false,
+     "src": "idx",
+     "cls": "supermarket",
+     "km": 7.4
+    },
+    {
+     "dbg": "6.5/105/13496/idx",
+     "name": "Walmart Supercentre",
+     "address": "",
+     "lat": 53.438458,
+     "lng": -113.600478,
+     "sem": false,
+     "src": "idx",
+     "cls": "supermarket",
+     "km": 13.5
+    }
+   ],
+   "timedOut": false,
+   "ms": 6183
+  },
+  {
+   "region": "edmonton",
+   "q": "Costco",
+   "localTop": "Costco",
+   "top": [
+    {
+     "dbg": "6.5/103.5/7889/idx",
+     "name": "Costco",
+     "address": "",
+     "lat": 53.595956,
+     "lng": -113.416321,
+     "sem": false,
+     "src": "idx",
+     "cls": "supermarket",
+     "km": 7.9
+    },
+    {
+     "dbg": "6.5/103.6/9739/idx",
+     "name": "Costco",
+     "address": "",
+     "lat": 53.455403,
+     "lng": -113.469339,
+     "sem": false,
+     "src": "idx",
+     "cls": "supermarket",
+     "km": 9.7
+    },
+    {
+     "dbg": "6.5/103.6/10261/idx",
+     "name": "Costco Business Centre",
+     "address": "",
+     "lat": 53.545641,
+     "lng": -113.648667,
+     "sem": false,
+     "src": "idx",
+     "cls": "supermarket",
+     "km": 10.2
+    },
+    {
+     "dbg": "6.5/101.7/13179/idx",
+     "name": "Costco",
+     "address": "",
+     "lat": 53.509578,
+     "lng": -113.685363,
+     "sem": false,
+     "src": "idx",
+     "cls": "supermarket",
+     "km": 13.2
+    },
+    {
+     "dbg": "6.5/97/7064/idx",
+     "name": "Costco",
+     "address": "",
+     "lat": 53.579351,
+     "lng": -113.579775,
+     "sem": false,
+     "src": "idx",
+     "cls": "supermarket",
+     "km": 7.1
+    }
+   ],
+   "timedOut": false,
+   "ms": 7233
+  },
+  {
+   "region": "edmonton",
+   "q": "Tim Hortons",
+   "localTop": "Tim Hortons",
+   "top": [
+    {
+     "dbg": "10/50.4/132/idx",
+     "name": "Tim Hortons",
+     "address": "",
+     "lat": 53.541102,
+     "lng": -113.495121,
+     "sem": false,
+     "src": "idx",
+     "cls": "cafe",
+     "km": 0.1
+    },
+    {
+     "dbg": "10/54.4/720/idx",
+     "name": "Tim Hortons",
+     "address": "",
+     "lat": 53.540684,
+     "lng": -113.50423,
+     "sem": false,
+     "src": "idx",
+     "cls": "cafe",
+     "km": 0.7
+    },
+    {
+     "dbg": "10/49.5/446/idx",
+     "name": "Tim Hortons",
+     "address": "",
+     "lat": 53.545665,
+     "lng": -113.495304,
+     "sem": false,
+     "src": "idx",
+     "cls": "cafe",
+     "km": 0.4
+    },
+    {
+     "dbg": "10/49/2482/idx",
+     "name": "Tim Hortons",
+     "address": "",
+     "lat": 53.562787,
+     "lng": -113.506273,
+     "sem": false,
+     "src": "idx",
+     "cls": "cafe",
+     "km": 2.5
+    },
+    {
+     "dbg": "10/37.7/882/idx",
+     "name": "Tim Hortons;Subway;Pizza 73",
+     "address": "",
+     "lat": 53.544177,
+     "lng": -113.506228,
+     "sem": false,
+     "src": "idx",
+     "cls": "generic",
+     "km": 0.9
+    }
+   ],
+   "timedOut": false,
+   "ms": 7349
+  },
+  {
+   "region": "edmonton",
+   "q": "coffee",
+   "localTop": "Credo",
+   "top": [
+    {
+     "dbg": "8/49/69/idx",
+     "name": "Credo",
+     "address": "",
+     "lat": 53.542278,
+     "lng": -113.492845,
+     "sem": false,
+     "src": "idx",
+     "cls": "cafe",
+     "km": 0.1
+    },
+    {
+     "dbg": "8/51.2/88/idx",
+     "name": "Starbucks",
+     "address": "",
+     "lat": 53.542076,
+     "lng": -113.494754,
+     "sem": false,
+     "src": "idx",
+     "cls": "cafe",
+     "km": 0.1
+    },
+    {
+     "dbg": "8/50.4/132/idx",
+     "name": "Tim Hortons",
+     "address": "",
+     "lat": 53.541102,
+     "lng": -113.495121,
+     "sem": false,
+     "src": "idx",
+     "cls": "cafe",
+     "km": 0.1
+    },
+    {
+     "dbg": "8/52.2/188/idx",
+     "name": "Rosewood Foods",
+     "address": "",
+     "lat": 53.542412,
+     "lng": -113.490855,
+     "sem": false,
+     "src": "idx",
+     "cls": "cafe",
+     "km": 0.2
+    },
+    {
+     "dbg": "8/73.7/1059/idx",
+     "name": "Foote Residence",
+     "address": "",
+     "lat": 53.534293,
+     "lng": -113.50336,
+     "sem": false,
+     "src": "idx",
+     "cls": "cafe",
+     "km": 1.1
+    }
+   ],
+   "timedOut": false,
+   "ms": 7707
+  },
+  {
+   "region": "edmonton",
+   "q": "pharmacy",
+   "localTop": "Shoppers Drug Mart",
+   "top": [
+    {
+     "dbg": "8/69.4/413/idx",
+     "name": "Shoppers Drug Mart",
+     "address": "",
+     "lat": 53.540767,
+     "lng": -113.499496,
+     "sem": false,
+     "src": "idx",
+     "cls": "pharmacy",
+     "km": 0.4
+    },
+    {
+     "dbg": "8/62.4/258/idx",
+     "name": "Shoppers Drug Mart",
+     "address": "",
+     "lat": 53.544122,
+     "lng": -113.493437,
+     "sem": false,
+     "src": "idx",
+     "cls": "pharmacy",
+     "km": 0.3
+    },
+    {
+     "dbg": "8/72/897/idx",
+     "name": "Rexall",
+     "address": "",
+     "lat": 53.541077,
+     "lng": -113.507023,
+     "sem": false,
+     "src": "idx",
+     "cls": "pharmacy",
+     "km": 0.9
+    },
+    {
+     "dbg": "8/71.7/1703/idx",
+     "name": "The Medicine Shoppe",
+     "address": "",
+     "lat": 53.551611,
+     "lng": -113.473701,
+     "sem": false,
+     "src": "idx",
+     "cls": "pharmacy",
+     "km": 1.7
+    },
+    {
+     "dbg": "8/62.9/1052/idx",
+     "name": "Save-On-Foods Pharmacy",
+     "address": "",
+     "lat": 53.54246,
+     "lng": -113.509382,
+     "sem": false,
+     "src": "idx",
+     "cls": "pharmacy",
+     "km": 1.1
+    }
+   ],
+   "timedOut": false,
+   "ms": 7933
+  },
+  {
+   "region": "edmonton",
+   "q": "grocery",
+   "localTop": "Loblaws",
+   "top": [
+    {
+     "dbg": "8/80.4/434/idx",
+     "name": "Loblaws",
+     "address": "",
+     "lat": 53.544783,
+     "lng": -113.497747,
+     "sem": false,
+     "src": "idx",
+     "cls": "supermarket",
+     "km": 0.4
+    },
+    {
+     "dbg": "8/91.2/1042/idx",
+     "name": "Save-On-Foods",
+     "address": "",
+     "lat": 53.542635,
+     "lng": -113.509203,
+     "sem": false,
+     "src": "idx",
+     "cls": "supermarket",
+     "km": 1
+    },
+    {
+     "dbg": "8/102.8/3163/idx",
+     "name": "Real Canadian Superstore",
+     "address": "",
+     "lat": 53.564884,
+     "lng": -113.521488,
+     "sem": false,
+     "src": "idx",
+     "cls": "supermarket",
+     "km": 3.2
+    },
+    {
+     "dbg": "8/102.5/3977/idx",
+     "name": "Real Canadian Wholesale Club",
+     "address": "",
+     "lat": 53.506159,
+     "lng": -113.488505,
+     "sem": false,
+     "src": "idx",
+     "cls": "supermarket",
+     "km": 4
+    },
+    {
+     "dbg": "8/95.8/2883/idx",
+     "name": "Safeway",
+     "address": "",
+     "lat": 53.518729,
+     "lng": -113.513392,
+     "sem": false,
+     "src": "idx",
+     "cls": "supermarket",
+     "km": 2.9
+    }
+   ],
+   "timedOut": false,
+   "ms": 7868
+  },
+  {
+   "region": "edmonton",
+   "q": "train station",
+   "localTop": "Central",
+   "top": [
+    {
+     "dbg": "8/149.8/119/idx",
+     "name": "Central",
+     "address": "",
+     "lat": 53.540996,
+     "lng": -113.492301,
+     "sem": false,
+     "src": "idx",
+     "cls": "railway",
+     "km": 0.1
+    },
+    {
+     "dbg": "8/149.8/173/idx",
+     "name": "102 Street",
+     "address": "",
+     "lat": 53.543177,
+     "lng": -113.494717,
+     "sem": false,
+     "src": "idx",
+     "cls": "railway",
+     "km": 0.2
+    },
+    {
+     "dbg": "8/149.8/364/idx",
+     "name": "Bay/Enterprise Square",
+     "address": "",
+     "lat": 53.54089,
+     "lng": -113.498798,
+     "sem": false,
+     "src": "idx",
+     "cls": "railway",
+     "km": 0.4
+    },
+    {
+     "dbg": "8/150.2/381/idx",
+     "name": "Churchill",
+     "address": "",
+     "lat": 53.543955,
+     "lng": -113.48901,
+     "sem": false,
+     "src": "idx",
+     "cls": "railway",
+     "km": 0.4
+    },
+    {
+     "dbg": "8/150.2/724/idx",
+     "name": "Quarters",
+     "address": "",
+     "lat": 53.544474,
+     "lng": -113.483503,
+     "sem": false,
+     "src": "idx",
+     "cls": "railway",
+     "km": 0.7
+    }
+   ],
+   "timedOut": false,
+   "ms": 8124
+  },
+  {
+   "region": "edmonton",
+   "q": "bus station",
+   "localTop": "Rider Express Edmonton Downtown",
+   "top": [
+    {
+     "dbg": "8/101.7/584/idx",
+     "name": "Rider Express Edmonton Downtown",
+     "address": "",
+     "lat": 53.544123,
+     "lng": -113.50142,
+     "sem": false,
+     "src": "idx",
+     "cls": "bus",
+     "km": 0.6
+    },
+    {
+     "dbg": "8/89.7/491/idx",
+     "name": "Red Arrow Edmonton",
+     "address": "",
+     "lat": 53.539187,
+     "lng": -113.499481,
+     "sem": false,
+     "src": "idx",
+     "cls": "bus",
+     "km": 0.5
+    },
+    {
+     "dbg": "8/97.1/958/idx",
+     "name": "Government Centre Transit Centre",
+     "address": "",
+     "lat": 53.536181,
+     "lng": -113.504491,
+     "sem": false,
+     "src": "idx",
+     "cls": "bus",
+     "km": 1
+    },
+    {
+     "dbg": "8/101.6/1935/idx",
+     "name": "Kingsway/Royal Alex Transit Centre",
+     "address": "",
+     "lat": 53.558548,
+     "lng": -113.501461,
+     "sem": false,
+     "src": "idx",
+     "cls": "bus",
+     "km": 1.9
+    },
+    {
+     "dbg": "8/100.5/2422/idx",
+     "name": "Stadium Transit Centre",
+     "address": "",
+     "lat": 53.559388,
+     "lng": -113.471885,
+     "sem": false,
+     "src": "idx",
+     "cls": "bus",
+     "km": 2.4
+    }
+   ],
+   "timedOut": false,
+   "ms": 7883
+  },
+  {
+   "region": "edmonton",
+   "q": "ferry terminal",
+   "localTop": null,
+   "top": [
+    {
+     "dbg": "4/0/440718/",
+     "name": "Galena Bay Ferry Terminal",
+     "address": "Galena Bay Ferry Terminal, Area B (Shelter Bay/Mica Creek), Columbia-Shuswap Regional District, British Columbia, Canada",
+     "lat": 50.6266497,
+     "lng": -117.8668953,
+     "sem": false,
+     "cls": "highway=primary",
+     "km": 433.5
+    },
+    {
+     "dbg": "4/0/516034/",
+     "name": "Fauquier Ferry Terminal",
+     "address": "Fauquier Ferry Terminal, Fauquier, Area K (The Arrow Lakes), Regional District of Central Kootenay, British Columbia, V0G 1K0, Canada",
+     "lat": 49.8717964,
+     "lng": -118.0825022,
+     "sem": false,
+     "cls": "highway=primary",
+     "km": 507.5
+    },
+    {
+     "dbg": "4/0/870154/",
+     "name": "Ferry terminal",
+     "address": "Ferry terminal, Area G (Saltair / Gulf Islands), Cowichan Valley Regional District, British Columbia, V0R 2Y0, Canada",
+     "lat": 48.9806881,
+     "lng": -123.6784697,
+     "sem": false,
+     "cls": "highway=unclassified",
+     "km": 841.2
+    }
+   ],
+   "timedOut": false,
+   "ms": 8928
+  },
+  {
+   "region": "edmonton",
+   "q": "university",
+   "localTop": "Enterprise Square",
+   "top": [
+    {
+     "dbg": "8/132.5/204/idx",
+     "name": "Enterprise Square",
+     "address": "",
+     "lat": 53.541736,
+     "lng": -113.496583,
+     "sem": false,
+     "src": "idx",
+     "cls": "university",
+     "km": 0.2
+    },
+    {
+     "dbg": "8/166.4/2886/idx",
+     "name": "University of Alberta",
+     "address": "",
+     "lat": 53.522705,
+     "lng": -113.523084,
+     "sem": false,
+     "src": "idx",
+     "cls": "university",
+     "km": 2.9
+    },
+    {
+     "dbg": "8/156.1/2748/idx",
+     "name": "Campus Saint-Jean",
+     "address": "",
+     "lat": 53.521069,
+     "lng": -113.470866,
+     "sem": false,
+     "src": "idx",
+     "cls": "university",
+     "km": 2.7
+    },
+    {
+     "dbg": "8/141.5/910/idx",
+     "name": "NorQuest College",
+     "address": "",
+     "lat": 53.543868,
+     "lng": -113.506832,
+     "sem": false,
+     "src": "idx",
+     "cls": "college",
+     "km": 0.9
+    },
+    {
+     "dbg": "8/146.8/3713/idx",
+     "name": "Concordia University of Edmonton",
+     "address": "",
+     "lat": 53.560662,
+     "lng": -113.447126,
+     "sem": false,
+     "src": "idx",
+     "cls": "college",
+     "km": 3.7
+    }
+   ],
+   "timedOut": false,
+   "ms": 7093
+  },
+  {
+   "region": "edmonton",
+   "q": "park",
+   "localTop": "Louise McKinney Riverfront Park",
+   "top": [
+    {
+     "dbg": "8/134.4/793/idx",
+     "name": "Louise McKinney Riverfront Park",
+     "address": "",
+     "lat": 53.540652,
+     "lng": -113.48166,
+     "sem": false,
+     "src": "idx",
+     "cls": "park",
+     "km": 0.8
+    },
+    {
+     "dbg": "8/126/1362/idx",
+     "name": "Gallagher Park",
+     "address": "",
+     "lat": 53.535184,
+     "lng": -113.476157,
+     "sem": false,
+     "src": "idx",
+     "cls": "park",
+     "km": 1.4
+    },
+    {
+     "dbg": "8/123/2261/idx",
+     "name": "Forest Heights Park",
+     "address": "",
+     "lat": 53.546855,
+     "lng": -113.460356,
+     "sem": false,
+     "src": "idx",
+     "cls": "park",
+     "km": 2.3
+    },
+    {
+     "dbg": "8/118.5/1979/idx",
+     "name": "Kinsmen Park",
+     "address": "",
+     "lat": 53.527308,
+     "lng": -113.510874,
+     "sem": false,
+     "src": "idx",
+     "cls": "park",
+     "km": 2
+    },
+    {
+     "dbg": "8/126/3846/idx",
+     "name": "William Hawrelak Park",
+     "address": "",
+     "lat": 53.526896,
+     "lng": -113.546018,
+     "sem": false,
+     "src": "idx",
+     "cls": "park",
+     "km": 3.8
+    }
+   ],
+   "timedOut": false,
+   "ms": 6714
+  },
+  {
+   "region": "edmonton",
+   "q": "hotel",
+   "localTop": "Fairmont Hotel MacDonald",
+   "top": [
+    {
+     "dbg": "8/129.8/312/idx",
+     "name": "Fairmont Hotel MacDonald",
+     "address": "",
+     "lat": 53.540312,
+     "lng": -113.489489,
+     "sem": false,
+     "src": "idx",
+     "cls": "lodging",
+     "km": 0.3
+    },
+    {
+     "dbg": "8/128.1/477/idx",
+     "name": "JW Marriott Edmonton Ice District & Residences",
+     "address": "",
+     "lat": 53.545722,
+     "lng": -113.496434,
+     "sem": false,
+     "src": "idx",
+     "cls": "lodging",
+     "km": 0.5
+    },
+    {
+     "dbg": "8/116.6/298/idx",
+     "name": "Chateau Lacombe Hotel",
+     "address": "",
+     "lat": 53.539127,
+     "lng": -113.493888,
+     "sem": false,
+     "src": "idx",
+     "cls": "lodging",
+     "km": 0.3
+    },
+    {
+     "dbg": "8/83.3/240/idx",
+     "name": "The Westin Edmonton",
+     "address": "",
+     "lat": 53.541955,
+     "lng": -113.489884,
+     "sem": false,
+     "src": "idx",
+     "cls": "lodging",
+     "km": 0.2
+    },
+    {
+     "dbg": "8/74.9/236/idx",
+     "name": "Delta Hotel",
+     "address": "",
+     "lat": 53.543464,
+     "lng": -113.495706,
+     "sem": false,
+     "src": "idx",
+     "cls": "lodging",
+     "km": 0.2
+    }
+   ],
+   "timedOut": false,
+   "ms": 5964
+  },
+  {
+   "region": "edmonton",
+   "q": "parking",
+   "localTop": "Impark",
+   "top": [
+    {
+     "dbg": "8/48.8/666/idx",
+     "name": "Impark",
+     "address": "",
+     "lat": 53.543869,
+     "lng": -113.484048,
+     "sem": false,
+     "src": "idx",
+     "cls": "parking",
+     "km": 0.7
+    },
+    {
+     "dbg": "8/45.6/538/idx",
+     "name": "101 Ave & 105 Street - Lot #154",
+     "address": "",
+     "lat": 53.542308,
+     "lng": -113.501597,
+     "sem": false,
+     "src": "idx",
+     "cls": "parking",
+     "km": 0.5
+    },
+    {
+     "dbg": "8/46.6/590/idx",
+     "name": "Diamond Parking Lot C302",
+     "address": "",
+     "lat": 53.542586,
+     "lng": -113.502333,
+     "sem": false,
+     "src": "idx",
+     "cls": "parking",
+     "km": 0.6
+    },
+    {
+     "dbg": "8/43.8/674/idx",
+     "name": "Diamond Parking Lot C313",
+     "address": "",
+     "lat": 53.541324,
+     "lng": -113.503668,
+     "sem": false,
+     "src": "idx",
+     "cls": "parking",
+     "km": 0.7
+    },
+    {
+     "dbg": "8/45.6/806/idx",
+     "name": "Impark",
+     "address": "",
+     "lat": 53.548987,
+     "lng": -113.495033,
+     "sem": false,
+     "src": "idx",
+     "cls": "parking",
+     "km": 0.8
+    }
+   ],
+   "timedOut": false,
+   "ms": 5033
+  },
+  {
+   "region": "edmonton",
+   "q": "机场",
+   "localTop": "Edmonton International Airport",
+   "top": [
+    {
+     "dbg": "8/199/26357/idx",
+     "name": "Edmonton International Airport",
+     "address": "",
+     "lat": 53.308687,
+     "lng": -113.56554,
+     "sem": false,
+     "src": "idx",
+     "cls": "aerodrome",
+     "km": 26.3
+    },
+    {
+     "dbg": "8/175/23670/idx",
+     "name": "Edmonton / Twin Island Airpark",
+     "address": "",
+     "lat": 53.471546,
+     "lng": -113.155622,
+     "sem": false,
+     "src": "idx",
+     "cls": "aerodrome",
+     "km": 23.6
+    },
+    {
+     "dbg": "8/175/27616/idx",
+     "name": "Villeneuve Airport",
+     "address": "",
+     "lat": 53.66808,
+     "lng": -113.853931,
+     "sem": false,
+     "src": "idx",
+     "cls": "aerodrome",
+     "km": 27.6
+    },
+    {
+     "dbg": "8/175/27879/idx",
+     "name": "Edmonton/Cooking Lake Airport",
+     "address": "",
+     "lat": 53.42839,
+     "lng": -113.117707,
+     "sem": false,
+     "src": "idx",
+     "cls": "aerodrome",
+     "km": 27.8
+    },
+    {
+     "dbg": "8/175/33869/idx",
+     "name": "Edmonton/Josephburg Aerodrome",
+     "address": "",
+     "lat": 53.72766,
+     "lng": -113.086511,
+     "sem": false,
+     "src": "idx",
+     "cls": "aerodrome",
+     "km": 33.9
+    }
+   ],
+   "timedOut": false,
+   "ms": 6538
+  },
+  {
+   "region": "edmonton",
+   "q": "加油站",
+   "localTop": "Petro Canada",
+   "top": [
+    {
+     "dbg": "8/57.8/1074/idx",
+     "name": "Petro Canada",
+     "address": "",
+     "lat": 53.538531,
+     "lng": -113.508788,
+     "sem": false,
+     "src": "idx",
+     "cls": "fuel",
+     "km": 1.1
+    },
+    {
+     "dbg": "8/57/1491/idx",
+     "name": "Esso",
+     "address": "",
+     "lat": 53.555203,
+     "lng": -113.49418,
+     "sem": false,
+     "src": "idx",
+     "cls": "fuel",
+     "km": 1.5
+    },
+    {
+     "dbg": "8/54.4/1393/idx",
+     "name": "Tempo",
+     "address": "",
+     "lat": 53.548552,
+     "lng": -113.475735,
+     "sem": false,
+     "src": "idx",
+     "cls": "fuel",
+     "km": 1.4
+    },
+    {
+     "dbg": "8/59.4/2194/idx",
+     "name": "Esso",
+     "address": "",
+     "lat": 53.559216,
+     "lng": -113.509111,
+     "sem": false,
+     "src": "idx",
+     "cls": "fuel",
+     "km": 2.2
+    },
+    {
+     "dbg": "8/76.2/8602/idx",
+     "name": "Flying J",
+     "address": "",
+     "lat": 53.57163,
+     "lng": -113.613658,
+     "sem": false,
+     "src": "idx",
+     "cls": "fuel",
+     "km": 8.6
+    }
+   ],
+   "timedOut": false,
+   "ms": 7371
+  },
+  {
+   "region": "edmonton",
+   "q": "医院",
+   "localTop": "Royal Alexandra Hospital",
+   "top": [
+    {
+     "dbg": "8/186.2/1736/idx",
+     "name": "Royal Alexandra Hospital",
+     "address": "",
+     "lat": 53.557216,
+     "lng": -113.497662,
+     "sem": false,
+     "src": "idx",
+     "cls": "hospital",
+     "km": 1.7
+    },
+    {
+     "dbg": "8/182.7/2044/idx",
+     "name": "Glenrose Rehabilitation Hospital",
+     "address": "",
+     "lat": 53.559995,
+     "lng": -113.497945,
+     "sem": false,
+     "src": "idx",
+     "cls": "hospital",
+     "km": 2
+    },
+    {
+     "dbg": "8/174.7/3000/idx",
+     "name": "University of Alberta Hospital",
+     "address": "",
+     "lat": 53.521243,
+     "lng": -113.5229,
+     "sem": false,
+     "src": "idx",
+     "cls": "hospital",
+     "km": 3
+    },
+    {
+     "dbg": "8/185.4/9897/idx",
+     "name": "Grey Nuns Community Hospital",
+     "address": "",
+     "lat": 53.461303,
+     "lng": -113.429642,
+     "sem": false,
+     "src": "idx",
+     "cls": "hospital",
+     "km": 9.9
+    },
+    {
+     "dbg": "8/188.7/13229/idx",
+     "name": "Alberta Hospital Edmonton",
+     "address": "",
+     "lat": 53.636538,
+     "lng": -113.372266,
+     "sem": false,
+     "src": "idx",
+     "cls": "hospital",
+     "km": 13.2
+    }
+   ],
+   "timedOut": false,
+   "ms": 6249
+  },
+  {
+   "region": "edmonton",
+   "q": "超市",
+   "localTop": "Loblaws",
+   "top": [
+    {
+     "dbg": "8/80.4/434/idx",
+     "name": "Loblaws",
+     "address": "",
+     "lat": 53.544783,
+     "lng": -113.497747,
+     "sem": false,
+     "src": "idx",
+     "cls": "supermarket",
+     "km": 0.4
+    },
+    {
+     "dbg": "8/91.2/1042/idx",
+     "name": "Save-On-Foods",
+     "address": "",
+     "lat": 53.542635,
+     "lng": -113.509203,
+     "sem": false,
+     "src": "idx",
+     "cls": "supermarket",
+     "km": 1
+    },
+    {
+     "dbg": "8/102.8/3163/idx",
+     "name": "Real Canadian Superstore",
+     "address": "",
+     "lat": 53.564884,
+     "lng": -113.521488,
+     "sem": false,
+     "src": "idx",
+     "cls": "supermarket",
+     "km": 3.2
+    },
+    {
+     "dbg": "8/102.5/3977/idx",
+     "name": "Real Canadian Wholesale Club",
+     "address": "",
+     "lat": 53.506159,
+     "lng": -113.488505,
+     "sem": false,
+     "src": "idx",
+     "cls": "supermarket",
+     "km": 4
+    },
+    {
+     "dbg": "8/95.8/2883/idx",
+     "name": "Safeway",
+     "address": "",
+     "lat": 53.518729,
+     "lng": -113.513392,
+     "sem": false,
+     "src": "idx",
+     "cls": "supermarket",
+     "km": 2.9
+    }
+   ],
+   "timedOut": false,
+   "ms": 6633
+  },
+  {
+   "region": "calgary",
+   "q": "airport",
+   "localTop": "Calgary International Airport",
+   "top": [
+    {
+     "dbg": "8/199/8110/idx",
+     "name": "Calgary International Airport",
+     "address": "",
+     "lat": 51.110043,
+     "lng": -114.011539,
+     "sem": false,
+     "src": "idx",
+     "cls": "aerodrome",
+     "km": 8.1
+    },
+    {
+     "dbg": "8/185/30662/idx",
+     "name": "Cheadle Airport",
+     "address": "",
+     "lat": 51.057413,
+     "lng": -113.624917,
+     "sem": false,
+     "src": "idx",
+     "cls": "aerodrome",
+     "km": 30.6
+    },
+    {
+     "dbg": "8/185/35606/idx",
+     "name": "Calgary Okotoks Air Park",
+     "address": "",
+     "lat": 50.73461,
+     "lng": -113.93645,
+     "sem": false,
+     "src": "idx",
+     "cls": "aerodrome",
+     "km": 35.5
+    },
+    {
+     "dbg": "8/185/36507/idx",
+     "name": "Strathmore (D.J. Murray) Airport",
+     "address": "",
+     "lat": 51.133212,
+     "lng": -113.559758,
+     "sem": false,
+     "src": "idx",
+     "cls": "aerodrome",
+     "km": 36.5
+    },
+    {
+     "dbg": "8/175/22264/idx",
+     "name": "Springbank Airport",
+     "address": "",
+     "lat": 51.102105,
+     "lng": -114.368395,
+     "sem": false,
+     "src": "idx",
+     "cls": "aerodrome",
+     "km": 22.2
+    }
+   ],
+   "timedOut": false,
+   "ms": 5958
+  },
+  {
+   "region": "calgary",
+   "q": "gas station",
+   "localTop": "11th Ave Gas Plus",
+   "top": [
+    {
+     "dbg": "8/0/296/tile",
+     "name": "11th Ave Gas Plus",
+     "address": "fuel",
+     "lat": 51.04258452531042,
+     "lng": -114.06054139137268,
+     "sem": false,
+     "src": "tile",
+     "cls": "fuel",
+     "km": 0.3
+    },
+    {
+     "dbg": "8/0/423/tile",
+     "name": "Esso 7-Eleven 37778",
+     "address": "fuel",
+     "lat": 51.04106672325747,
+     "lng": -114.06131386756897,
+     "sem": false,
+     "src": "tile",
+     "cls": "fuel",
+     "km": 0.4
+    },
+    {
+     "dbg": "8/0/1088/tile",
+     "name": "Shell",
+     "address": "fuel",
+     "lat": 51.03757558982218,
+     "lng": -114.07377004623413,
+     "sem": false,
+     "src": "tile",
+     "cls": "fuel",
+     "km": 1.1
+    },
+    {
+     "dbg": "8/0/1092/tile",
+     "name": "Centex Memorial",
+     "address": "fuel",
+     "lat": 51.05123841971749,
+     "lng": -114.05143797397614,
+     "sem": false,
+     "src": "tile",
+     "cls": "fuel",
+     "km": 1.1
+    },
+    {
+     "dbg": "8/0/1155/tile",
+     "name": "Petro-Canada",
+     "address": "fuel",
+     "lat": 51.03560222412622,
+     "lng": -114.07106637954712,
+     "sem": false,
+     "src": "tile",
+     "cls": "fuel",
+     "km": 1.2
+    }
+   ],
+   "timedOut": false,
+   "ms": 6460
+  },
+  {
+   "region": "calgary",
+   "q": "hospital",
+   "localTop": "Sheldon M. Chumir Centre",
+   "top": [
+    {
+     "dbg": "8/30/5513/",
+     "name": "Foothills Medical Centre",
+     "address": "1403 29 Street NW, Calgary, Alberta",
+     "lat": 51.0651621,
+     "lng": -114.1349388,
+     "sem": false,
+     "cls": "hospital",
+     "km": 5.5
+    },
+    {
+     "dbg": "8/30/6443/",
+     "name": "Rockyview General Hospital",
+     "address": "75 Avenue SW, Calgary, Alberta",
+     "lat": 50.9908499,
+     "lng": -114.0971138,
+     "sem": false,
+     "cls": "hospital",
+     "km": 6.4
+    },
+    {
+     "dbg": "8/30/6808/",
+     "name": "Alberta Children's Hospital",
+     "address": "28 Oki Drive NW, Calgary, Alberta",
+     "lat": 51.0746658,
+     "lng": -114.1480515,
+     "sem": false,
+     "cls": "hospital",
+     "km": 6.8
+    },
+    {
+     "dbg": "8/0/785/tile",
+     "name": "Sheldon M. Chumir Centre",
+     "address": "hospital",
+     "lat": 51.04121513276269,
+     "lng": -114.0728634595871,
+     "sem": false,
+     "src": "tile",
+     "cls": "hospital",
+     "km": 0.8
+    },
+    {
+     "dbg": "8/0/6695/",
+     "name": "Peter Lougheed Centre",
+     "address": "3500 26 Avenue NE, Calgary, Alberta",
+     "lat": 51.0792148,
+     "lng": -113.9845974,
+     "sem": false,
+     "cls": "hospital",
+     "km": 6.7
+    }
+   ],
+   "timedOut": false,
+   "ms": 6833
+  },
+  {
+   "region": "calgary",
+   "q": "Walmart",
+   "localTop": "Walmart Supercentre",
+   "top": [
+    {
+     "dbg": "6.5//5328/",
+     "name": "Walmart Supercentre",
+     "address": "1212 37 Street SW, Rosscarrock, Calgary, Alberta, T3C 3W0",
+     "lat": 51.041135,
+     "lng": -114.1391053,
+     "sem": false,
+     "cls": "shop=supermarket",
+     "km": 5.3
+    },
+    {
+     "dbg": "6.5//5996/",
+     "name": "Walmart Supercentre",
+     "address": "3800 Memorial Drive E, Marlborough, Calgary, Alberta, T2A 4V6",
+     "lat": 51.0536567,
+     "lng": -113.978514,
+     "sem": false,
+     "cls": "shop=supermarket",
+     "km": 6
+    },
+    {
+     "dbg": "6.5//6845/",
+     "name": "Walmart Supercentre",
+     "address": "7979 11 Street SE, East Fairview Industrial, Calgary, Alberta, T2H 0B8",
+     "lat": 50.9840734,
+     "lng": -114.0461127,
+     "sem": false,
+     "cls": "shop=supermarket",
+     "km": 6.8
+    },
+    {
+     "dbg": "6.5//7144/",
+     "name": "Walmart Garden Centre",
+     "address": "57 Avenue NE, Deerfoot Business Centre, Calgary, Alberta, T2E 9B2",
+     "lat": 51.1070651,
+     "lng": -114.0385519,
+     "sem": false,
+     "cls": "shop=garden_centre",
+     "km": 7.1
+    },
+    {
+     "dbg": "6.5//7212/",
+     "name": "Walmart Supercentre",
+     "address": "1110 57 Avenue NE, Deerfoot Business Centre, Calgary, Alberta, T2E 7P4",
+     "lat": 51.1075915,
+     "lng": -114.0378752,
+     "sem": false,
+     "cls": "shop=supermarket",
+     "km": 7.2
+    }
+   ],
+   "timedOut": false,
+   "ms": 6449
+  },
+  {
+   "region": "calgary",
+   "q": "Costco",
+   "localTop": "Costco",
+   "top": [
+    {
+     "dbg": "6.5//6220/",
+     "name": "Costco",
+     "address": "99 Heritage Gate SE, East Fairview Industrial, Calgary, Alberta, T2H 3A7",
+     "lat": 50.9897629,
+     "lng": -114.0463494,
+     "sem": false,
+     "cls": "shop=wholesale",
+     "km": 6.2
+    },
+    {
+     "dbg": "6.5//6314/",
+     "name": "Costco",
+     "address": "29 Street NE, Sunridge, Calgary, Alberta, T1Y 6T7",
+     "lat": 51.0793566,
+     "lng": -113.9915333,
+     "sem": false,
+     "cls": "amenity=parking",
+     "km": 6.3
+    },
+    {
+     "dbg": "6.5//10184/",
+     "name": "Costco",
+     "address": "75 East Hills Boulevard SE, Belvedere, Calgary, Alberta, T2A 6J8",
+     "lat": 51.0432499,
+     "lng": -113.9174518,
+     "sem": false,
+     "cls": "shop=wholesale",
+     "km": 10.2
+    },
+    {
+     "dbg": "6.5//13158/",
+     "name": "Costco",
+     "address": "12905 Buffalo Run Boulevard, Alberta, T3T 0E3",
+     "lat": 50.9380642,
+     "lng": -114.1446131,
+     "sem": false,
+     "cls": "shop=wholesale",
+     "km": 13.1
+    },
+    {
+     "dbg": "6.5//13832/",
+     "name": "Costco",
+     "address": "11588 Sarcee Trail NW, Sherwood, Calgary, Alberta, T3R 0A1",
+     "lat": 51.1547923,
+     "lng": -114.1553219,
+     "sem": false,
+     "cls": "shop=wholesale",
+     "km": 13.8
+    }
+   ],
+   "timedOut": false,
+   "ms": 6748
+  },
+  {
+   "region": "calgary",
+   "q": "Tim Hortons",
+   "localTop": "Tim Hortons",
+   "top": [
+    {
+     "dbg": "10/0/376/tile",
+     "name": "Tim Hortons",
+     "address": "cafe",
+     "lat": 51.04768060351074,
+     "lng": -114.06562685966492,
+     "sem": false,
+     "src": "tile",
+     "cls": "cafe",
+     "km": 0.4
+    },
+    {
+     "dbg": "10/0/385/tile",
+     "name": "Tim Hortons",
+     "address": "cafe",
+     "lat": 51.04654406813293,
+     "lng": -114.05843317508698,
+     "sem": false,
+     "src": "tile",
+     "cls": "cafe",
+     "km": 0.4
+    },
+    {
+     "dbg": "10/0/570/tile",
+     "name": "Tim Hortons",
+     "address": "cafe",
+     "lat": 51.0459538681377,
+     "lng": -114.07101273536682,
+     "sem": false,
+     "src": "tile",
+     "cls": "cafe",
+     "km": 0.6
+    },
+    {
+     "dbg": "10/0/642/tile",
+     "name": "Tim Hortons",
+     "address": "cafe",
+     "lat": 51.04279701362964,
+     "lng": -114.07177448272705,
+     "sem": false,
+     "src": "tile",
+     "cls": "cafe",
+     "km": 0.6
+    },
+    {
+     "dbg": "10/0/684/tile",
+     "name": "Tim Hortons",
+     "address": "cafe",
+     "lat": 51.045525546860745,
+     "lng": -114.05340135097504,
+     "sem": false,
+     "src": "tile",
+     "cls": "cafe",
+     "km": 0.7
+    }
+   ],
+   "timedOut": false,
+   "ms": 6331
+  },
+  {
+   "region": "calgary",
+   "q": "coffee",
+   "localTop": "Starbucks",
+   "top": [
+    {
+     "dbg": "8/0/23/tile",
+     "name": "Starbucks",
+     "address": "cafe",
+     "lat": 51.04483415376609,
+     "lng": -114.06285881996155,
+     "sem": false,
+     "src": "tile",
+     "cls": "cafe",
+     "km": 0
+    },
+    {
+     "dbg": "8/0/113/tile",
+     "name": "Bono Coffee Roasters",
+     "address": "cafe",
+     "lat": 51.045687432533384,
+     "lng": -114.06346499919891,
+     "sem": false,
+     "src": "tile",
+     "cls": "cafe",
+     "km": 0.1
+    },
+    {
+     "dbg": "8/0/161/tile",
+     "name": "Rosso Coffee",
+     "address": "cafe",
+     "lat": 51.04558288143451,
+     "lng": -114.06127095222473,
+     "sem": false,
+     "src": "tile",
+     "cls": "cafe",
+     "km": 0.2
+    },
+    {
+     "dbg": "8/0/185/tile",
+     "name": "Heliopolis Social Cafe",
+     "address": "cafe",
+     "lat": 51.0448510171351,
+     "lng": -114.06573951244354,
+     "sem": false,
+     "src": "tile",
+     "cls": "cafe",
+     "km": 0.2
+    },
+    {
+     "dbg": "8/0/193/tile",
+     "name": "Waves Coffee House",
+     "address": "cafe",
+     "lat": 51.043410863299385,
+     "lng": -114.06124413013458,
+     "sem": false,
+     "src": "tile",
+     "cls": "cafe",
+     "km": 0.2
+    }
+   ],
+   "timedOut": false,
+   "ms": 5433
+  },
+  {
+   "region": "calgary",
+   "q": "pharmacy",
+   "localTop": "I.D.A.",
+   "top": [
+    {
+     "dbg": "8/0/290/tile",
+     "name": "I.D.A.",
+     "address": "pharmacy",
+     "lat": 51.04278689516036,
+     "lng": -114.06592726707458,
+     "sem": false,
+     "src": "tile",
+     "cls": "pharmacy",
+     "km": 0.3
+    },
+    {
+     "dbg": "8/0/405/tile",
+     "name": "Rexall",
+     "address": "pharmacy",
+     "lat": 51.04507024037329,
+     "lng": -114.06885623931885,
+     "sem": false,
+     "src": "tile",
+     "cls": "pharmacy",
+     "km": 0.4
+    },
+    {
+     "dbg": "8/0/528/tile",
+     "name": "Shoppers Drug Mart",
+     "address": "pharmacy",
+     "lat": 51.04654406813293,
+     "lng": -114.07006323337555,
+     "sem": false,
+     "src": "tile",
+     "cls": "pharmacy",
+     "km": 0.5
+    },
+    {
+     "dbg": "8/0/662/tile",
+     "name": "Super M Drugs Prescription Service",
+     "address": "pharmacy",
+     "lat": 51.05064153503557,
+     "lng": -114.06242430210114,
+     "sem": false,
+     "src": "tile",
+     "cls": "pharmacy",
+     "km": 0.7
+    },
+    {
+     "dbg": "8/0/668/tile",
+     "name": "Woo Kee Chinese Medicine Ltd",
+     "address": "chemist",
+     "lat": 51.050688746533524,
+     "lng": -114.06242430210114,
+     "sem": false,
+     "src": "tile",
+     "cls": "shop",
+     "km": 0.7
+    }
+   ],
+   "timedOut": false,
+   "ms": 6332
+  },
+  {
+   "region": "calgary",
+   "q": "grocery",
+   "localTop": "Sunterra Market",
+   "top": [
+    {
+     "dbg": "8/0/398/tile",
+     "name": "Sunterra Market",
+     "address": "supermarket",
+     "lat": 51.04149845867974,
+     "lng": -114.06055748462677,
+     "sem": false,
+     "src": "tile",
+     "cls": "grocery",
+     "km": 0.4
+    },
+    {
+     "dbg": "8/0/430/tile",
+     "name": "Sunterra",
+     "address": "supermarket",
+     "lat": 51.0451073395879,
+     "lng": -114.06921029090881,
+     "sem": false,
+     "src": "tile",
+     "cls": "grocery",
+     "km": 0.4
+    },
+    {
+     "dbg": "8/0/554/tile",
+     "name": "H Mart",
+     "address": "supermarket",
+     "lat": 51.039967128931636,
+     "lng": -114.0606164932251,
+     "sem": false,
+     "src": "tile",
+     "cls": "grocery",
+     "km": 0.6
+    },
+    {
+     "dbg": "8/0/640/tile",
+     "name": "Real Canadian Superstore",
+     "address": "supermarket",
+     "lat": 51.047444530207684,
+     "lng": -114.05505359172821,
+     "sem": false,
+     "src": "tile",
+     "cls": "grocery",
+     "km": 0.6
+    },
+    {
+     "dbg": "8/0/1216/tile",
+     "name": "Safeway",
+     "address": "supermarket",
+     "lat": 51.0423383074675,
+     "lng": -114.08008396625519,
+     "sem": false,
+     "src": "tile",
+     "cls": "grocery",
+     "km": 1.2
+    }
+   ],
+   "timedOut": false,
+   "ms": 4450
+  },
+  {
+   "region": "calgary",
+   "q": "train station",
+   "localTop": "Calgary",
+   "top": [
+    {
+     "dbg": "8/0/204/tile",
+     "name": "Calgary",
+     "address": "station",
+     "lat": 51.04410902309212,
+     "lng": -114.06586825847626,
+     "sem": false,
+     "src": "tile",
+     "cls": "railway",
+     "km": 0.2
+    },
+    {
+     "dbg": "8/0/210/tile",
+     "name": "Centre Street station",
+     "address": "station",
+     "lat": 51.0464024208199,
+     "lng": -114.06178593635559,
+     "sem": false,
+     "src": "tile",
+     "cls": "railway",
+     "km": 0.2
+    },
+    {
+     "dbg": "8/0/224/tile",
+     "name": "1 Street SW station",
+     "address": "station",
+     "lat": 51.04658116616713,
+     "lng": -114.0642374753952,
+     "sem": false,
+     "src": "tile",
+     "cls": "railway",
+     "km": 0.2
+    },
+    {
+     "dbg": "8/0/473/tile",
+     "name": "3 Street SW station",
+     "address": "station",
+     "lat": 51.04660477399162,
+     "lng": -114.06915664672852,
+     "sem": false,
+     "src": "tile",
+     "cls": "railway",
+     "km": 0.5
+    },
+    {
+     "dbg": "8/0/476/tile",
+     "name": "City Hall station",
+     "address": "station",
+     "lat": 51.04631810673746,
+     "lng": -114.05679166316986,
+     "sem": false,
+     "src": "tile",
+     "cls": "railway",
+     "km": 0.5
+    }
+   ],
+   "timedOut": false,
+   "ms": 6199
+  },
+  {
+   "region": "calgary",
+   "q": "bus station",
+   "localTop": "Sunnyside",
+   "top": [
+    {
+     "dbg": "8/0/1772/tile",
+     "name": "Sunnyside",
+     "address": "bus station",
+     "lat": 51.05908488319929,
+     "lng": -114.07402217388153,
+     "sem": false,
+     "src": "tile",
+     "cls": "bus",
+     "km": 1.8
+    },
+    {
+     "dbg": "8/0/10076/",
+     "name": "Anderson Bus Terminal",
+     "address": "Southport Way SW, Calgary, Alberta",
+     "lat": 50.9543321,
+     "lng": -114.0737204,
+     "sem": false,
+     "cls": "bus",
+     "km": 10.1
+    },
+    {
+     "dbg": "8/0/12001/",
+     "name": "Canyon Meadows Bus Terminal",
+     "address": "Lake Fraser Drive SE, Calgary, Alberta",
+     "lat": 50.9368019,
+     "lng": -114.0673113,
+     "sem": false,
+     "cls": "bus",
+     "km": 12
+    },
+    {
+     "dbg": "8/0/12287/",
+     "name": "Hamptons Bus Terminal WB",
+     "address": "Hamptons Boulevard NW, Calgary, Alberta",
+     "lat": 51.1409656,
+     "lng": -114.1494684,
+     "sem": false,
+     "cls": "bus",
+     "km": 12.3
+    },
+    {
+     "dbg": "8/0/13424/",
+     "name": "Fish Creek - Lacombe Bus Terminal",
+     "address": "Shawnee Gate SW, Calgary, Alberta",
+     "lat": 50.9241865,
+     "lng": -114.0743369,
+     "sem": false,
+     "cls": "bus",
+     "km": 13.4
+    }
+   ],
+   "timedOut": false,
+   "ms": 6464
+  },
+  {
+   "region": "calgary",
+   "q": "ferry terminal",
+   "localTop": null,
+   "top": [
+    {
+     "dbg": "4/0/271103/",
+     "name": "Galena Bay Ferry Terminal",
+     "address": "Galena Bay Ferry Terminal, Area B (Shelter Bay/Mica Creek), Columbia-Shuswap Regional District, British Columbia, Canada",
+     "lat": 50.6266497,
+     "lng": -117.8668953,
+     "sem": false,
+     "cls": "highway=primary",
+     "km": 269.5
+    },
+    {
+     "dbg": "4/0/312948/",
+     "name": "Fauquier Ferry Terminal",
+     "address": "Fauquier Ferry Terminal, Fauquier, Area K (The Arrow Lakes), Regional District of Central Kootenay, British Columbia, V0G 1K0, Canada",
+     "lat": 49.8717964,
+     "lng": -118.0825022,
+     "sem": false,
+     "cls": "highway=primary",
+     "km": 309.2
+    },
+    {
+     "dbg": "4/0/723758/",
+     "name": "Ferry terminal",
+     "address": "Ferry terminal, Area G (Saltair / Gulf Islands), Cowichan Valley Regional District, British Columbia, V0R 2Y0, Canada",
+     "lat": 48.9806881,
+     "lng": -123.6784697,
+     "sem": false,
+     "cls": "highway=unclassified",
+     "km": 709.1
+    }
+   ],
+   "timedOut": false,
+   "ms": 8579
+  },
+  {
+   "region": "calgary",
+   "q": "university",
+   "localTop": "University of Calgary Downtown Campus",
+   "top": [
+    {
+     "dbg": "8/70/1345/tile",
+     "name": "University of Calgary Downtown Campus",
+     "address": "university",
+     "lat": 51.04640579338002,
+     "lng": -114.08214390277863,
+     "sem": false,
+     "src": "tile",
+     "cls": "college",
+     "km": 1.3
+    },
+    {
+     "dbg": "8/70/2765/",
+     "name": "Alberta University of the Arts (AUArts)",
+     "address": "1407 14 Avenue NW, Calgary, Alberta",
+     "lat": 51.0620427,
+     "lng": -114.0914556,
+     "sem": false,
+     "cls": "college",
+     "km": 2.8
+    },
+    {
+     "dbg": "8/70/5897/",
+     "name": "University of Calgary",
+     "address": "2500 University Drive NW, Calgary, Alberta",
+     "lat": 51.0783651,
+     "lng": -114.1283072,
+     "sem": false,
+     "cls": "college",
+     "km": 5.9
+    },
+    {
+     "dbg": "8/70/5990/",
+     "name": "Mount Royal University",
+     "address": "Sarcee Road SW, Calgary, Alberta",
+     "lat": 51.0116203,
+     "lng": -114.1307018,
+     "sem": false,
+     "cls": "college",
+     "km": 6
+    },
+    {
+     "dbg": "8/70/6276/",
+     "name": "University of Calgary",
+     "address": "2500 University Drive NW, University of Calgary, Calgary, Alberta, T2N 1N4",
+     "lat": 51.075054,
+     "lng": -114.138805,
+     "sem": false,
+     "cls": "amenity=university",
+     "km": 6.3
+    }
+   ],
+   "timedOut": false,
+   "ms": 6101
+  },
+  {
+   "region": "calgary",
+   "q": "park",
+   "localTop": "Devonian Gardens",
+   "top": [
+    {
+     "dbg": "8/0/431/tile",
+     "name": "Devonian Gardens",
+     "address": "park",
+     "lat": 51.04622704735604,
+     "lng": -114.06875967979431,
+     "sem": false,
+     "src": "tile",
+     "cls": "park",
+     "km": 0.4
+    },
+    {
+     "dbg": "8/0/470/tile",
+     "name": "Harmony Park",
+     "address": "park",
+     "lat": 51.048911537668886,
+     "lng": -114.06359910964966,
+     "sem": false,
+     "src": "tile",
+     "cls": "park",
+     "km": 0.5
+    },
+    {
+     "dbg": "8/0/486/tile",
+     "name": "Enoch Park",
+     "address": "park",
+     "lat": 51.041754799683105,
+     "lng": -114.05797183513641,
+     "sem": false,
+     "src": "tile",
+     "cls": "park",
+     "km": 0.5
+    },
+    {
+     "dbg": "8/0/592/tile",
+     "name": "Haultain Park",
+     "address": "park",
+     "lat": 51.04012228799462,
+     "lng": -114.0674239397049,
+     "sem": false,
+     "src": "tile",
+     "cls": "park",
+     "km": 0.6
+    },
+    {
+     "dbg": "8/0/621/tile",
+     "name": "Central Memorial Park",
+     "address": "park",
+     "lat": 51.041110571569874,
+     "lng": -114.06990230083466,
+     "sem": false,
+     "src": "tile",
+     "cls": "park",
+     "km": 0.6
+    }
+   ],
+   "timedOut": false,
+   "ms": 6712
+  },
+  {
+   "region": "calgary",
+   "q": "hotel",
+   "localTop": "Hotel Le Germain Calgary",
+   "top": [
+    {
+     "dbg": "8/0/31/tile",
+     "name": "Hotel Le Germain Calgary",
+     "address": "hotel",
+     "lat": 51.04489486186574,
+     "lng": -114.06342208385468,
+     "sem": false,
+     "src": "tile",
+     "cls": "lodging",
+     "km": 0
+    },
+    {
+     "dbg": "8/0/47/tile",
+     "name": "Calgary Marriott Downtown Hotel",
+     "address": "hotel",
+     "lat": 51.04498255120251,
+     "lng": -114.06260669231415,
+     "sem": false,
+     "src": "tile",
+     "cls": "lodging",
+     "km": 0
+    },
+    {
+     "dbg": "8/0/135/tile",
+     "name": "Fairmont Palliser Hotel",
+     "address": "hotel",
+     "lat": 51.044361976941985,
+     "lng": -114.0649563074112,
+     "sem": false,
+     "src": "tile",
+     "cls": "lodging",
+     "km": 0.1
+    },
+    {
+     "dbg": "8/0/168/tile",
+     "name": "Hyatt Regency Calgary",
+     "address": "hotel",
+     "lat": 51.04617983131001,
+     "lng": -114.06259596347809,
+     "sem": false,
+     "src": "tile",
+     "cls": "lodging",
+     "km": 0.2
+    },
+    {
+     "dbg": "8/0/383/tile",
+     "name": "Executive Suites by Roseman - Keynote",
+     "address": "hotel",
+     "lat": 51.04203812229983,
+     "lng": -114.05961871147156,
+     "sem": false,
+     "src": "tile",
+     "cls": "lodging",
+     "km": 0.4
+    }
+   ],
+   "timedOut": false,
+   "ms": 6241
+  },
+  {
+   "region": "calgary",
+   "q": "parking",
+   "localTop": "Tower (Palliser) Parkade",
+   "top": [
+    {
+     "dbg": "8/0/107/tile",
+     "name": "Tower (Palliser) Parkade",
+     "address": "parking",
+     "lat": 51.04374476712172,
+     "lng": -114.06297147274017,
+     "sem": false,
+     "src": "tile",
+     "cls": "parking",
+     "km": 0.1
+    },
+    {
+     "dbg": "8/0/170/tile",
+     "name": "Indigo Lot 305",
+     "address": "parking",
+     "lat": 51.04622367478291,
+     "lng": -114.06332015991211,
+     "sem": false,
+     "src": "tile",
+     "cls": "parking",
+     "km": 0.2
+    },
+    {
+     "dbg": "8/0/194/tile",
+     "name": "Convention Centre Parkade",
+     "address": "parking",
+     "lat": 51.04597410369061,
+     "lng": -114.06120657920837,
+     "sem": false,
+     "src": "tile",
+     "cls": "parking",
+     "km": 0.2
+    },
+    {
+     "dbg": "8/0/233/tile",
+     "name": "Calgary Parking Lot 7",
+     "address": "parking",
+     "lat": 51.045009532503514,
+     "lng": -114.0663993358612,
+     "sem": false,
+     "src": "tile",
+     "cls": "parking",
+     "km": 0.2
+    },
+    {
+     "dbg": "8/0/238/tile",
+     "name": "Calgary Parking Lot 93",
+     "address": "parking",
+     "lat": 51.04263174502111,
+     "lng": -114.062220454216,
+     "sem": false,
+     "src": "tile",
+     "cls": "parking",
+     "km": 0.2
+    }
+   ],
+   "timedOut": false,
+   "ms": 5581
+  },
+  {
+   "region": "calgary",
+   "q": "机场",
+   "localTop": "Calgary International Airport",
+   "top": [
+    {
+     "dbg": "8/199/8110/idx",
+     "name": "Calgary International Airport",
+     "address": "",
+     "lat": 51.110043,
+     "lng": -114.011539,
+     "sem": false,
+     "src": "idx",
+     "cls": "aerodrome",
+     "km": 8.1
+    },
+    {
+     "dbg": "8/185/30662/idx",
+     "name": "Cheadle Airport",
+     "address": "",
+     "lat": 51.057413,
+     "lng": -113.624917,
+     "sem": false,
+     "src": "idx",
+     "cls": "aerodrome",
+     "km": 30.6
+    },
+    {
+     "dbg": "8/185/35606/idx",
+     "name": "Calgary Okotoks Air Park",
+     "address": "",
+     "lat": 50.73461,
+     "lng": -113.93645,
+     "sem": false,
+     "src": "idx",
+     "cls": "aerodrome",
+     "km": 35.5
+    },
+    {
+     "dbg": "8/185/36507/idx",
+     "name": "Strathmore (D.J. Murray) Airport",
+     "address": "",
+     "lat": 51.133212,
+     "lng": -113.559758,
+     "sem": false,
+     "src": "idx",
+     "cls": "aerodrome",
+     "km": 36.5
+    },
+    {
+     "dbg": "8/175/22264/idx",
+     "name": "Springbank Airport",
+     "address": "",
+     "lat": 51.102105,
+     "lng": -114.368395,
+     "sem": false,
+     "src": "idx",
+     "cls": "aerodrome",
+     "km": 22.2
+    }
+   ],
+   "timedOut": false,
+   "ms": 5498
+  },
+  {
+   "region": "calgary",
+   "q": "加油站",
+   "localTop": "11th Ave Gas Plus",
+   "top": [
+    {
+     "dbg": "8/0/296/tile",
+     "name": "11th Ave Gas Plus",
+     "address": "fuel",
+     "lat": 51.04258452531042,
+     "lng": -114.06054139137268,
+     "sem": false,
+     "src": "tile",
+     "cls": "fuel",
+     "km": 0.3
+    },
+    {
+     "dbg": "8/0/423/tile",
+     "name": "Esso 7-Eleven 37778",
+     "address": "fuel",
+     "lat": 51.04106672325747,
+     "lng": -114.06131386756897,
+     "sem": false,
+     "src": "tile",
+     "cls": "fuel",
+     "km": 0.4
+    },
+    {
+     "dbg": "8/0/1088/tile",
+     "name": "Shell",
+     "address": "fuel",
+     "lat": 51.03757558982218,
+     "lng": -114.07377004623413,
+     "sem": false,
+     "src": "tile",
+     "cls": "fuel",
+     "km": 1.1
+    },
+    {
+     "dbg": "8/0/1092/tile",
+     "name": "Centex Memorial",
+     "address": "fuel",
+     "lat": 51.05123841971749,
+     "lng": -114.05143797397614,
+     "sem": false,
+     "src": "tile",
+     "cls": "fuel",
+     "km": 1.1
+    },
+    {
+     "dbg": "8/0/1155/tile",
+     "name": "Petro-Canada",
+     "address": "fuel",
+     "lat": 51.03560222412622,
+     "lng": -114.07106637954712,
+     "sem": false,
+     "src": "tile",
+     "cls": "fuel",
+     "km": 1.2
+    }
+   ],
+   "timedOut": false,
+   "ms": 7592
+  },
+  {
+   "region": "calgary",
+   "q": "医院",
+   "localTop": "Sheldon M. Chumir Centre",
+   "top": [
+    {
+     "dbg": "8/30/5513/",
+     "name": "Foothills Medical Centre",
+     "address": "1403 29 Street NW, Calgary, Alberta",
+     "lat": 51.0651621,
+     "lng": -114.1349388,
+     "sem": false,
+     "cls": "hospital",
+     "km": 5.5
+    },
+    {
+     "dbg": "8/30/6443/",
+     "name": "Rockyview General Hospital",
+     "address": "75 Avenue SW, Calgary, Alberta",
+     "lat": 50.9908499,
+     "lng": -114.0971138,
+     "sem": false,
+     "cls": "hospital",
+     "km": 6.4
+    },
+    {
+     "dbg": "8/30/6808/",
+     "name": "Alberta Children's Hospital",
+     "address": "28 Oki Drive NW, Calgary, Alberta",
+     "lat": 51.0746658,
+     "lng": -114.1480515,
+     "sem": false,
+     "cls": "hospital",
+     "km": 6.8
+    },
+    {
+     "dbg": "8/0/785/tile",
+     "name": "Sheldon M. Chumir Centre",
+     "address": "hospital",
+     "lat": 51.04121513276269,
+     "lng": -114.0728634595871,
+     "sem": false,
+     "src": "tile",
+     "cls": "hospital",
+     "km": 0.8
+    },
+    {
+     "dbg": "8/0/6695/",
+     "name": "Peter Lougheed Centre",
+     "address": "3500 26 Avenue NE, Calgary, Alberta",
+     "lat": 51.0792148,
+     "lng": -113.9845974,
+     "sem": false,
+     "cls": "hospital",
+     "km": 6.7
+    }
+   ],
+   "timedOut": false,
+   "ms": 6584
+  },
+  {
+   "region": "calgary",
+   "q": "超市",
+   "localTop": "Sunterra Market",
+   "top": [
+    {
+     "dbg": "8/0/398/tile",
+     "name": "Sunterra Market",
+     "address": "supermarket",
+     "lat": 51.04149845867974,
+     "lng": -114.06055748462677,
+     "sem": false,
+     "src": "tile",
+     "cls": "grocery",
+     "km": 0.4
+    },
+    {
+     "dbg": "8/0/430/tile",
+     "name": "Sunterra",
+     "address": "supermarket",
+     "lat": 51.0451073395879,
+     "lng": -114.06921029090881,
+     "sem": false,
+     "src": "tile",
+     "cls": "grocery",
+     "km": 0.4
+    },
+    {
+     "dbg": "8/0/554/tile",
+     "name": "H Mart",
+     "address": "supermarket",
+     "lat": 51.039967128931636,
+     "lng": -114.0606164932251,
+     "sem": false,
+     "src": "tile",
+     "cls": "grocery",
+     "km": 0.6
+    },
+    {
+     "dbg": "8/0/640/tile",
+     "name": "Real Canadian Superstore",
+     "address": "supermarket",
+     "lat": 51.047444530207684,
+     "lng": -114.05505359172821,
+     "sem": false,
+     "src": "tile",
+     "cls": "grocery",
+     "km": 0.6
+    },
+    {
+     "dbg": "8/0/1216/tile",
+     "name": "Safeway",
+     "address": "supermarket",
+     "lat": 51.0423383074675,
+     "lng": -114.08008396625519,
+     "sem": false,
+     "src": "tile",
+     "cls": "grocery",
+     "km": 1.2
+    }
+   ],
+   "timedOut": false,
+   "ms": 5930
+  },
+  {
+   "region": "vancouver",
+   "q": "airport",
+   "localTop": "Calgary International Airport",
+   "top": [
+    {
+     "dbg": "8/150/10966/",
+     "name": "Vancouver International Airport",
+     "address": "3211 Grant McConachie Way, Richmond, British Columbia",
+     "lat": 49.1928337,
+     "lng": -123.1829087,
+     "sem": false,
+     "cls": "aerodrome",
+     "km": 10.9
+    },
+    {
+     "dbg": "8/20/24737/",
+     "name": "Boundary Bay Airport",
+     "address": "7800 Alpha Way, Delta, British Columbia",
+     "lat": 49.073622,
+     "lng": -123.0044224,
+     "sem": false,
+     "cls": "aerodrome",
+     "km": 24.7
+    },
+    {
+     "dbg": "8/20/31068/",
+     "name": "Pitt Meadows Airport",
+     "address": "Pitt River Regional Greenway, Pitt Meadows, British Columbia",
+     "lat": 49.2152849,
+     "lng": -122.7053167,
+     "sem": false,
+     "cls": "aerodrome",
+     "km": 31
+    },
+    {
+     "dbg": "8/20/41114/",
+     "name": "Langley Regional Airport",
+     "address": "56 Avenue Frontage Road, Langley Township, British Columbia",
+     "lat": 49.1008155,
+     "lng": -122.6281107,
+     "sem": false,
+     "cls": "aerodrome",
+     "km": 41
+    },
+    {
+     "dbg": "8/20/42821/",
+     "name": "Fort Langley Airport",
+     "address": "23945 River Road, Langley Township, British Columbia",
+     "lat": 49.1673222,
+     "lng": -122.5581343,
+     "sem": false,
+     "cls": "aerodrome",
+     "km": 42.7
+    }
+   ],
+   "timedOut": false,
+   "ms": 5014
+  },
+  {
+   "region": "vancouver",
+   "q": "gas station",
+   "localTop": "Esso",
+   "top": [
+    {
+     "dbg": "8/0/780/tile",
+     "name": "Esso",
+     "address": "fuel",
+     "lat": 49.27919707991717,
+     "lng": -123.13001275062561,
+     "sem": false,
+     "src": "tile",
+     "cls": "fuel",
+     "km": 0.8
+    },
+    {
+     "dbg": "8/0/1333/tile",
+     "name": "Chevron",
+     "address": "fuel",
+     "lat": 49.294578943346664,
+     "lng": -123.11825394630432,
+     "sem": false,
+     "src": "tile",
+     "cls": "fuel",
+     "km": 1.3
+    },
+    {
+     "dbg": "8/0/1486/tile",
+     "name": "False Creek Fuels",
+     "address": "fuel",
+     "lat": 49.275662352377395,
+     "lng": -123.13810765743256,
+     "sem": false,
+     "src": "tile",
+     "cls": "fuel",
+     "km": 1.5
+    },
+    {
+     "dbg": "8/0/2040/tile",
+     "name": "Shell",
+     "address": "fuel",
+     "lat": 49.26946371858102,
+     "lng": -123.10122191905975,
+     "sem": false,
+     "src": "tile",
+     "cls": "fuel",
+     "km": 2
+    },
+    {
+     "dbg": "8/0/2310/tile",
+     "name": "Petro-Canada",
+     "address": "fuel",
+     "lat": 49.27003776369571,
+     "lng": -123.14594507217407,
+     "sem": false,
+     "src": "tile",
+     "cls": "fuel",
+     "km": 2.3
+    }
+   ],
+   "timedOut": false,
+   "ms": 6474
+  },
+  {
+   "region": "vancouver",
+   "q": "hospital",
+   "localTop": "St. Paul's Hospital",
+   "top": [
+    {
+     "dbg": "8/30/640/tile",
+     "name": "St. Paul's Hospital",
+     "address": "hospital",
+     "lat": 49.280617899011276,
+     "lng": -123.1289291381836,
+     "sem": false,
+     "src": "tile",
+     "cls": "hospital",
+     "km": 0.6
+    },
+    {
+     "dbg": "8/30/2324/tile",
+     "name": "Vancouver General Hospital",
+     "address": "hospital",
+     "lat": 49.26184298688122,
+     "lng": -123.12266886234283,
+     "sem": false,
+     "src": "tile",
+     "cls": "hospital",
+     "km": 2.3
+    },
+    {
+     "dbg": "8/30/3277/tile",
+     "name": "Mount Saint Joseph Hospital",
+     "address": "hospital",
+     "lat": 49.25831751899989,
+     "lng": -123.09533178806305,
+     "sem": false,
+     "src": "tile",
+     "cls": "hospital",
+     "km": 3.3
+    },
+    {
+     "dbg": "8/30/5736/",
+     "name": "Lions Gate Hospital",
+     "address": "231 East 15th Street, North Vancouver, British Columbia",
+     "lat": 49.3209784,
+     "lng": -123.0676719,
+     "sem": false,
+     "cls": "hospital",
+     "km": 5.7
+    },
+    {
+     "dbg": "8/30/8475/",
+     "name": "Burnaby Hospital",
+     "address": "3935 Kincaid Street, Burnaby, British Columbia",
+     "lat": 49.2496569,
+     "lng": -123.0154533,
+     "sem": false,
+     "cls": "hospital",
+     "km": 8.5
+    }
+   ],
+   "timedOut": false,
+   "ms": 6597
+  },
+  {
+   "region": "vancouver",
+   "q": "Walmart",
+   "localTop": "Walmart Supercentre",
+   "top": [
+    {
+     "dbg": "6.5//4509/",
+     "name": "Walmart",
+     "address": "West 3rd Street, Lower Lonsdale, North Vancouver, British Columbia, V7P 1S0",
+     "lat": 49.321008,
+     "lng": -123.1002909,
+     "sem": false,
+     "cls": "shop=department_store",
+     "km": 4.5
+    },
+    {
+     "dbg": "6.5//15929/",
+     "name": "Walmart",
+     "address": "805 Boyd Street, Queensborough, New Westminster, British Columbia, V3M 5B0",
+     "lat": 49.1918096,
+     "lng": -122.9511112,
+     "sem": false,
+     "cls": "shop=department_store",
+     "km": 15.9
+    },
+    {
+     "dbg": "6.5//16329/",
+     "name": "Walmart",
+     "address": "Sixth Avenue, Brow of the Hill, New Westminster, British Columbia, V3M 3S3",
+     "lat": 49.2119512,
+     "lng": -122.9235773,
+     "sem": false,
+     "cls": "shop=department_store",
+     "km": 16.3
+    },
+    {
+     "dbg": "6.5//16658/",
+     "name": "Walmart",
+     "address": "9855 Austin Avenue, Cariboo, Coquitlam, British Columbia, V3J 1N7",
+     "lat": 49.2519216,
+     "lng": -122.896014,
+     "sem": false,
+     "cls": "shop=department_store",
+     "km": 16.6
+    },
+    {
+     "dbg": "6.5//22492/",
+     "name": "Walmart",
+     "address": "10153 King George Boulevard, City Centre, Surrey, British Columbia, V3T 2W1",
+     "lat": 49.1869641,
+     "lng": -122.847815,
+     "sem": false,
+     "cls": "shop=department_store",
+     "km": 22.4
+    }
+   ],
+   "timedOut": false,
+   "ms": 5397
+  },
+  {
+   "region": "vancouver",
+   "q": "Costco",
+   "localTop": "Costco",
+   "top": [
+    {
+     "dbg": "6.5//901/",
+     "name": "Costco Tire Centre",
+     "address": "Dunsmuir Viaduct, Downtown, Vancouver, British Columbia, V6B 0P8",
+     "lat": 49.2790997,
+     "lng": -123.1095737,
+     "sem": false,
+     "cls": "shop=tyres",
+     "km": 0.9
+    },
+    {
+     "dbg": "6.5/0/918/tile",
+     "name": "Costco",
+     "address": "wholesale",
+     "lat": 49.278777125549595,
+     "lng": -123.10956358909607,
+     "sem": false,
+     "src": "tile",
+     "cls": "shop",
+     "km": 0.9
+    },
+    {
+     "dbg": "6.5/0/925/tile",
+     "name": "Costco Pharmacy",
+     "address": "pharmacy",
+     "lat": 49.27873862955366,
+     "lng": -123.10948848724365,
+     "sem": false,
+     "src": "tile",
+     "cls": "pharmacy",
+     "km": 0.9
+    },
+    {
+     "dbg": "6.5/0/938/tile",
+     "name": "Costco Food Court",
+     "address": "fast food",
+     "lat": 49.2787666266446,
+     "lng": -123.1092631816864,
+     "sem": false,
+     "src": "tile",
+     "cls": "fast_food",
+     "km": 0.9
+    },
+    {
+     "dbg": "6.5//9161/",
+     "name": "Costco",
+     "address": "4500 Still Creek Drive, Central Valley, Burnaby, British Columbia, V5C 0E5",
+     "lat": 49.2602716,
+     "lng": -122.9991983,
+     "sem": false,
+     "cls": "shop=wholesale",
+     "km": 9.1
+    }
+   ],
+   "timedOut": false,
+   "ms": 6335
+  },
+  {
+   "region": "vancouver",
+   "q": "Tim Hortons",
+   "localTop": "Tim Hortons",
+   "top": [
+    {
+     "dbg": "10/0/167/tile",
+     "name": "Tim Hortons",
+     "address": "cafe",
+     "lat": 49.282147158551425,
+     "lng": -123.11855435371399,
+     "sem": false,
+     "src": "tile",
+     "cls": "cafe",
+     "km": 0.2
+    },
+    {
+     "dbg": "10/0/440/tile",
+     "name": "Tim Hortons",
+     "address": "cafe",
+     "lat": 49.28493259868941,
+     "lng": -123.11568439006805,
+     "sem": false,
+     "src": "tile",
+     "cls": "cafe",
+     "km": 0.4
+    },
+    {
+     "dbg": "10/0/548/tile",
+     "name": "Tim Hortons",
+     "address": "cafe",
+     "lat": 49.28758841831032,
+     "lng": -123.121617436409,
+     "sem": false,
+     "src": "tile",
+     "cls": "cafe",
+     "km": 0.5
+    },
+    {
+     "dbg": "10/0/733/tile",
+     "name": "Tim Hortons",
+     "address": "cafe",
+     "lat": 49.28704606887857,
+     "lng": -123.12829613685608,
+     "sem": false,
+     "src": "tile",
+     "cls": "cafe",
+     "km": 0.7
+    },
+    {
+     "dbg": "10/0/738/tile",
+     "name": "Tim Hortons",
+     "address": "cafe",
+     "lat": 49.2776012342963,
+     "lng": -123.12721788883209,
+     "sem": false,
+     "src": "tile",
+     "cls": "cafe",
+     "km": 0.7
+    }
+   ],
+   "timedOut": false,
+   "ms": 7398
+  },
+  {
+   "region": "vancouver",
+   "q": "coffee",
+   "localTop": "Cafe Artigiano",
+   "top": [
+    {
+     "dbg": "8/0/69/tile",
+     "name": "Cafe Artigiano",
+     "address": "cafe",
+     "lat": 49.28311998090163,
+     "lng": -123.12139213085175,
+     "sem": false,
+     "src": "tile",
+     "cls": "cafe",
+     "km": 0.1
+    },
+    {
+     "dbg": "8/0/69/tile",
+     "name": "Faubourg Paris",
+     "address": "cafe",
+     "lat": 49.28306399164654,
+     "lng": -123.12147796154022,
+     "sem": false,
+     "src": "tile",
+     "cls": "cafe",
+     "km": 0.1
+    },
+    {
+     "dbg": "8/0/73/tile",
+     "name": "Bellaggio Café",
+     "address": "cafe",
+     "lat": 49.283028998329854,
+     "lng": -123.12157452106476,
+     "sem": false,
+     "src": "tile",
+     "cls": "cafe",
+     "km": 0.1
+    },
+    {
+     "dbg": "8/0/137/tile",
+     "name": "Cafe Bel",
+     "address": "cafe",
+     "lat": 49.283340437975454,
+     "lng": -123.11908543109894,
+     "sem": false,
+     "src": "tile",
+     "cls": "cafe",
+     "km": 0.1
+    },
+    {
+     "dbg": "8/0/159/tile",
+     "name": "My Honey's Buns",
+     "address": "cafe",
+     "lat": 49.284047293692794,
+     "lng": -123.11997056007385,
+     "sem": false,
+     "src": "tile",
+     "cls": "cafe",
+     "km": 0.2
+    }
+   ],
+   "timedOut": false,
+   "ms": 5948
+  },
+  {
+   "region": "vancouver",
+   "q": "pharmacy",
+   "localTop": "Shoppers Drug Mart",
+   "top": [
+    {
+     "dbg": "8/0/135/tile",
+     "name": "Shoppers Drug Mart",
+     "address": "pharmacy",
+     "lat": 49.28344891649124,
+     "lng": -123.12216460704803,
+     "sem": false,
+     "src": "tile",
+     "cls": "pharmacy",
+     "km": 0.1
+    },
+    {
+     "dbg": "8/0/195/tile",
+     "name": "London Drugs",
+     "address": "pharmacy",
+     "lat": 49.282115663981955,
+     "lng": -123.11816275119781,
+     "sem": false,
+     "src": "tile",
+     "cls": "pharmacy",
+     "km": 0.2
+    },
+    {
+     "dbg": "8/0/348/tile",
+     "name": "Shoppers Drug Mart",
+     "address": "pharmacy",
+     "lat": 49.28362388133644,
+     "lng": -123.11611890792847,
+     "sem": false,
+     "src": "tile",
+     "cls": "pharmacy",
+     "km": 0.3
+    },
+    {
+     "dbg": "8/0/392/tile",
+     "name": "Sina",
+     "address": "pharmacy",
+     "lat": 49.279267071964114,
+     "lng": -123.11946094036102,
+     "sem": false,
+     "src": "tile",
+     "cls": "pharmacy",
+     "km": 0.4
+    },
+    {
+     "dbg": "8/0/402/tile",
+     "name": "Bentall Pharmacy",
+     "address": "pharmacy",
+     "lat": 49.28630776425729,
+     "lng": -123.12037825584412,
+     "sem": false,
+     "src": "tile",
+     "cls": "pharmacy",
+     "km": 0.4
+    }
+   ],
+   "timedOut": false,
+   "ms": 6916
+  },
+  {
+   "region": "vancouver",
+   "q": "grocery",
+   "localTop": "H Mart",
+   "top": [
+    {
+     "dbg": "8/0/276/tile",
+     "name": "H Mart",
+     "address": "supermarket",
+     "lat": 49.28052341231256,
+     "lng": -123.11886548995972,
+     "sem": false,
+     "src": "tile",
+     "cls": "grocery",
+     "km": 0.3
+    },
+    {
+     "dbg": "8/0/298/tile",
+     "name": "ABURI Market",
+     "address": "supermarket",
+     "lat": 49.283592387710115,
+     "lng": -123.1168270111084,
+     "sem": false,
+     "src": "tile",
+     "cls": "grocery",
+     "km": 0.3
+    },
+    {
+     "dbg": "8/0/311/tile",
+     "name": "IGA",
+     "address": "supermarket",
+     "lat": 49.28221364702088,
+     "lng": -123.12492728233337,
+     "sem": false,
+     "src": "tile",
+     "cls": "grocery",
+     "km": 0.3
+    },
+    {
+     "dbg": "8/0/374/tile",
+     "name": "IGA",
+     "address": "supermarket",
+     "lat": 49.28007897244933,
+     "lng": -123.11746001243591,
+     "sem": false,
+     "src": "tile",
+     "cls": "grocery",
+     "km": 0.4
+    },
+    {
+     "dbg": "8/0/457/tile",
+     "name": "Nesters Market",
+     "address": "supermarket",
+     "lat": 49.27864063961019,
+     "lng": -123.12169253826141,
+     "sem": false,
+     "src": "tile",
+     "cls": "grocery",
+     "km": 0.5
+    }
+   ],
+   "timedOut": false,
+   "ms": 7992
+  },
+  {
+   "region": "vancouver",
+   "q": "train station",
+   "localTop": "Vancouver City Centre station",
+   "top": [
+    {
+     "dbg": "8/0/151/tile",
+     "name": "Vancouver City Centre station",
+     "address": "subway",
+     "lat": 49.28199318490951,
+     "lng": -123.11892449855804,
+     "sem": false,
+     "src": "tile",
+     "cls": "railway",
+     "km": 0.2
+    },
+    {
+     "dbg": "8/0/151/",
+     "name": "Vancouver City Centre",
+     "address": "Granville Street, Vancouver, British Columbia",
+     "lat": 49.2819919,
+     "lng": -123.118923,
+     "sem": false,
+     "cls": "railway",
+     "km": 0.2
+    },
+    {
+     "dbg": "8/0/333/tile",
+     "name": "Burrard station",
+     "address": "subway",
+     "lat": 49.28563593243558,
+     "lng": -123.11981499195099,
+     "sem": false,
+     "src": "tile",
+     "cls": "railway",
+     "km": 0.3
+    },
+    {
+     "dbg": "8/0/343/tile",
+     "name": "Granville station",
+     "address": "subway",
+     "lat": 49.283228459902375,
+     "lng": -123.11604380607605,
+     "sem": false,
+     "src": "tile",
+     "cls": "railway",
+     "km": 0.3
+    },
+    {
+     "dbg": "8/0/608/",
+     "name": "Waterfront",
+     "address": "Granville Street, Vancouver, British Columbia",
+     "lat": 49.2855437,
+     "lng": -123.11354,
+     "sem": false,
+     "cls": "railway",
+     "km": 0.6
+    }
+   ],
+   "timedOut": false,
+   "ms": 6130
+  },
+  {
+   "region": "vancouver",
+   "q": "bus station",
+   "localTop": "Heather Square",
+   "top": [
+    {
+     "dbg": "8/0/1824/tile",
+     "name": "Heather Square",
+     "address": "bus station",
+     "lat": 49.26629935001543,
+     "lng": -123.1201583147049,
+     "sem": false,
+     "src": "tile",
+     "cls": "bus",
+     "km": 1.8
+    },
+    {
+     "dbg": "8/0/1945/tile",
+     "name": "Vancouver Main Terminal",
+     "address": "bus station",
+     "lat": 49.273530894237695,
+     "lng": -123.09786379337311,
+     "sem": false,
+     "src": "tile",
+     "cls": "bus",
+     "km": 1.9
+    },
+    {
+     "dbg": "8/0/2212/tile",
+     "name": "Stanley Park Loop",
+     "address": "bus station",
+     "lat": 49.30061700729178,
+     "lng": -123.1339555978775,
+     "sem": false,
+     "src": "tile",
+     "cls": "bus",
+     "km": 2.2
+    },
+    {
+     "dbg": "8/0/15044/",
+     "name": "Production Station Bus Loop",
+     "address": "Lougheed Highway, Burnaby, British Columbia",
+     "lat": 49.2538711,
+     "lng": -122.918127,
+     "sem": false,
+     "cls": "bus",
+     "km": 15
+    },
+    {
+     "dbg": "8/0/38653/",
+     "name": "Haney Place Bus Station",
+     "address": "Edge Street, Maple Ridge, British Columbia",
+     "lat": 49.2193558,
+     "lng": -122.597079,
+     "sem": false,
+     "cls": "bus",
+     "km": 38.6
+    }
+   ],
+   "timedOut": false,
+   "ms": 7682
+  },
+  {
+   "region": "vancouver",
+   "q": "ferry terminal",
+   "localTop": "Hullo - Vancouver",
+   "top": [
+    {
+     "dbg": "8/0/903/tile",
+     "name": "Hullo - Vancouver",
+     "address": "ferry terminal",
+     "lat": 49.29030357479826,
+     "lng": -123.11634421348572,
+     "sem": false,
+     "src": "tile",
+     "cls": "ferry_terminal",
+     "km": 0.9
+    },
+    {
+     "dbg": "8/0/947/tile",
+     "name": "Seabus Terminal",
+     "address": "ferry terminal",
+     "lat": 49.286937598276324,
+     "lng": -123.109370470047,
+     "sem": false,
+     "src": "tile",
+     "cls": "ferry_terminal",
+     "km": 0.9
+    },
+    {
+     "dbg": "8/0/973/tile",
+     "name": "Waterfront",
+     "address": "ferry terminal",
+     "lat": 49.28701807648795,
+     "lng": -123.10902714729309,
+     "sem": false,
+     "src": "tile",
+     "cls": "ferry_terminal",
+     "km": 1
+    },
+    {
+     "dbg": "8/0/1232/tile",
+     "name": "Plaza of Nations Dock",
+     "address": "ferry terminal",
+     "lat": 49.27419939102242,
+     "lng": -123.10981571674347,
+     "sem": false,
+     "src": "tile",
+     "cls": "ferry_terminal",
+     "km": 1.2
+    },
+    {
+     "dbg": "8/0/1238/tile",
+     "name": "Yaletown Dock",
+     "address": "ferry terminal",
+     "lat": 49.27171085708349,
+     "lng": -123.11795353889465,
+     "sem": false,
+     "src": "tile",
+     "cls": "ferry_terminal",
+     "km": 1.2
+    }
+   ],
+   "timedOut": false,
+   "ms": 8249
+  },
+  {
+   "region": "vancouver",
+   "q": "university",
+   "localTop": "British Columbia Institute of Technology",
+   "top": [
+    {
+     "dbg": "8/70/399/tile",
+     "name": "British Columbia Institute of Technology",
+     "address": "college",
+     "lat": 49.28342092205841,
+     "lng": -123.11530888080597,
+     "sem": false,
+     "src": "tile",
+     "cls": "college",
+     "km": 0.4
+    },
+    {
+     "dbg": "8/70/427/tile",
+     "name": "Northeastern University",
+     "address": "university",
+     "lat": 49.28054790888146,
+     "lng": -123.11582386493683,
+     "sem": false,
+     "src": "tile",
+     "cls": "college",
+     "km": 0.4
+    },
+    {
+     "dbg": "8/70/494/tile",
+     "name": "Adler University",
+     "address": "university",
+     "lat": 49.2837148628106,
+     "lng": -123.11406433582306,
+     "sem": false,
+     "src": "tile",
+     "cls": "college",
+     "km": 0.5
+    },
+    {
+     "dbg": "8/70/1104/",
+     "name": "University Canada West",
+     "address": "Pacific Street Bike Route, Downtown, Vancouver, British Columbia, V6Z 1R8",
+     "lat": 49.274915,
+     "lng": -123.1301395,
+     "sem": false,
+     "cls": "building=university",
+     "km": 1.1
+    },
+    {
+     "dbg": "8/70/2666/",
+     "name": "Emily Carr University",
+     "address": "520 East 1st Avenue, Vancouver, British Columbia",
+     "lat": 49.2675802,
+     "lng": -123.0921846,
+     "sem": false,
+     "cls": "college",
+     "km": 2.7
+    }
+   ],
+   "timedOut": false,
+   "ms": 8129
+  },
+  {
+   "region": "vancouver",
+   "q": "park",
+   "localTop": "Robson Square",
+   "top": [
+    {
+     "dbg": "8/0/7/tile",
+     "name": "Robson Square",
+     "address": "park",
+     "lat": 49.28275954895955,
+     "lng": -123.12066793441772,
+     "sem": false,
+     "src": "tile",
+     "cls": "park",
+     "km": 0
+    },
+    {
+     "dbg": "8/0/330/tile",
+     "name": "Art Phillips Park",
+     "address": "park",
+     "lat": 49.285653428172054,
+     "lng": -123.1201958656311,
+     "sem": false,
+     "src": "tile",
+     "cls": "park",
+     "km": 0.3
+    },
+    {
+     "dbg": "8/0/415/tile",
+     "name": "Rainbow Park",
+     "address": "park",
+     "lat": 49.27920757873056,
+     "lng": -123.11869382858276,
+     "sem": false,
+     "src": "tile",
+     "cls": "park",
+     "km": 0.4
+    },
+    {
+     "dbg": "8/0/508/tile",
+     "name": "Cathedral Square",
+     "address": "park",
+     "lat": 49.28249359748793,
+     "lng": -123.1137102842331,
+     "sem": false,
+     "src": "tile",
+     "cls": "park",
+     "km": 0.5
+    },
+    {
+     "dbg": "8/0/599/tile",
+     "name": "BC Hydro Plaza",
+     "address": "park",
+     "lat": 49.28155225772994,
+     "lng": -123.11262667179108,
+     "sem": false,
+     "src": "tile",
+     "cls": "park",
+     "km": 0.6
+    }
+   ],
+   "timedOut": false,
+   "ms": 5720
+  },
+  {
+   "region": "vancouver",
+   "q": "hotel",
+   "localTop": "Hotel Vancouver",
+   "top": [
+    {
+     "dbg": "8/0/121/",
+     "name": "Fairmont Hotel Vancouver",
+     "address": "900 West Georgia Street, Vancouver, British Columbia",
+     "lat": 49.2837697,
+     "lng": -123.1209858,
+     "sem": false,
+     "cls": "lodging",
+     "km": 0.1
+    },
+    {
+     "dbg": "8/0/121/tile",
+     "name": "Hotel Vancouver",
+     "address": "hotel",
+     "lat": 49.283770851326636,
+     "lng": -123.12098443508148,
+     "sem": false,
+     "src": "tile",
+     "cls": "lodging",
+     "km": 0.1
+    },
+    {
+     "dbg": "8/0/153/tile",
+     "name": "Rosewood Hotel Georgia",
+     "address": "hotel",
+     "lat": 49.283546896881035,
+     "lng": -123.1190425157547,
+     "sem": false,
+     "src": "tile",
+     "cls": "lodging",
+     "km": 0.2
+    },
+    {
+     "dbg": "8/0/155/tile",
+     "name": "Wedgewood Hotel & Spa - Relais & Chateaux",
+     "address": "hotel",
+     "lat": 49.28236761997445,
+     "lng": -123.12277615070343,
+     "sem": false,
+     "src": "tile",
+     "cls": "lodging",
+     "km": 0.2
+    },
+    {
+     "dbg": "8/0/226/",
+     "name": "Metropolitan Hotel Vancouver",
+     "address": "645 Howe Street, Vancouver, British Columbia",
+     "lat": 49.2840106,
+     "lng": -123.1183233,
+     "sem": false,
+     "cls": "lodging",
+     "km": 0.2
+    }
+   ],
+   "timedOut": false,
+   "ms": 7319
+  },
+  {
+   "region": "vancouver",
+   "q": "parking",
+   "localTop": "Impark",
+   "top": [
+    {
+     "dbg": "8/0/230/tile",
+     "name": "Impark",
+     "address": "parking",
+     "lat": 49.28331244348104,
+     "lng": -123.1237256526947,
+     "sem": false,
+     "src": "tile",
+     "cls": "parking",
+     "km": 0.2
+    },
+    {
+     "dbg": "8/0/339/tile",
+     "name": "Impark",
+     "address": "parking",
+     "lat": 49.27996348741985,
+     "lng": -123.1186294555664,
+     "sem": false,
+     "src": "tile",
+     "cls": "parking",
+     "km": 0.3
+    },
+    {
+     "dbg": "8/0/349/tile",
+     "name": "Parkwell Plaza Parking",
+     "address": "parking",
+     "lat": 49.28198968550299,
+     "lng": -123.11601161956787,
+     "sem": false,
+     "src": "tile",
+     "cls": "parking",
+     "km": 0.3
+    },
+    {
+     "dbg": "8/0/423/tile",
+     "name": "Impark",
+     "address": "parking",
+     "lat": 49.28342442136338,
+     "lng": -123.11497092247009,
+     "sem": false,
+     "src": "tile",
+     "cls": "parking",
+     "km": 0.4
+    },
+    {
+     "dbg": "8/0/457/tile",
+     "name": "Bentall Centre Pender Parkade",
+     "address": "parking",
+     "lat": 49.286692663780514,
+     "lng": -123.11921417713165,
+     "sem": false,
+     "src": "tile",
+     "cls": "parking",
+     "km": 0.5
+    }
+   ],
+   "timedOut": false,
+   "ms": 6429
+  },
+  {
+   "region": "vancouver",
+   "q": "机场",
+   "localTop": "Vancouver Harbour Water Airport",
+   "top": [
+    {
+     "dbg": "8/150/10966/",
+     "name": "Vancouver International Airport",
+     "address": "3211 Grant McConachie Way, Richmond, British Columbia",
+     "lat": 49.1928337,
+     "lng": -123.1829087,
+     "sem": false,
+     "cls": "aerodrome",
+     "km": 10.9
+    },
+    {
+     "dbg": "8/-20/920/tile",
+     "name": "Vancouver Harbour Water Airport",
+     "address": "aerodrome",
+     "lat": 49.29070593707135,
+     "lng": -123.11748147010803,
+     "sem": false,
+     "src": "tile",
+     "cls": "aerodrome",
+     "km": 0.9
+    },
+    {
+     "dbg": "8/20/24737/",
+     "name": "Boundary Bay Airport",
+     "address": "7800 Alpha Way, Delta, British Columbia",
+     "lat": 49.073622,
+     "lng": -123.0044224,
+     "sem": false,
+     "cls": "aerodrome",
+     "km": 24.7
+    },
+    {
+     "dbg": "8/20/31068/",
+     "name": "Pitt Meadows Airport",
+     "address": "Pitt River Regional Greenway, Pitt Meadows, British Columbia",
+     "lat": 49.2152849,
+     "lng": -122.7053167,
+     "sem": false,
+     "cls": "aerodrome",
+     "km": 31
+    },
+    {
+     "dbg": "8/20/41114/",
+     "name": "Langley Regional Airport",
+     "address": "56 Avenue Frontage Road, Langley Township, British Columbia",
+     "lat": 49.1008155,
+     "lng": -122.6281107,
+     "sem": false,
+     "cls": "aerodrome",
+     "km": 41
+    }
+   ],
+   "timedOut": false,
+   "ms": 5532
+  },
+  {
+   "region": "vancouver",
+   "q": "加油站",
+   "localTop": "Esso",
+   "top": [
+    {
+     "dbg": "8/0/780/tile",
+     "name": "Esso",
+     "address": "fuel",
+     "lat": 49.27919707991717,
+     "lng": -123.13001275062561,
+     "sem": false,
+     "src": "tile",
+     "cls": "fuel",
+     "km": 0.8
+    },
+    {
+     "dbg": "8/0/1333/tile",
+     "name": "Chevron",
+     "address": "fuel",
+     "lat": 49.294578943346664,
+     "lng": -123.11825394630432,
+     "sem": false,
+     "src": "tile",
+     "cls": "fuel",
+     "km": 1.3
+    },
+    {
+     "dbg": "8/0/1486/tile",
+     "name": "False Creek Fuels",
+     "address": "fuel",
+     "lat": 49.275662352377395,
+     "lng": -123.13810765743256,
+     "sem": false,
+     "src": "tile",
+     "cls": "fuel",
+     "km": 1.5
+    },
+    {
+     "dbg": "8/0/2040/tile",
+     "name": "Shell",
+     "address": "fuel",
+     "lat": 49.26946371858102,
+     "lng": -123.10122191905975,
+     "sem": false,
+     "src": "tile",
+     "cls": "fuel",
+     "km": 2
+    },
+    {
+     "dbg": "8/0/2310/tile",
+     "name": "Petro-Canada",
+     "address": "fuel",
+     "lat": 49.27003776369571,
+     "lng": -123.14594507217407,
+     "sem": false,
+     "src": "tile",
+     "cls": "fuel",
+     "km": 2.3
+    }
+   ],
+   "timedOut": false,
+   "ms": 7622
+  },
+  {
+   "region": "vancouver",
+   "q": "医院",
+   "localTop": "St. Paul's Hospital",
+   "top": [
+    {
+     "dbg": "8/30/640/tile",
+     "name": "St. Paul's Hospital",
+     "address": "hospital",
+     "lat": 49.280617899011276,
+     "lng": -123.1289291381836,
+     "sem": false,
+     "src": "tile",
+     "cls": "hospital",
+     "km": 0.6
+    },
+    {
+     "dbg": "8/30/2324/tile",
+     "name": "Vancouver General Hospital",
+     "address": "hospital",
+     "lat": 49.26184298688122,
+     "lng": -123.12266886234283,
+     "sem": false,
+     "src": "tile",
+     "cls": "hospital",
+     "km": 2.3
+    },
+    {
+     "dbg": "8/30/3277/tile",
+     "name": "Mount Saint Joseph Hospital",
+     "address": "hospital",
+     "lat": 49.25831751899989,
+     "lng": -123.09533178806305,
+     "sem": false,
+     "src": "tile",
+     "cls": "hospital",
+     "km": 3.3
+    },
+    {
+     "dbg": "8/30/5736/",
+     "name": "Lions Gate Hospital",
+     "address": "231 East 15th Street, North Vancouver, British Columbia",
+     "lat": 49.3209784,
+     "lng": -123.0676719,
+     "sem": false,
+     "cls": "hospital",
+     "km": 5.7
+    },
+    {
+     "dbg": "8/30/8475/",
+     "name": "Burnaby Hospital",
+     "address": "3935 Kincaid Street, Burnaby, British Columbia",
+     "lat": 49.2496569,
+     "lng": -123.0154533,
+     "sem": false,
+     "cls": "hospital",
+     "km": 8.5
+    }
+   ],
+   "timedOut": false,
+   "ms": 7533
+  },
+  {
+   "region": "vancouver",
+   "q": "超市",
+   "localTop": "H Mart",
+   "top": [
+    {
+     "dbg": "8/0/276/tile",
+     "name": "H Mart",
+     "address": "supermarket",
+     "lat": 49.28052341231256,
+     "lng": -123.11886548995972,
+     "sem": false,
+     "src": "tile",
+     "cls": "grocery",
+     "km": 0.3
+    },
+    {
+     "dbg": "8/0/298/tile",
+     "name": "ABURI Market",
+     "address": "supermarket",
+     "lat": 49.283592387710115,
+     "lng": -123.1168270111084,
+     "sem": false,
+     "src": "tile",
+     "cls": "grocery",
+     "km": 0.3
+    },
+    {
+     "dbg": "8/0/311/tile",
+     "name": "IGA",
+     "address": "supermarket",
+     "lat": 49.28221364702088,
+     "lng": -123.12492728233337,
+     "sem": false,
+     "src": "tile",
+     "cls": "grocery",
+     "km": 0.3
+    },
+    {
+     "dbg": "8/0/374/tile",
+     "name": "IGA",
+     "address": "supermarket",
+     "lat": 49.28007897244933,
+     "lng": -123.11746001243591,
+     "sem": false,
+     "src": "tile",
+     "cls": "grocery",
+     "km": 0.4
+    },
+    {
+     "dbg": "8/0/457/tile",
+     "name": "Nesters Market",
+     "address": "supermarket",
+     "lat": 49.27864063961019,
+     "lng": -123.12169253826141,
+     "sem": false,
+     "src": "tile",
+     "cls": "grocery",
+     "km": 0.5
+    }
+   ],
+   "timedOut": false,
+   "ms": 6733
+  },
+  {
+   "region": "toronto",
+   "q": "airport",
+   "localTop": "Billy Bishop Toronto City Airport",
+   "top": [
+    {
+     "dbg": "8/150/19951/",
+     "name": "Toronto Pearson International Airport",
+     "address": "Shawson Drive, Mississauga, Ontario",
+     "lat": 43.6782236,
+     "lng": -79.6288047,
+     "sem": false,
+     "cls": "aerodrome",
+     "km": 19.9
+    },
+    {
+     "dbg": "8/60/2956/tile",
+     "name": "Billy Bishop Toronto City Airport",
+     "address": "aerodrome",
+     "lat": 43.628270963826225,
+     "lng": -79.39596176147461,
+     "sem": false,
+     "src": "tile",
+     "cls": "aerodrome",
+     "km": 3
+    },
+    {
+     "dbg": "8/20/39042/",
+     "name": "Ajax Airport",
+     "address": "Fielding Court, Ajax, Ontario",
+     "lat": 43.9072219,
+     "lng": -79.0474825,
+     "sem": false,
+     "cls": "aerodrome",
+     "km": 39
+    },
+    {
+     "dbg": "8/20/41238/",
+     "name": "Brampton-Caledon Airport",
+     "address": "13691 McLaughlin Road, Caledon, Ontario",
+     "lat": 43.7586673,
+     "lng": -79.8750421,
+     "sem": false,
+     "cls": "aerodrome",
+     "km": 41.2
+    },
+    {
+     "dbg": "8/20/44314/",
+     "name": "Burlington Executive Airport",
+     "address": "Bell School Line, Milton, Ontario",
+     "lat": 43.4420867,
+     "lng": -79.8495622,
+     "sem": false,
+     "cls": "aerodrome",
+     "km": 44.2
+    }
+   ],
+   "timedOut": false,
+   "ms": 5308
+  },
+  {
+   "region": "toronto",
+   "q": "gas station",
+   "localTop": "Petro-Canada",
+   "top": [
+    {
+     "dbg": "8/0/867/tile",
+     "name": "Petro-Canada",
+     "address": "fuel",
+     "lat": 43.6529031354882,
+     "lng": -79.37243342399597,
+     "sem": false,
+     "src": "tile",
+     "cls": "fuel",
+     "km": 0.9
+    },
+    {
+     "dbg": "8/0/1300/tile",
+     "name": "Petro-Canada",
+     "address": "fuel",
+     "lat": 43.644701297431254,
+     "lng": -79.3943041563034,
+     "sem": false,
+     "src": "tile",
+     "cls": "fuel",
+     "km": 1.3
+    },
+    {
+     "dbg": "8/0/1369/tile",
+     "name": "Shell",
+     "address": "fuel",
+     "lat": 43.64426264415965,
+     "lng": -79.39491033554077,
+     "sem": false,
+     "src": "tile",
+     "cls": "fuel",
+     "km": 1.4
+    },
+    {
+     "dbg": "8/0/1550/tile",
+     "name": "Petro-Canada",
+     "address": "fuel",
+     "lat": 43.66658719204861,
+     "lng": -79.37784612178802,
+     "sem": false,
+     "src": "tile",
+     "cls": "fuel",
+     "km": 1.5
+    },
+    {
+     "dbg": "8/0/1581/tile",
+     "name": "Shell",
+     "address": "fuel",
+     "lat": 43.6548321320509,
+     "lng": -79.36368405818939,
+     "sem": false,
+     "src": "tile",
+     "cls": "fuel",
+     "km": 1.6
+    }
+   ],
+   "timedOut": false,
+   "ms": 6683
+  },
+  {
+   "region": "toronto",
+   "q": "hospital",
+   "localTop": "St. Michael's Hospital",
+   "top": [
+    {
+     "dbg": "8/30/436/tile",
+     "name": "St. Michael's Hospital",
+     "address": "hospital",
+     "lat": 43.65363670486255,
+     "lng": -79.37780857086182,
+     "sem": false,
+     "src": "tile",
+     "cls": "hospital",
+     "km": 0.4
+    },
+    {
+     "dbg": "8/30/520/",
+     "name": "Hospital for Sick Children Patient Support Centre",
+     "address": "175 Elizabeth Street, Toronto, Ontario, M5G 2C0",
+     "lat": 43.6575024,
+     "lng": -79.3857355,
+     "sem": false,
+     "cls": "building=hospital",
+     "km": 0.5
+    },
+    {
+     "dbg": "8/30/572/tile",
+     "name": "Hospital for Sick Children",
+     "address": "hospital",
+     "lat": 43.657265606726014,
+     "lng": -79.38756108283997,
+     "sem": false,
+     "src": "tile",
+     "cls": "hospital",
+     "km": 0.6
+    },
+    {
+     "dbg": "8/30/721/tile",
+     "name": "Toronto General Hospital",
+     "address": "hospital",
+     "lat": 43.658596795958374,
+     "lng": -79.3881618976593,
+     "sem": false,
+     "src": "tile",
+     "cls": "hospital",
+     "km": 0.7
+    },
+    {
+     "dbg": "8/30/743/tile",
+     "name": "Mount Sinai Hospital, Toronto",
+     "address": "hospital",
+     "lat": 43.65745189737419,
+     "lng": -79.39031839370728,
+     "sem": false,
+     "src": "tile",
+     "cls": "hospital",
+     "km": 0.7
+    }
+   ],
+   "timedOut": false,
+   "ms": 5612
+  },
+  {
+   "region": "toronto",
+   "q": "Walmart",
+   "localTop": "Walmart Supercentre",
+   "top": [
+    {
+     "dbg": "6.5//3967/",
+     "name": "Walmart",
+     "address": "Gerrard Street East, Toronto, Ontario, M4M 1Z1",
+     "lat": 43.6689246,
+     "lng": -79.338929,
+     "sem": false,
+     "cls": "shop=department_store",
+     "km": 4
+    },
+    {
+     "dbg": "6.5//4220/",
+     "name": "Walmart Supercentre",
+     "address": "900 Dufferin Street, Toronto, Ontario, M6H 4A9",
+     "lat": 43.6562633,
+     "lng": -79.4354893,
+     "sem": false,
+     "cls": "shop=supermarket",
+     "km": 4.2
+    },
+    {
+     "dbg": "6.5//8333/",
+     "name": "Walmart Supercentre",
+     "address": "2525 St. Clair Avenue West, York, Toronto, Ontario, M6N 4Z5",
+     "lat": 43.667987,
+     "lng": -79.484753,
+     "sem": false,
+     "cls": "shop=supermarket",
+     "km": 8.3
+    },
+    {
+     "dbg": "6.5//9517/",
+     "name": "Walmart",
+     "address": "1305 Lawrence Avenue West, North York, Toronto, Ontario, M6M 4A2",
+     "lat": 43.7084803,
+     "lng": -79.4735495,
+     "sem": false,
+     "cls": "shop=department_store",
+     "km": 9.5
+    },
+    {
+     "dbg": "6.5//12851/",
+     "name": "Walmart",
+     "address": "2202 Jane Street, North York, Toronto, Ontario, M3M 1A5",
+     "lat": 43.722199,
+     "lng": -79.5114217,
+     "sem": false,
+     "cls": "shop=department_store",
+     "km": 12.8
+    }
+   ],
+   "timedOut": false,
+   "ms": 6515
+  },
+  {
+   "region": "toronto",
+   "q": "Costco",
+   "localTop": "Costco",
+   "top": [
+    {
+     "dbg": "6.5//6637/",
+     "name": "Costco",
+     "address": "42 Overlea Boulevard, East York, Toronto, Ontario, M4H 1C2",
+     "lat": 43.7072797,
+     "lng": -79.3482708,
+     "sem": false,
+     "cls": "shop=wholesale",
+     "km": 6.6
+    },
+    {
+     "dbg": "6.5//10441/",
+     "name": "Costco",
+     "address": "100 Billy Bishop Way, North York, Toronto, Ontario, M3K 2C8",
+     "lat": 43.7310218,
+     "lng": -79.455861,
+     "sem": false,
+     "cls": "shop=wholesale",
+     "km": 10.4
+    },
+    {
+     "dbg": "6.5//10575/",
+     "name": "Costco",
+     "address": "50 Queen Elizabeth Boulevard, Etobicoke, Toronto, Ontario, M8Z 1M1",
+     "lat": 43.622693,
+     "lng": -79.5076665,
+     "sem": false,
+     "cls": "shop=wholesale",
+     "km": 10.6
+    },
+    {
+     "dbg": "6.5//13656/",
+     "name": "Costco",
+     "address": "1411 Warden Avenue, Scarborough, Toronto, Ontario, M1R 2S3",
+     "lat": 43.759388,
+     "lng": -79.297859,
+     "sem": false,
+     "cls": "shop=wholesale",
+     "km": 13.6
+    },
+    {
+     "dbg": "6.5//15301/",
+     "name": "Costco",
+     "address": "2260 Islington Avenue, Etobicoke, Toronto, Ontario, M9W 3W7",
+     "lat": 43.7122479,
+     "lng": -79.555068,
+     "sem": false,
+     "cls": "shop=wholesale",
+     "km": 15.3
+    }
+   ],
+   "timedOut": false,
+   "ms": 4849
+  },
+  {
+   "region": "toronto",
+   "q": "Tim Hortons",
+   "localTop": "Tim Hortons",
+   "top": [
+    {
+     "dbg": "10/0/190/tile",
+     "name": "Tim Hortons",
+     "address": "cafe",
+     "lat": 43.65166885568425,
+     "lng": -79.38214838504791,
+     "sem": false,
+     "src": "tile",
+     "cls": "cafe",
+     "km": 0.2
+    },
+    {
+     "dbg": "10/0/243/tile",
+     "name": "Tim Hortons",
+     "address": "cafe",
+     "lat": 43.65538714372789,
+     "lng": -79.38323736190796,
+     "sem": false,
+     "src": "tile",
+     "cls": "cafe",
+     "km": 0.2
+    },
+    {
+     "dbg": "10/0/398/tile",
+     "name": "Tim Hortons",
+     "address": "cafe",
+     "lat": 43.653826888052464,
+     "lng": -79.3783289194107,
+     "sem": false,
+     "src": "tile",
+     "cls": "cafe",
+     "km": 0.4
+    },
+    {
+     "dbg": "10/0/487/tile",
+     "name": "Tim Hortons",
+     "address": "cafe",
+     "lat": 43.65452163377029,
+     "lng": -79.38897728919983,
+     "sem": false,
+     "src": "tile",
+     "cls": "cafe",
+     "km": 0.5
+    },
+    {
+     "dbg": "10/0/505/tile",
+     "name": "Tim Hortons",
+     "address": "cafe",
+     "lat": 43.64973975751403,
+     "lng": -79.38726603984833,
+     "sem": false,
+     "src": "tile",
+     "cls": "cafe",
+     "km": 0.5
+    }
+   ],
+   "timedOut": false,
+   "ms": 4934
+  },
+  {
+   "region": "toronto",
+   "q": "coffee",
+   "localTop": "Mieluna Cafe",
+   "top": [
+    {
+     "dbg": "8/0/96/tile",
+     "name": "Mieluna Cafe",
+     "address": "cafe",
+     "lat": 43.65329126854857,
+     "lng": -79.38201427459717,
+     "sem": false,
+     "src": "tile",
+     "cls": "cafe",
+     "km": 0.1
+    },
+    {
+     "dbg": "8/0/190/tile",
+     "name": "Tim Hortons",
+     "address": "cafe",
+     "lat": 43.65166885568425,
+     "lng": -79.38214838504791,
+     "sem": false,
+     "src": "tile",
+     "cls": "cafe",
+     "km": 0.2
+    },
+    {
+     "dbg": "8/0/211/tile",
+     "name": "la prep(closed)",
+     "address": "cafe",
+     "lat": 43.65137774826002,
+     "lng": -79.38248097896576,
+     "sem": false,
+     "src": "tile",
+     "cls": "cafe",
+     "km": 0.2
+    },
+    {
+     "dbg": "8/0/224/tile",
+     "name": "Aroma Espresso Bar",
+     "address": "cafe",
+     "lat": 43.655173678305346,
+     "lng": -79.38374161720276,
+     "sem": false,
+     "src": "tile",
+     "cls": "cafe",
+     "km": 0.2
+    },
+    {
+     "dbg": "8/0/232/tile",
+     "name": "Hailed Coffee",
+     "address": "cafe",
+     "lat": 43.654758388854646,
+     "lng": -79.38512027263641,
+     "sem": false,
+     "src": "tile",
+     "cls": "cafe",
+     "km": 0.2
+    }
+   ],
+   "timedOut": false,
+   "ms": 5217
+  },
+  {
+   "region": "toronto",
+   "q": "pharmacy",
+   "localTop": "Shoppers Drug Mart",
+   "top": [
+    {
+     "dbg": "8/0/269/tile",
+     "name": "Shoppers Drug Mart",
+     "address": "pharmacy",
+     "lat": 43.65282938992314,
+     "lng": -79.37990069389343,
+     "sem": false,
+     "src": "tile",
+     "cls": "pharmacy",
+     "km": 0.3
+    },
+    {
+     "dbg": "8/0/284/tile",
+     "name": "Pharmamart",
+     "address": "pharmacy",
+     "lat": 43.65150583570053,
+     "lng": -79.3805605173111,
+     "sem": false,
+     "src": "tile",
+     "cls": "pharmacy",
+     "km": 0.3
+    },
+    {
+     "dbg": "8/0/380/tile",
+     "name": "Rexall",
+     "address": "pharmacy",
+     "lat": 43.651874570746514,
+     "lng": -79.3788492679596,
+     "sem": false,
+     "src": "tile",
+     "cls": "pharmacy",
+     "km": 0.4
+    },
+    {
+     "dbg": "8/0/394/tile",
+     "name": "Victor Pharmacy",
+     "address": "pharmacy",
+     "lat": 43.65572480566502,
+     "lng": -79.38662767410278,
+     "sem": false,
+     "src": "tile",
+     "cls": "pharmacy",
+     "km": 0.4
+    },
+    {
+     "dbg": "8/0/395/tile",
+     "name": "Rexall",
+     "address": "pharmacy",
+     "lat": 43.64964660029969,
+     "lng": -79.38326418399811,
+     "sem": false,
+     "src": "tile",
+     "cls": "pharmacy",
+     "km": 0.4
+    }
+   ],
+   "timedOut": false,
+   "ms": 5865
+  },
+  {
+   "region": "toronto",
+   "q": "grocery",
+   "localTop": "Eataly",
+   "top": [
+    {
+     "dbg": "8/0/274/tile",
+     "name": "Eataly",
+     "address": "supermarket",
+     "lat": 43.654898112728716,
+     "lng": -79.38072681427002,
+     "sem": false,
+     "src": "tile",
+     "cls": "grocery",
+     "km": 0.3
+    },
+    {
+     "dbg": "8/0/278/tile",
+     "name": "Longo's",
+     "address": "supermarket",
+     "lat": 43.65534833188934,
+     "lng": -79.38495934009552,
+     "sem": false,
+     "src": "tile",
+     "cls": "grocery",
+     "km": 0.3
+    },
+    {
+     "dbg": "8/0/315/tile",
+     "name": "Petra Ave Market",
+     "address": "supermarket",
+     "lat": 43.6555307473125,
+     "lng": -79.38543140888214,
+     "sem": false,
+     "src": "tile",
+     "cls": "grocery",
+     "km": 0.3
+    },
+    {
+     "dbg": "8/0/392/tile",
+     "name": "Marché Leo’s",
+     "address": "supermarket",
+     "lat": 43.65659806049055,
+     "lng": -79.38191771507263,
+     "sem": false,
+     "src": "tile",
+     "cls": "grocery",
+     "km": 0.4
+    },
+    {
+     "dbg": "8/0/419/tile",
+     "name": "T&T Supermarket",
+     "address": "supermarket",
+     "lat": 43.65692795345305,
+     "lng": -79.38240051269531,
+     "sem": false,
+     "src": "tile",
+     "cls": "grocery",
+     "km": 0.4
+    }
+   ],
+   "timedOut": false,
+   "ms": 6513
+  },
+  {
+   "region": "toronto",
+   "q": "train station",
+   "localTop": "Bay Street",
+   "top": [
+    {
+     "dbg": "8/0/281/tile",
+     "name": "Bay Street",
+     "address": "tram stop",
+     "lat": 43.6556665882251,
+     "lng": -79.38397228717804,
+     "sem": false,
+     "src": "tile",
+     "cls": "railway",
+     "km": 0.3
+    },
+    {
+     "dbg": "8/0/303/tile",
+     "name": "Queen",
+     "address": "subway",
+     "lat": 43.65290701683122,
+     "lng": -79.37945544719696,
+     "sem": false,
+     "src": "tile",
+     "cls": "railway",
+     "km": 0.3
+    },
+    {
+     "dbg": "8/0/307/tile",
+     "name": "York Street",
+     "address": "tram stop",
+     "lat": 43.65054711398591,
+     "lng": -79.38426733016968,
+     "sem": false,
+     "src": "tile",
+     "cls": "railway",
+     "km": 0.3
+    },
+    {
+     "dbg": "8/0/316/tile",
+     "name": "Chestnut Street",
+     "address": "tram stop",
+     "lat": 43.65529399527321,
+     "lng": -79.38586056232452,
+     "sem": false,
+     "src": "tile",
+     "cls": "railway",
+     "km": 0.3
+    },
+    {
+     "dbg": "8/0/351/tile",
+     "name": "University Avenue",
+     "address": "tram stop",
+     "lat": 43.65093526227284,
+     "lng": -79.38623607158661,
+     "sem": false,
+     "src": "tile",
+     "cls": "railway",
+     "km": 0.4
+    }
+   ],
+   "timedOut": false,
+   "ms": 5895
+  },
+  {
+   "region": "toronto",
+   "q": "bus station",
+   "localTop": "Union Station Bus Terminal",
+   "top": [
+    {
+     "dbg": "8/0/1124/tile",
+     "name": "Union Station Bus Terminal",
+     "address": "bus station",
+     "lat": 43.6439093900816,
+     "lng": -79.37770664691925,
+     "sem": false,
+     "src": "tile",
+     "cls": "bus",
+     "km": 1.1
+    },
+    {
+     "dbg": "8/0/2094/tile",
+     "name": "St. George",
+     "address": "bus station",
+     "lat": 43.66860887695546,
+     "lng": -79.39816117286682,
+     "sem": false,
+     "src": "tile",
+     "cls": "bus",
+     "km": 2.1
+    },
+    {
+     "dbg": "8/0/2528/tile",
+     "name": "Castle Frank",
+     "address": "bus station",
+     "lat": 43.67349789103989,
+     "lng": -79.36903238296509,
+     "sem": false,
+     "src": "tile",
+     "cls": "bus",
+     "km": 2.5
+    },
+    {
+     "dbg": "8/0/2661/tile",
+     "name": "Bathurst",
+     "address": "bus station",
+     "lat": 43.665927510454424,
+     "lng": -79.41120743751526,
+     "sem": false,
+     "src": "tile",
+     "cls": "bus",
+     "km": 2.7
+    },
+    {
+     "dbg": "8/0/3915/tile",
+     "name": "St. Clair",
+     "address": "bus station",
+     "lat": 43.687762998830436,
+     "lng": -79.39246416091919,
+     "sem": false,
+     "src": "tile",
+     "cls": "bus",
+     "km": 3.9
+    }
+   ],
+   "timedOut": false,
+   "ms": 8397
+  },
+  {
+   "region": "toronto",
+   "q": "ferry terminal",
+   "localTop": "Yonge St. Water Taxi",
+   "top": [
+    {
+     "dbg": "8/0/1465/tile",
+     "name": "Yonge St. Water Taxi",
+     "address": "ferry terminal",
+     "lat": 43.641366675817096,
+     "lng": -79.37520146369934,
+     "sem": false,
+     "src": "tile",
+     "cls": "ferry_terminal",
+     "km": 1.5
+    },
+    {
+     "dbg": "8/0/1535/tile",
+     "name": "Water Taxi",
+     "address": "ferry terminal",
+     "lat": 43.63958865290073,
+     "lng": -79.37999725341797,
+     "sem": false,
+     "src": "tile",
+     "cls": "ferry_terminal",
+     "km": 1.5
+    },
+    {
+     "dbg": "8/0/1568/tile",
+     "name": "Yonge",
+     "address": "ferry terminal",
+     "lat": 43.64081929882218,
+     "lng": -79.37386572360992,
+     "sem": false,
+     "src": "tile",
+     "cls": "ferry_terminal",
+     "km": 1.6
+    },
+    {
+     "dbg": "8/0/1570/tile",
+     "name": "Jack Layton Ferry Terminal",
+     "address": "ferry terminal",
+     "lat": 43.64036120644013,
+     "lng": -79.37507808208466,
+     "sem": false,
+     "src": "tile",
+     "cls": "ferry_terminal",
+     "km": 1.6
+    },
+    {
+     "dbg": "8/0/2175/tile",
+     "name": "Portland",
+     "address": "ferry terminal",
+     "lat": 43.636273159598204,
+     "lng": -79.39675033092499,
+     "sem": false,
+     "src": "tile",
+     "cls": "ferry_terminal",
+     "km": 2.2
+    }
+   ],
+   "timedOut": false,
+   "ms": 8699
+  },
+  {
+   "region": "toronto",
+   "q": "university",
+   "localTop": "University of Toronto Faculty of Dentistry",
+   "top": [
+    {
+     "dbg": "8/70/464/tile",
+     "name": "University of Toronto Faculty of Dentistry",
+     "address": "university",
+     "lat": 43.65629921471293,
+     "lng": -79.3870621919632,
+     "sem": false,
+     "src": "tile",
+     "cls": "college",
+     "km": 0.5
+    },
+    {
+     "dbg": "8/70/669/tile",
+     "name": "OCAD University",
+     "address": "university",
+     "lat": 43.65328350591196,
+     "lng": -79.39151465892792,
+     "sem": false,
+     "src": "tile",
+     "cls": "college",
+     "km": 0.7
+    },
+    {
+     "dbg": "8/70/705/tile",
+     "name": "Toronto Metropolitan University",
+     "address": "university",
+     "lat": 43.658534700323884,
+     "lng": -79.37846839427948,
+     "sem": false,
+     "src": "tile",
+     "cls": "college",
+     "km": 0.7
+    },
+    {
+     "dbg": "8/70/954/tile",
+     "name": "Smith School of Business Queen’s University",
+     "address": "university",
+     "lat": 43.64483716283917,
+     "lng": -79.38583374023438,
+     "sem": false,
+     "src": "tile",
+     "cls": "college",
+     "km": 1
+    },
+    {
+     "dbg": "8/70/972/tile",
+     "name": "Northeastern University",
+     "address": "university",
+     "lat": 43.649103180336255,
+     "lng": -79.39387500286102,
+     "sem": false,
+     "src": "tile",
+     "cls": "college",
+     "km": 1
+    }
+   ],
+   "timedOut": false,
+   "ms": 6318
+  },
+  {
+   "region": "toronto",
+   "q": "park",
+   "localTop": "Larry Sefton Park",
+   "top": [
+    {
+     "dbg": "8/0/139/tile",
+     "name": "Larry Sefton Park",
+     "address": "park",
+     "lat": 43.654401315254916,
+     "lng": -79.38366115093231,
+     "sem": false,
+     "src": "tile",
+     "cls": "park",
+     "km": 0.1
+    },
+    {
+     "dbg": "8/0/168/tile",
+     "name": "Trinity Square",
+     "address": "park",
+     "lat": 43.65440907774706,
+     "lng": -79.38195526599884,
+     "sem": false,
+     "src": "tile",
+     "cls": "park",
+     "km": 0.2
+    },
+    {
+     "dbg": "8/0/176/tile",
+     "name": "Downtown Diversity Garden on Elizabeth Street",
+     "address": "park",
+     "lat": 43.65447117764799,
+     "lng": -79.38449800014496,
+     "sem": false,
+     "src": "tile",
+     "cls": "park",
+     "km": 0.2
+    },
+    {
+     "dbg": "8/0/401/tile",
+     "name": "Arnell Plaza",
+     "address": "park",
+     "lat": 43.65043455051352,
+     "lng": -79.37999188899994,
+     "sem": false,
+     "src": "tile",
+     "cls": "park",
+     "km": 0.4
+    },
+    {
+     "dbg": "8/0/636/tile",
+     "name": "Butterfield Park",
+     "address": "park",
+     "lat": 43.65269354259257,
+     "lng": -79.39107477664948,
+     "sem": false,
+     "src": "tile",
+     "cls": "park",
+     "km": 0.6
+    }
+   ],
+   "timedOut": false,
+   "ms": 7482
+  },
+  {
+   "region": "toronto",
+   "q": "hotel",
+   "localTop": "Marriott",
+   "top": [
+    {
+     "dbg": "8/0/186/tile",
+     "name": "Marriott",
+     "address": "hotel",
+     "lat": 43.65478943863252,
+     "lng": -79.38248097896576,
+     "sem": false,
+     "src": "tile",
+     "cls": "lodging",
+     "km": 0.2
+    },
+    {
+     "dbg": "8/0/201/tile",
+     "name": "Chestnut Residence",
+     "address": "dormitory",
+     "lat": 43.65430040276584,
+     "lng": -79.38517928123474,
+     "sem": false,
+     "src": "tile",
+     "cls": "lodging",
+     "km": 0.2
+    },
+    {
+     "dbg": "8/0/233/tile",
+     "name": "Sheraton Centre Toronto Hotel",
+     "address": "hotel",
+     "lat": 43.65110992818353,
+     "lng": -79.38347339630127,
+     "sem": false,
+     "src": "tile",
+     "cls": "lodging",
+     "km": 0.2
+    },
+    {
+     "dbg": "8/0/287/tile",
+     "name": "Double Tree by Hilton Hotel",
+     "address": "hotel",
+     "lat": 43.654680764339645,
+     "lng": -79.38611805438995,
+     "sem": false,
+     "src": "tile",
+     "cls": "lodging",
+     "km": 0.3
+    },
+    {
+     "dbg": "8/0/403/tile",
+     "name": "Hilton Toronto",
+     "address": "hotel",
+     "lat": 43.64993771611478,
+     "lng": -79.38537776470184,
+     "sem": false,
+     "src": "tile",
+     "cls": "lodging",
+     "km": 0.4
+    }
+   ],
+   "timedOut": false,
+   "ms": 6633
+  },
+  {
+   "region": "toronto",
+   "q": "parking",
+   "localTop": "City Hall Parking",
+   "top": [
+    {
+     "dbg": "8/0/78/tile",
+     "name": "City Hall Parking",
+     "address": "parking",
+     "lat": 43.652546050857154,
+     "lng": -79.38355922698975,
+     "sem": false,
+     "src": "tile",
+     "cls": "parking",
+     "km": 0.1
+    },
+    {
+     "dbg": "8/0/201/tile",
+     "name": "Bay/Dundas Parkade",
+     "address": "parking",
+     "lat": 43.655006786628235,
+     "lng": -79.38325881958008,
+     "sem": false,
+     "src": "tile",
+     "cls": "parking",
+     "km": 0.2
+    },
+    {
+     "dbg": "8/0/250/tile",
+     "name": "Eaton Centre parking",
+     "address": "parking",
+     "lat": 43.65334172566219,
+     "lng": -79.38009917736053,
+     "sem": false,
+     "src": "tile",
+     "cls": "parking",
+     "km": 0.2
+    },
+    {
+     "dbg": "8/0/349/tile",
+     "name": "Bay Adelaide Centre Parking",
+     "address": "parking",
+     "lat": 43.651459258481026,
+     "lng": -79.3795895576477,
+     "sem": false,
+     "src": "tile",
+     "cls": "parking",
+     "km": 0.3
+    },
+    {
+     "dbg": "8/0/352/tile",
+     "name": "Atrium on Bay Parking",
+     "address": "parking",
+     "lat": 43.65636519377878,
+     "lng": -79.38340365886688,
+     "sem": false,
+     "src": "tile",
+     "cls": "parking",
+     "km": 0.4
+    }
+   ],
+   "timedOut": false,
+   "ms": 5816
+  },
+  {
+   "region": "toronto",
+   "q": "机场",
+   "localTop": "Billy Bishop Toronto City Airport",
+   "top": [
+    {
+     "dbg": "8/150/19951/",
+     "name": "Toronto Pearson International Airport",
+     "address": "Shawson Drive, Mississauga, Ontario",
+     "lat": 43.6782236,
+     "lng": -79.6288047,
+     "sem": false,
+     "cls": "aerodrome",
+     "km": 19.9
+    },
+    {
+     "dbg": "8/60/2956/tile",
+     "name": "Billy Bishop Toronto City Airport",
+     "address": "aerodrome",
+     "lat": 43.628270963826225,
+     "lng": -79.39596176147461,
+     "sem": false,
+     "src": "tile",
+     "cls": "aerodrome",
+     "km": 3
+    },
+    {
+     "dbg": "8/20/39042/",
+     "name": "Ajax Airport",
+     "address": "Fielding Court, Ajax, Ontario",
+     "lat": 43.9072219,
+     "lng": -79.0474825,
+     "sem": false,
+     "cls": "aerodrome",
+     "km": 39
+    },
+    {
+     "dbg": "8/20/41238/",
+     "name": "Brampton-Caledon Airport",
+     "address": "13691 McLaughlin Road, Caledon, Ontario",
+     "lat": 43.7586673,
+     "lng": -79.8750421,
+     "sem": false,
+     "cls": "aerodrome",
+     "km": 41.2
+    },
+    {
+     "dbg": "8/20/44314/",
+     "name": "Burlington Executive Airport",
+     "address": "Bell School Line, Milton, Ontario",
+     "lat": 43.4420867,
+     "lng": -79.8495622,
+     "sem": false,
+     "cls": "aerodrome",
+     "km": 44.2
+    }
+   ],
+   "timedOut": false,
+   "ms": 5733
+  },
+  {
+   "region": "toronto",
+   "q": "加油站",
+   "localTop": "Petro-Canada",
+   "top": [
+    {
+     "dbg": "8/0/867/tile",
+     "name": "Petro-Canada",
+     "address": "fuel",
+     "lat": 43.6529031354882,
+     "lng": -79.37243342399597,
+     "sem": false,
+     "src": "tile",
+     "cls": "fuel",
+     "km": 0.9
+    },
+    {
+     "dbg": "8/0/1300/tile",
+     "name": "Petro-Canada",
+     "address": "fuel",
+     "lat": 43.644701297431254,
+     "lng": -79.3943041563034,
+     "sem": false,
+     "src": "tile",
+     "cls": "fuel",
+     "km": 1.3
+    },
+    {
+     "dbg": "8/0/1369/tile",
+     "name": "Shell",
+     "address": "fuel",
+     "lat": 43.64426264415965,
+     "lng": -79.39491033554077,
+     "sem": false,
+     "src": "tile",
+     "cls": "fuel",
+     "km": 1.4
+    },
+    {
+     "dbg": "8/0/1550/tile",
+     "name": "Petro-Canada",
+     "address": "fuel",
+     "lat": 43.66658719204861,
+     "lng": -79.37784612178802,
+     "sem": false,
+     "src": "tile",
+     "cls": "fuel",
+     "km": 1.5
+    },
+    {
+     "dbg": "8/0/1581/tile",
+     "name": "Shell",
+     "address": "fuel",
+     "lat": 43.6548321320509,
+     "lng": -79.36368405818939,
+     "sem": false,
+     "src": "tile",
+     "cls": "fuel",
+     "km": 1.6
+    }
+   ],
+   "timedOut": false,
+   "ms": 6086
+  },
+  {
+   "region": "toronto",
+   "q": "医院",
+   "localTop": "St. Michael's Hospital",
+   "top": [
+    {
+     "dbg": "8/30/436/tile",
+     "name": "St. Michael's Hospital",
+     "address": "hospital",
+     "lat": 43.65363670486255,
+     "lng": -79.37780857086182,
+     "sem": false,
+     "src": "tile",
+     "cls": "hospital",
+     "km": 0.4
+    },
+    {
+     "dbg": "8/30/572/tile",
+     "name": "Hospital for Sick Children",
+     "address": "hospital",
+     "lat": 43.657265606726014,
+     "lng": -79.38756108283997,
+     "sem": false,
+     "src": "tile",
+     "cls": "hospital",
+     "km": 0.6
+    },
+    {
+     "dbg": "8/30/721/tile",
+     "name": "Toronto General Hospital",
+     "address": "hospital",
+     "lat": 43.658596795958374,
+     "lng": -79.3881618976593,
+     "sem": false,
+     "src": "tile",
+     "cls": "hospital",
+     "km": 0.7
+    },
+    {
+     "dbg": "8/30/743/tile",
+     "name": "Mount Sinai Hospital, Toronto",
+     "address": "hospital",
+     "lat": 43.65745189737419,
+     "lng": -79.39031839370728,
+     "sem": false,
+     "src": "tile",
+     "cls": "hospital",
+     "km": 0.7
+    },
+    {
+     "dbg": "8/30/870/tile",
+     "name": "Mount Sinai Hospital",
+     "address": "hospital",
+     "lat": 43.65795643164404,
+     "lng": -79.3917828798294,
+     "sem": false,
+     "src": "tile",
+     "cls": "hospital",
+     "km": 0.9
+    }
+   ],
+   "timedOut": false,
+   "ms": 5814
+  },
+  {
+   "region": "toronto",
+   "q": "超市",
+   "localTop": "Eataly",
+   "top": [
+    {
+     "dbg": "8/0/274/tile",
+     "name": "Eataly",
+     "address": "supermarket",
+     "lat": 43.654898112728716,
+     "lng": -79.38072681427002,
+     "sem": false,
+     "src": "tile",
+     "cls": "grocery",
+     "km": 0.3
+    },
+    {
+     "dbg": "8/0/278/tile",
+     "name": "Longo's",
+     "address": "supermarket",
+     "lat": 43.65534833188934,
+     "lng": -79.38495934009552,
+     "sem": false,
+     "src": "tile",
+     "cls": "grocery",
+     "km": 0.3
+    },
+    {
+     "dbg": "8/0/315/tile",
+     "name": "Petra Ave Market",
+     "address": "supermarket",
+     "lat": 43.6555307473125,
+     "lng": -79.38543140888214,
+     "sem": false,
+     "src": "tile",
+     "cls": "grocery",
+     "km": 0.3
+    },
+    {
+     "dbg": "8/0/392/tile",
+     "name": "Marché Leo’s",
+     "address": "supermarket",
+     "lat": 43.65659806049055,
+     "lng": -79.38191771507263,
+     "sem": false,
+     "src": "tile",
+     "cls": "grocery",
+     "km": 0.4
+    },
+    {
+     "dbg": "8/0/419/tile",
+     "name": "T&T Supermarket",
+     "address": "supermarket",
+     "lat": 43.65692795345305,
+     "lng": -79.38240051269531,
+     "sem": false,
+     "src": "tile",
+     "cls": "grocery",
+     "km": 0.4
+    }
+   ],
+   "timedOut": false,
+   "ms": 5583
+  },
+  {
+   "region": "seattle",
+   "q": "airport",
+   "localTop": "Calgary International Airport",
+   "top": [
+    {
+     "dbg": "8/150/17732/",
+     "name": "Seattle-Tacoma International Airport",
+     "address": "17801 International Boulevard, SeaTac, Washington",
+     "lat": 47.4475673,
+     "lng": -122.3080159,
+     "sem": false,
+     "cls": "aerodrome",
+     "km": 17.7
+    },
+    {
+     "dbg": "8/150/33847/",
+     "name": "Seattle Paine Field International Airport",
+     "address": "9901 24th Place W, Everett, Washington",
+     "lat": 47.908522,
+     "lng": -122.2794034,
+     "sem": false,
+     "cls": "aerodrome",
+     "km": 33.8
+    },
+    {
+     "dbg": "8/20/15337/",
+     "name": "Renton Municipal Airport",
+     "address": "Northwest 4th Street, Renton, Washington",
+     "lat": 47.4927926,
+     "lng": -122.2157941,
+     "sem": false,
+     "cls": "aerodrome",
+     "km": 15.3
+    },
+    {
+     "dbg": "8/20/19834/",
+     "name": "Vashon Municipal Airport",
+     "address": "Southwest 160th Street, Vashon, Washington",
+     "lat": 47.4571153,
+     "lng": -122.4771395,
+     "sem": false,
+     "cls": "aerodrome",
+     "km": 19.8
+    },
+    {
+     "dbg": "8/20/26062/",
+     "name": "Thompson Airport",
+     "address": "Leyman Lane Northeast, Kingston, Washington",
+     "lat": 47.7989377,
+     "lng": -122.5302816,
+     "sem": false,
+     "cls": "aerodrome",
+     "km": 26
+    }
+   ],
+   "timedOut": false,
+   "ms": 5766
+  },
+  {
+   "region": "seattle",
+   "q": "gas station",
+   "localTop": "76",
+   "top": [
+    {
+     "dbg": "8/0/600/tile",
+     "name": "76",
+     "address": "fuel",
+     "lat": 47.60604007205643,
+     "lng": -122.32410550117493,
+     "sem": false,
+     "src": "tile",
+     "cls": "fuel",
+     "km": 0.6
+    },
+    {
+     "dbg": "8/0/1128/tile",
+     "name": "Chevron",
+     "address": "fuel",
+     "lat": 47.60586646429988,
+     "lng": -122.31706738471985,
+     "sem": false,
+     "src": "tile",
+     "cls": "fuel",
+     "km": 1.1
+    },
+    {
+     "dbg": "8/0/1192/tile",
+     "name": "Shell",
+     "address": "fuel",
+     "lat": 47.60834755375984,
+     "lng": -122.31652021408081,
+     "sem": false,
+     "src": "tile",
+     "cls": "fuel",
+     "km": 1.2
+    },
+    {
+     "dbg": "8/0/1237/tile",
+     "name": "Shell",
+     "address": "fuel",
+     "lat": 47.5956479095627,
+     "lng": -122.32686281204224,
+     "sem": false,
+     "src": "tile",
+     "cls": "fuel",
+     "km": 1.2
+    },
+    {
+     "dbg": "8/0/1254/tile",
+     "name": "76",
+     "address": "fuel",
+     "lat": 47.61433640428959,
+     "lng": -122.320516705513,
+     "sem": false,
+     "src": "tile",
+     "cls": "fuel",
+     "km": 1.3
+    }
+   ],
+   "timedOut": false,
+   "ms": 6274
+  },
+  {
+   "region": "seattle",
+   "q": "hospital",
+   "localTop": "Virginia Mason Hospital",
+   "top": [
+    {
+     "dbg": "8/30/542/tile",
+     "name": "Virginia Mason Hospital",
+     "address": "hospital",
+     "lat": 47.61016670346302,
+     "lng": -122.32788741588593,
+     "sem": false,
+     "src": "tile",
+     "cls": "hospital",
+     "km": 0.5
+    },
+    {
+     "dbg": "8/30/543/",
+     "name": "Virginia Mason Hospital & Seattle Medical Center",
+     "address": "1100 9th Avenue, First Hill, Seattle, Washington, 98101",
+     "lat": 47.6101681,
+     "lng": -122.3278853,
+     "sem": false,
+     "cls": "amenity=hospital",
+     "km": 0.5
+    },
+    {
+     "dbg": "8/30/759/tile",
+     "name": "Swedish Medical Center",
+     "address": "hospital",
+     "lat": 47.60868028567026,
+     "lng": -122.32266247272491,
+     "sem": false,
+     "src": "tile",
+     "cls": "hospital",
+     "km": 0.8
+    },
+    {
+     "dbg": "8/30/759/",
+     "name": "Swedish First Hill Medical Center",
+     "address": "747 Broadway, Seattle, Washington",
+     "lat": 47.6086804,
+     "lng": -122.3226621,
+     "sem": false,
+     "cls": "hospital",
+     "km": 0.8
+    },
+    {
+     "dbg": "8/30/1592/tile",
+     "name": "Swedish Medical Center Cherry Hill Campus",
+     "address": "hospital",
+     "lat": 47.60711425723758,
+     "lng": -122.31090366840363,
+     "sem": false,
+     "src": "tile",
+     "cls": "hospital",
+     "km": 1.6
+    }
+   ],
+   "timedOut": false,
+   "ms": 7099
+  },
+  {
+   "region": "seattle",
+   "q": "Walmart",
+   "localTop": "Walmart Supercentre",
+   "top": [
+    {
+     "dbg": "6.5//14432/",
+     "name": "Walmart Neighborhood Market",
+     "address": "15063 Main Street, Bellevue, Washington, 98007",
+     "lat": 47.6087019,
+     "lng": -122.1396314,
+     "sem": false,
+     "cls": "shop=supermarket",
+     "km": 14.4
+    },
+    {
+     "dbg": "6.5//17061/",
+     "name": "Walmart Pharmacy",
+     "address": "743 Rainier Avenue South, Renton, Washington, 98057",
+     "lat": 47.4724946,
+     "lng": -122.220611,
+     "sem": false,
+     "cls": "amenity=pharmacy",
+     "km": 17
+    },
+    {
+     "dbg": "6.5//17087/",
+     "name": "Walmart Supercenter",
+     "address": "743 Rainier Avenue South, Renton, Washington, 98057",
+     "lat": 47.4720483,
+     "lng": -122.2210962,
+     "sem": false,
+     "cls": "shop=supermarket",
+     "km": 17.1
+    },
+    {
+     "dbg": "6.5//17437/",
+     "name": "Walmart Corp.",
+     "address": "801 Southwest 16th Street, Renton, Washington, 98057",
+     "lat": 47.4655052,
+     "lng": -122.2295386,
+     "sem": false,
+     "cls": "office=company",
+     "km": 17.4
+    },
+    {
+     "dbg": "6.5//22631/",
+     "name": "Walmart",
+     "address": "6797 State Highway 303 Northeast, Bremerton, Washington, 98311",
+     "lat": 47.6250265,
+     "lng": -122.6327313,
+     "sem": false,
+     "cls": "shop=department_store",
+     "km": 22.6
+    }
+   ],
+   "timedOut": false,
+   "ms": 6116
+  },
+  {
+   "region": "seattle",
+   "q": "Costco",
+   "localTop": "Costco Business Centre",
+   "top": [
+    {
+     "dbg": "6.5//4532/",
+     "name": "Costco",
+     "address": "4401 4th Avenue South, Georgetown, Seattle, Washington, 98134",
+     "lat": 47.5654639,
+     "lng": -122.3303106,
+     "sem": false,
+     "cls": "shop=wholesale",
+     "km": 4.5
+    },
+    {
+     "dbg": "6.5//13983/",
+     "name": "Costco",
+     "address": "8629 120th Avenue Northeast, Kirkland, Washington, 98033",
+     "lat": 47.680792,
+     "lng": -122.1818341,
+     "sem": false,
+     "cls": "shop=wholesale",
+     "km": 14
+    },
+    {
+     "dbg": "6.5//18811/",
+     "name": "Costco",
+     "address": "1175 North 205th Street, Edmonds, Washington, 98133",
+     "lat": 47.7751535,
+     "lng": -122.3448489,
+     "sem": false,
+     "cls": "shop=wholesale",
+     "km": 18.8
+    },
+    {
+     "dbg": "6.5//18950/",
+     "name": "Costco",
+     "address": "400 Costco Drive, Tukwila, Washington, 98188",
+     "lat": 47.4453494,
+     "lng": -122.2487203,
+     "sem": false,
+     "cls": "shop=wholesale",
+     "km": 18.9
+    },
+    {
+     "dbg": "6.5//19545/",
+     "name": "Costco",
+     "address": "7725 188th Avenue Northeast, Southeast Redmond, Redmond, Washington, 98052",
+     "lat": 47.6742424,
+     "lng": -122.091565,
+     "sem": false,
+     "cls": "shop=wholesale",
+     "km": 19.5
+    }
+   ],
+   "timedOut": false,
+   "ms": 5131
+  },
+  {
+   "region": "seattle",
+   "q": "Tim Hortons",
+   "localTop": "Tim Hortons",
+   "top": [
+    {
+     "dbg": "10//117699/",
+     "name": "Tim Hortons",
+     "address": "1950 Foul Bay Road, Oak Bay, British Columbia, V8R 5A7",
+     "lat": 48.4309981,
+     "lng": -123.323964,
+     "sem": false,
+     "cls": "amenity=cafe",
+     "km": 117.9
+    },
+    {
+     "dbg": "10//119034/",
+     "name": "Tim Hortons",
+     "address": "Fort Street, Downtown, Victoria, British Columbia, V8W 1G9",
+     "lat": 48.4245782,
+     "lng": -123.3637797,
+     "sem": false,
+     "cls": "amenity=cafe",
+     "km": 119.2
+    },
+    {
+     "dbg": "10//119411/",
+     "name": "Tim Hortons",
+     "address": "Lansdowne Road, Oaklands, Victoria, British Columbia, V8R 4M9",
+     "lat": 48.4461757,
+     "lng": -123.332596,
+     "sem": false,
+     "cls": "amenity=cafe",
+     "km": 119.6
+    },
+    {
+     "dbg": "10//120206/",
+     "name": "Tim Hortons",
+     "address": "2680 Blanshard Street, Burnside, Victoria, British Columbia, V8T 5E1",
+     "lat": 48.4381978,
+     "lng": -123.364138,
+     "sem": false,
+     "cls": "amenity=cafe",
+     "km": 120.4
+    },
+    {
+     "dbg": "10//120706/",
+     "name": "Tim Hortons",
+     "address": "3749 Shelbourne Street, Shelbourne, Saanich, British Columbia, V8P 5N4",
+     "lat": 48.4614959,
+     "lng": -123.331831,
+     "sem": false,
+     "cls": "amenity=cafe",
+     "km": 120.9
+    }
+   ],
+   "timedOut": false,
+   "ms": 7567
+  },
+  {
+   "region": "seattle",
+   "q": "coffee",
+   "localTop": "Howdy Y'all Coffee",
+   "top": [
+    {
+     "dbg": "8/0/40/tile",
+     "name": "Howdy Y'all Coffee",
+     "address": "cafe",
+     "lat": 47.606546424721955,
+     "lng": -122.33222186565399,
+     "sem": false,
+     "src": "tile",
+     "cls": "cafe",
+     "km": 0
+    },
+    {
+     "dbg": "8/0/80/tile",
+     "name": "Retro Coffee",
+     "address": "cafe",
+     "lat": 47.60663322754385,
+     "lng": -122.33124017715454,
+     "sem": false,
+     "src": "tile",
+     "cls": "cafe",
+     "km": 0.1
+    },
+    {
+     "dbg": "8/0/99/tile",
+     "name": "Belle Epicurean",
+     "address": "cafe",
+     "lat": 47.60573987494746,
+     "lng": -122.33323574066162,
+     "sem": false,
+     "src": "tile",
+     "cls": "cafe",
+     "km": 0.1
+    },
+    {
+     "dbg": "8/0/121/tile",
+     "name": "Joelle's Espresso Shop",
+     "address": "cafe",
+     "lat": 47.605960501906196,
+     "lng": -122.33367025852203,
+     "sem": false,
+     "src": "tile",
+     "cls": "cafe",
+     "km": 0.1
+    },
+    {
+     "dbg": "8/0/136/tile",
+     "name": "Provisions Cafe",
+     "address": "cafe",
+     "lat": 47.606987670905,
+     "lng": -122.33348250389099,
+     "sem": false,
+     "src": "tile",
+     "cls": "cafe",
+     "km": 0.1
+    }
+   ],
+   "timedOut": false,
+   "ms": 7681
+  },
+  {
+   "region": "seattle",
+   "q": "pharmacy",
+   "localTop": "Chesterfield Services",
+   "top": [
+    {
+     "dbg": "8/0/314/tile",
+     "name": "Chesterfield Services",
+     "address": "pharmacy",
+     "lat": 47.60606900662651,
+     "lng": -122.3279196023941,
+     "sem": false,
+     "src": "tile",
+     "cls": "pharmacy",
+     "km": 0.3
+    },
+    {
+     "dbg": "8/0/574/tile",
+     "name": "CVS Pharmacy",
+     "address": "pharmacy",
+     "lat": 47.60858263630729,
+     "lng": -122.33888983726501,
+     "sem": false,
+     "src": "tile",
+     "cls": "pharmacy",
+     "km": 0.6
+    },
+    {
+     "dbg": "8/0/590/tile",
+     "name": "CVS Pharmacy",
+     "address": "pharmacy",
+     "lat": 47.60906726468613,
+     "lng": -122.32547879219055,
+     "sem": false,
+     "src": "tile",
+     "cls": "pharmacy",
+     "km": 0.6
+    },
+    {
+     "dbg": "8/0/604/tile",
+     "name": "Walgreens",
+     "address": "pharmacy",
+     "lat": 47.60978334914546,
+     "lng": -122.3381495475769,
+     "sem": false,
+     "src": "tile",
+     "cls": "pharmacy",
+     "km": 0.6
+    },
+    {
+     "dbg": "8/0/919/tile",
+     "name": "Ho's Herb & Massage",
+     "address": "pharmacy",
+     "lat": 47.59934852290942,
+     "lng": -122.3252534866333,
+     "sem": false,
+     "src": "tile",
+     "cls": "pharmacy",
+     "km": 0.9
+    }
+   ],
+   "timedOut": false,
+   "ms": 8038
+  },
+  {
+   "region": "seattle",
+   "q": "grocery",
+   "localTop": "PCC Corner Market",
+   "top": [
+    {
+     "dbg": "8/0/399/tile",
+     "name": "PCC Corner Market",
+     "address": "supermarket",
+     "lat": 47.60908896435927,
+     "lng": -122.33526349067688,
+     "sem": false,
+     "src": "tile",
+     "cls": "grocery",
+     "km": 0.4
+    },
+    {
+     "dbg": "8/0/547/tile",
+     "name": "Saveway Market",
+     "address": "supermarket",
+     "lat": 47.60132352320167,
+     "lng": -122.3331069946289,
+     "sem": false,
+     "src": "tile",
+     "cls": "grocery",
+     "km": 0.5
+    },
+    {
+     "dbg": "8/0/658/tile",
+     "name": "Paris-Madrid Grocery",
+     "address": "deli",
+     "lat": 47.60789908566187,
+     "lng": -122.34050989151001,
+     "sem": false,
+     "src": "tile",
+     "cls": "grocery",
+     "km": 0.7
+    },
+    {
+     "dbg": "8/0/721/tile",
+     "name": "Frank's Quality Produce",
+     "address": "greengrocer",
+     "lat": 47.60895876618548,
+     "lng": -122.34081029891968,
+     "sem": false,
+     "src": "tile",
+     "cls": "grocery",
+     "km": 0.7
+    },
+    {
+     "dbg": "8/0/742/tile",
+     "name": "Choice Produce & Peppers",
+     "address": "greengrocer",
+     "lat": 47.60913236367847,
+     "lng": -122.34099805355072,
+     "sem": false,
+     "src": "tile",
+     "cls": "grocery",
+     "km": 0.7
+    }
+   ],
+   "timedOut": false,
+   "ms": 7881
+  },
+  {
+   "region": "seattle",
+   "q": "train station",
+   "localTop": "Symphony",
+   "top": [
+    {
+     "dbg": "8/0/335/tile",
+     "name": "Symphony",
+     "address": "station",
+     "lat": 47.60773995089633,
+     "lng": -122.33593940734863,
+     "sem": false,
+     "src": "tile",
+     "cls": "railway",
+     "km": 0.3
+    },
+    {
+     "dbg": "8/0/391/tile",
+     "name": "Pioneer Square",
+     "address": "station",
+     "lat": 47.602723340895665,
+     "lng": -122.33135282993317,
+     "sem": false,
+     "src": "tile",
+     "cls": "railway",
+     "km": 0.4
+    },
+    {
+     "dbg": "8/0/691/tile",
+     "name": "Westlake",
+     "address": "station",
+     "lat": 47.61177242120118,
+     "lng": -122.33619153499603,
+     "sem": false,
+     "src": "tile",
+     "cls": "railway",
+     "km": 0.7
+    },
+    {
+     "dbg": "8/0/740/tile",
+     "name": "Westlake Center",
+     "address": "station",
+     "lat": 47.61201110476418,
+     "lng": -122.33691573143005,
+     "sem": false,
+     "src": "tile",
+     "cls": "railway",
+     "km": 0.7
+    },
+    {
+     "dbg": "8/0/781/tile",
+     "name": "Occidental Mall",
+     "address": "tram stop",
+     "lat": 47.59922191778378,
+     "lng": -122.33325183391571,
+     "sem": false,
+     "src": "tile",
+     "cls": "railway",
+     "km": 0.8
+    }
+   ],
+   "timedOut": false,
+   "ms": 8468
+  },
+  {
+   "region": "seattle",
+   "q": "bus station",
+   "localTop": "Seattle Greyhound Station",
+   "top": [
+    {
+     "dbg": "8/0/1622/tile",
+     "name": "Seattle Greyhound Station",
+     "address": "bus station",
+     "lat": 47.592070039423476,
+     "lng": -122.3267126083374,
+     "sem": false,
+     "src": "tile",
+     "cls": "bus",
+     "km": 1.6
+    },
+    {
+     "dbg": "8/0/4133/tile",
+     "name": "Mount Baker Transit Center",
+     "address": "bus station",
+     "lat": 47.57761136126362,
+     "lng": -122.29688107967377,
+     "sem": false,
+     "src": "tile",
+     "cls": "bus",
+     "km": 4.1
+    },
+    {
+     "dbg": "4/0/10768/",
+     "name": "South Bellevue Station Bus Plaza - Bay 3",
+     "address": "Bellevue Way Southeast, Bellevue, Washington, 98009",
+     "lat": 47.5870247,
+     "lng": -122.191338,
+     "sem": false,
+     "cls": "highway=bus_stop",
+     "km": 10.7
+    },
+    {
+     "dbg": "4/0/10824/",
+     "name": "South Bellevue Station Bus Plaza",
+     "address": "Bellevue Way Southeast, Bellevue, Washington, 98009",
+     "lat": 47.5869598,
+     "lng": -122.19059,
+     "sem": false,
+     "cls": "highway=bus_stop",
+     "km": 10.8
+    },
+    {
+     "dbg": "4/0/19733/",
+     "name": "Bus Station",
+     "address": "Pacific Highway, Edmonds, Washington, 98026",
+     "lat": 47.7835126,
+     "lng": -122.3431106,
+     "sem": false,
+     "cls": "amenity=shelter",
+     "km": 19.7
+    }
+   ],
+   "timedOut": false,
+   "ms": 8283
+  },
+  {
+   "region": "seattle",
+   "q": "ferry terminal",
+   "localTop": "Seattle Waterfront",
+   "top": [
+    {
+     "dbg": "8/0/667/tile",
+     "name": "Seattle Waterfront",
+     "address": "ferry terminal",
+     "lat": 47.60508160537637,
+     "lng": -122.34084248542786,
+     "sem": false,
+     "src": "tile",
+     "cls": "ferry_terminal",
+     "km": 0.7
+    },
+    {
+     "dbg": "8/0/671/tile",
+     "name": "Washington State Ferries Terminal",
+     "address": "ferry terminal",
+     "lat": 47.602405039387236,
+     "lng": -122.33906149864197,
+     "sem": false,
+     "src": "tile",
+     "cls": "ferry_terminal",
+     "km": 0.7
+    },
+    {
+     "dbg": "8/0/687/tile",
+     "name": "Seattle",
+     "address": "ferry terminal",
+     "lat": 47.60289695908398,
+     "lng": -122.33983933925629,
+     "sem": false,
+     "src": "tile",
+     "cls": "ferry_terminal",
+     "km": 0.7
+    },
+    {
+     "dbg": "8/0/748/tile",
+     "name": "West Seattle Water Taxi & Colman Dock",
+     "address": "ferry terminal",
+     "lat": 47.6012475630306,
+     "lng": -122.33884692192078,
+     "sem": false,
+     "src": "tile",
+     "cls": "ferry_terminal",
+     "km": 0.7
+    },
+    {
+     "dbg": "8/0/754/tile",
+     "name": "Vashon Island Water Taxi & Colman Dock",
+     "address": "ferry terminal",
+     "lat": 47.60122224294906,
+     "lng": -122.33892738819122,
+     "sem": false,
+     "src": "tile",
+     "cls": "ferry_terminal",
+     "km": 0.8
+    }
+   ],
+   "timedOut": false,
+   "ms": 7848
+  },
+  {
+   "region": "seattle",
+   "q": "university",
+   "localTop": "University of Washington - Professional & Continuing Education",
+   "top": [
+    {
+     "dbg": "8/70/397/tile",
+     "name": "University of Washington - Professional & Continuing Education",
+     "address": "university",
+     "lat": 47.60871283541741,
+     "lng": -122.33585894107819,
+     "sem": false,
+     "src": "tile",
+     "cls": "college",
+     "km": 0.4
+    },
+    {
+     "dbg": "8/70/1063/tile",
+     "name": "Seattle University",
+     "address": "university",
+     "lat": 47.60950487302074,
+     "lng": -122.31880009174347,
+     "sem": false,
+     "src": "tile",
+     "cls": "college",
+     "km": 1.1
+    },
+    {
+     "dbg": "8/70/1212/",
+     "name": "Cornish College of the Arts at Seattle University",
+     "address": "Virginia Street, Seattle, Washington",
+     "lat": 47.6168005,
+     "lng": -122.3358659,
+     "sem": false,
+     "cls": "college",
+     "km": 1.2
+    },
+    {
+     "dbg": "8/70/1517/tile",
+     "name": "Antioch University - Seattle",
+     "address": "college",
+     "lat": 47.61593837786481,
+     "lng": -122.34627664089203,
+     "sem": false,
+     "src": "tile",
+     "cls": "college",
+     "km": 1.5
+    },
+    {
+     "dbg": "8/70/1580/tile",
+     "name": "City University of Seattle",
+     "address": "college",
+     "lat": 47.61770663933919,
+     "lng": -122.34446346759796,
+     "sem": false,
+     "src": "tile",
+     "cls": "college",
+     "km": 1.6
+    }
+   ],
+   "timedOut": false,
+   "ms": 6581
+  },
+  {
+   "region": "seattle",
+   "q": "park",
+   "localTop": "Fourth & Madison Plaza",
+   "top": [
+    {
+     "dbg": "8/0/141/tile",
+     "name": "Fourth & Madison Plaza",
+     "address": "park",
+     "lat": 47.60520096256181,
+     "lng": -122.33326256275177,
+     "sem": false,
+     "src": "tile",
+     "cls": "park",
+     "km": 0.1
+    },
+    {
+     "dbg": "8/0/446/tile",
+     "name": "Freeway Park",
+     "address": "park",
+     "lat": 47.61005097415381,
+     "lng": -122.33041942119598,
+     "sem": false,
+     "src": "tile",
+     "cls": "park",
+     "km": 0.4
+    },
+    {
+     "dbg": "8/0/464/tile",
+     "name": "Pioneer Square",
+     "address": "park",
+     "lat": 47.60222056830838,
+     "lng": -122.33394384384155,
+     "sem": false,
+     "src": "tile",
+     "cls": "park",
+     "km": 0.5
+    },
+    {
+     "dbg": "8/0/473/tile",
+     "name": "City Hall Park",
+     "address": "park",
+     "lat": 47.60218078034339,
+     "lng": -122.33004927635193,
+     "sem": false,
+     "src": "tile",
+     "cls": "park",
+     "km": 0.5
+    },
+    {
+     "dbg": "8/0/492/tile",
+     "name": "Prefontaine Place",
+     "address": "park",
+     "lat": 47.60185162419927,
+     "lng": -122.33087003231049,
+     "sem": false,
+     "src": "tile",
+     "cls": "park",
+     "km": 0.5
+    }
+   ],
+   "timedOut": false,
+   "ms": 6566
+  },
+  {
+   "region": "seattle",
+   "q": "hotel",
+   "localTop": "Renaissance Seattle Hotel",
+   "top": [
+    {
+     "dbg": "8/0/109/tile",
+     "name": "Renaissance Seattle Hotel",
+     "address": "hotel",
+     "lat": 47.60652472399397,
+     "lng": -122.33072519302368,
+     "sem": false,
+     "src": "tile",
+     "cls": "lodging",
+     "km": 0.1
+    },
+    {
+     "dbg": "8/0/136/tile",
+     "name": "Executive Pacific Plaza Hotel",
+     "address": "hotel",
+     "lat": 47.60702383845987,
+     "lng": -122.33343958854675,
+     "sem": false,
+     "src": "tile",
+     "cls": "lodging",
+     "km": 0.1
+    },
+    {
+     "dbg": "8/0/142/tile",
+     "name": "Lotte Hotel Seattle",
+     "address": "hotel",
+     "lat": 47.6052515988612,
+     "lng": -122.33083784580231,
+     "sem": false,
+     "src": "tile",
+     "cls": "lodging",
+     "km": 0.1
+    },
+    {
+     "dbg": "8/0/151/tile",
+     "name": "Hotel Vintage",
+     "address": "hotel",
+     "lat": 47.60754826519502,
+     "lng": -122.33228087425232,
+     "sem": false,
+     "src": "tile",
+     "cls": "lodging",
+     "km": 0.2
+    },
+    {
+     "dbg": "8/0/171/tile",
+     "name": "Kimpton Hotel Monaco Seattle",
+     "address": "hotel",
+     "lat": 47.606918952481834,
+     "lng": -122.3341155052185,
+     "sem": false,
+     "src": "tile",
+     "cls": "lodging",
+     "km": 0.2
+    }
+   ],
+   "timedOut": false,
+   "ms": 5614
+  },
+  {
+   "region": "seattle",
+   "q": "parking",
+   "localTop": "Olympic Garage",
+   "top": [
+    {
+     "dbg": "8/0/162/tile",
+     "name": "Olympic Garage",
+     "address": "parking",
+     "lat": 47.607490397675434,
+     "lng": -122.33310163021088,
+     "sem": false,
+     "src": "tile",
+     "cls": "parking",
+     "km": 0.2
+    },
+    {
+     "dbg": "8/0/213/tile",
+     "name": "Grand Central Garage",
+     "address": "parking",
+     "lat": 47.60429673467647,
+     "lng": -122.33177661895752,
+     "sem": false,
+     "src": "tile",
+     "cls": "parking",
+     "km": 0.2
+    },
+    {
+     "dbg": "8/0/284/tile",
+     "name": "IBM Building Parking",
+     "address": "parking",
+     "lat": 47.60867305239037,
+     "lng": -122.33302116394043,
+     "sem": false,
+     "src": "tile",
+     "cls": "parking",
+     "km": 0.3
+    },
+    {
+     "dbg": "8/0/289/tile",
+     "name": "1201 Third Avenue Parking",
+     "address": "parking",
+     "lat": 47.606987670905,
+     "lng": -122.33576774597168,
+     "sem": false,
+     "src": "tile",
+     "cls": "parking",
+     "km": 0.3
+    },
+    {
+     "dbg": "8/0/308/tile",
+     "name": "Polyclinic Parking Garage",
+     "address": "parking",
+     "lat": 47.60665131144697,
+     "lng": -122.32804298400879,
+     "sem": false,
+     "src": "tile",
+     "cls": "parking",
+     "km": 0.3
+    }
+   ],
+   "timedOut": false,
+   "ms": 6280
+  },
+  {
+   "region": "seattle",
+   "q": "机场",
+   "localTop": "Kenmore Air Harbor Seaplane Base",
+   "top": [
+    {
+     "dbg": "8/150/17732/",
+     "name": "Seattle-Tacoma International Airport",
+     "address": "17801 International Boulevard, SeaTac, Washington",
+     "lat": 47.4475673,
+     "lng": -122.3080159,
+     "sem": false,
+     "cls": "aerodrome",
+     "km": 17.7
+    },
+    {
+     "dbg": "8/150/33847/",
+     "name": "Seattle Paine Field International Airport",
+     "address": "9901 24th Place W, Everett, Washington",
+     "lat": 47.908522,
+     "lng": -122.2794034,
+     "sem": false,
+     "cls": "aerodrome",
+     "km": 33.8
+    },
+    {
+     "dbg": "8/20/15337/",
+     "name": "Renton Municipal Airport",
+     "address": "Northwest 4th Street, Renton, Washington",
+     "lat": 47.4927926,
+     "lng": -122.2157941,
+     "sem": false,
+     "cls": "aerodrome",
+     "km": 15.3
+    },
+    {
+     "dbg": "8/20/19834/",
+     "name": "Vashon Municipal Airport",
+     "address": "Southwest 160th Street, Vashon, Washington",
+     "lat": 47.4571153,
+     "lng": -122.4771395,
+     "sem": false,
+     "cls": "aerodrome",
+     "km": 19.8
+    },
+    {
+     "dbg": "8/20/26062/",
+     "name": "Thompson Airport",
+     "address": "Leyman Lane Northeast, Kingston, Washington",
+     "lat": 47.7989377,
+     "lng": -122.5302816,
+     "sem": false,
+     "cls": "aerodrome",
+     "km": 26
+    }
+   ],
+   "timedOut": false,
+   "ms": 5317
+  },
+  {
+   "region": "seattle",
+   "q": "加油站",
+   "localTop": "76",
+   "top": [
+    {
+     "dbg": "8/0/600/tile",
+     "name": "76",
+     "address": "fuel",
+     "lat": 47.60604007205643,
+     "lng": -122.32410550117493,
+     "sem": false,
+     "src": "tile",
+     "cls": "fuel",
+     "km": 0.6
+    },
+    {
+     "dbg": "8/0/1128/tile",
+     "name": "Chevron",
+     "address": "fuel",
+     "lat": 47.60586646429988,
+     "lng": -122.31706738471985,
+     "sem": false,
+     "src": "tile",
+     "cls": "fuel",
+     "km": 1.1
+    },
+    {
+     "dbg": "8/0/1192/tile",
+     "name": "Shell",
+     "address": "fuel",
+     "lat": 47.60834755375984,
+     "lng": -122.31652021408081,
+     "sem": false,
+     "src": "tile",
+     "cls": "fuel",
+     "km": 1.2
+    },
+    {
+     "dbg": "8/0/1237/tile",
+     "name": "Shell",
+     "address": "fuel",
+     "lat": 47.5956479095627,
+     "lng": -122.32686281204224,
+     "sem": false,
+     "src": "tile",
+     "cls": "fuel",
+     "km": 1.2
+    },
+    {
+     "dbg": "8/0/1254/tile",
+     "name": "76",
+     "address": "fuel",
+     "lat": 47.61433640428959,
+     "lng": -122.320516705513,
+     "sem": false,
+     "src": "tile",
+     "cls": "fuel",
+     "km": 1.3
+    }
+   ],
+   "timedOut": false,
+   "ms": 6830
+  },
+  {
+   "region": "seattle",
+   "q": "医院",
+   "localTop": "Virginia Mason Hospital",
+   "top": [
+    {
+     "dbg": "8/30/542/tile",
+     "name": "Virginia Mason Hospital",
+     "address": "hospital",
+     "lat": 47.61016670346302,
+     "lng": -122.32788741588593,
+     "sem": false,
+     "src": "tile",
+     "cls": "hospital",
+     "km": 0.5
+    },
+    {
+     "dbg": "8/30/543/",
+     "name": "Virginia Mason Hospital & Seattle Medical Center",
+     "address": "1100 9th Avenue, Seattle, Washington",
+     "lat": 47.6101681,
+     "lng": -122.3278853,
+     "sem": false,
+     "cls": "hospital",
+     "km": 0.5
+    },
+    {
+     "dbg": "8/30/759/tile",
+     "name": "Swedish Medical Center",
+     "address": "hospital",
+     "lat": 47.60868028567026,
+     "lng": -122.32266247272491,
+     "sem": false,
+     "src": "tile",
+     "cls": "hospital",
+     "km": 0.8
+    },
+    {
+     "dbg": "8/30/759/",
+     "name": "Swedish First Hill Medical Center",
+     "address": "747 Broadway, Seattle, Washington",
+     "lat": 47.6086804,
+     "lng": -122.3226621,
+     "sem": false,
+     "cls": "hospital",
+     "km": 0.8
+    },
+    {
+     "dbg": "8/30/1592/tile",
+     "name": "Swedish Medical Center Cherry Hill Campus",
+     "address": "hospital",
+     "lat": 47.60711425723758,
+     "lng": -122.31090366840363,
+     "sem": false,
+     "src": "tile",
+     "cls": "hospital",
+     "km": 1.6
+    }
+   ],
+   "timedOut": false,
+   "ms": 6913
+  },
+  {
+   "region": "seattle",
+   "q": "超市",
+   "localTop": "PCC Corner Market",
+   "top": [
+    {
+     "dbg": "8/0/399/tile",
+     "name": "PCC Corner Market",
+     "address": "supermarket",
+     "lat": 47.60908896435927,
+     "lng": -122.33526349067688,
+     "sem": false,
+     "src": "tile",
+     "cls": "grocery",
+     "km": 0.4
+    },
+    {
+     "dbg": "8/0/547/tile",
+     "name": "Saveway Market",
+     "address": "supermarket",
+     "lat": 47.60132352320167,
+     "lng": -122.3331069946289,
+     "sem": false,
+     "src": "tile",
+     "cls": "grocery",
+     "km": 0.5
+    },
+    {
+     "dbg": "8/0/721/tile",
+     "name": "Frank's Quality Produce",
+     "address": "greengrocer",
+     "lat": 47.60895876618548,
+     "lng": -122.34081029891968,
+     "sem": false,
+     "src": "tile",
+     "cls": "grocery",
+     "km": 0.7
+    },
+    {
+     "dbg": "8/0/742/tile",
+     "name": "Choice Produce & Peppers",
+     "address": "greengrocer",
+     "lat": 47.60913236367847,
+     "lng": -122.34099805355072,
+     "sem": false,
+     "src": "tile",
+     "cls": "grocery",
+     "km": 0.7
+    },
+    {
+     "dbg": "8/0/747/tile",
+     "name": "Lina's Fruit and Produce",
+     "address": "greengrocer",
+     "lat": 47.60890813347481,
+     "lng": -122.34121263027191,
+     "sem": false,
+     "src": "tile",
+     "cls": "grocery",
+     "km": 0.7
+    }
+   ],
+   "timedOut": false,
+   "ms": 7567
+  }
+ ]
+}
