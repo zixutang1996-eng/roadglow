@@ -9,7 +9,7 @@ cd web
 npm ci
 npm run build          # sprites + skins + vite + dist/bundle/manifest.json
 npx cap sync android
-cd android && ./gradlew assembleRelease   # signs with ../../keys/roadglow-release.jks if present (never commit keys/)
+cd android && ./gradlew assembleStandardRelease   # signs with ../../keys/roadglow-release.jks if present (never commit keys/)
 ```
 - Needs Node 22+, JDK 21 and Android SDK 36.
 - `versionCode = 9020` for 0.9.2. The scheme is major·10000 + minor·1000 + patch·10, which is above 0.1.4's 2005, so it installs as an upgrade.
@@ -39,3 +39,14 @@ cd android && ./gradlew assembleRelease   # signs with ../../keys/roadglow-relea
    - Limit: integrity comes from HTTPS + GitHub; the manifest is not separately signed.
 
 To publish a web update, push to `main`. The Pages workflow rebuilds and publishes the manifest.
+
+## RoadGlow 北京 (offline Beijing edition)
+`web/tools/beijing/build.sh` builds `dist/RoadGlow-Beijing-<ver>.apk`. It uses the `beijing` flavour: applicationId `com.personal.nav.roadglow.beijing`, app name "RoadGlow 北京", same signing key.
+- **Data** (kept out of git):
+  - `dl_tiles.py` → OpenFreeMap OpenMapTiles vector tiles z0–14 for the Beijing bbox (z15+ overzoom).
+  - `osm2bj.py` on the Geofabrik `beijing-latest.osm.pbf` → search index (zh + pinyin + en), reverse-geocoding grid + districts, and the pedestrian graph for Chaoyang/Dongcheng/Xicheng.
+- **Code:** `src/bj.js`, active only when `VITE_EDITION=beijing`.
+  - Offline tiles, search, reverse geocoding and an A* walking router.
+  - Known foreign hosts fail instantly; any other external request is aborted after 4 s.
+  - The GitHub update checker and live update are disabled.
+- **Test:** `node tools/beijing/test_offline.cjs` (serve `web/dist-bj` on 127.0.0.1:18795).

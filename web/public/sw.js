@@ -1,6 +1,6 @@
 // RoadGlow service worker: offline areas. Tiles/glyphs/sprites: cache-first (filled by "Download this area").
 // App shell: network-first with cache fallback so the app opens offline after one online visit.
-const TILES = 'rg-tiles-v1', SHELL = 'rg-shell-v13', VERSION = '0.9.2';
+const TILES = 'rg-tiles-v1', SHELL = 'rg-shell-v14', VERSION = '0.9.2';
 self.addEventListener('install', e => self.skipWaiting());
 // v0.7: drop the old shell cache and any cached styles/sprites (keep downloaded offline tiles)
 self.addEventListener('activate', e => e.waitUntil((async () => {

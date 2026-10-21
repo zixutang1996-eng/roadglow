@@ -1,4 +1,5 @@
 import { NATIVE } from './native.js';
+import { BJ, BJ_CENTER, BJ_ZOOM, BJ_BOUNDS } from './bj.js';
 import * as maplibregl from 'maplibre-gl';
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 import 'maplibre-gl/dist/maplibre-gl.css';
@@ -20,20 +21,22 @@ maplibregl.setWorkerUrl(workerUrl);
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const store = { get: (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } }, set: (k, v) => localStorage.setItem(k, JSON.stringify(v)) };
-const S = { sat: store.get('sat', false), theme: store.get('theme', 'neon'), skin: store.get('skin', null), mode: store.get('mode', 'auto'), me: null, place: null, routes: null, routeIdx: 0, travel: 'drive', from: null, catLayer: null };
+const S = { sat: store.get('sat', false), theme: store.get('theme', 'neon'), skin: store.get('skin', null), mode: store.get('mode', 'auto'), me: null, place: null, routes: null, routeIdx: 0, travel: BJ ? 'walk' : 'drive', from: null, catLayer: null };
 import * as SK from './skins.js';
 let SKINS = []; const refreshSkins = async () => { try { SKINS = await SK.listInstalled(); } catch { SKINS = []; } };
 const isDark = () => S.mode === 'dark' || (S.mode === 'auto' && matchMedia('(prefers-color-scheme: dark)').matches);
 const styleKey = () => `${S.theme}_${isDark() ? 'dark' : 'light'}`;
 const base = new URL(import.meta.env.BASE_URL, location.href).href;
 
-let _tj; const tileJSON = () => _tj ||= fetch('https://tiles.openfreemap.org/planet').then(r => r.json()).catch(e => { _tj = null; throw e; });
+const BJ_TILES = () => `${new URL(import.meta.env.BASE_URL, location.href).href}tiles/{z}/{x}/{y}.pbf`;
+let _tj; const tileJSON = () => BJ ? Promise.resolve({ tiles: [BJ_TILES()], maxzoom: 14 }) : _tj ||= fetch('https://tiles.openfreemap.org/planet').then(r => r.json()).catch(e => { _tj = null; throw e; });
 async function loadStyle() {
   let st, pk = null;
   if (S.skin) { try { pk = await SK.getPack(S.skin); } catch {} if (!pk) { S.skin = null; store.set('skin', null); } }
   if (pk) { S.theme = pk.base; const ps = await SK.packStyle(pk, isDark() ? 'dark' : 'light', base); st = ps.style; window.__skinTok = pk.tokens || {}; }
   else { window.__skinTok = null; st = await (await fetch(`${base}styles/${styleKey()}.json${AV}`)).json(); st.sprite = `${base}sprites/${styleKey()}`; }
   st.glyphs = `${base}glyphs/{fontstack}/{range}.pbf`;
+  if (BJ) for (const [k, sr] of Object.entries(st.sources)) if (sr.type === 'vector' && /openfreemap/.test(sr.url || (sr.tiles || [])[0] || '')) st.sources[k] = { type: 'vector', tiles: [BJ_TILES()], minzoom: 0, maxzoom: 14, bounds: BJ_BOUNDS, attribution: '© OpenStreetMap contributors · OpenMapTiles · OpenFreeMap（离线）' };
   const nameExpr = lang === 'zh' ? ['coalesce', ['get', 'name:zh-Hans'], ['get', 'name:zh'], ['get', 'name'], ['get', 'name:en']] : ['coalesce', ['get', 'name:en'], ['get', 'name:latin'], ['get', 'name']];
   for (const l of st.layers) if (l.layout?.['text-field']) l.layout['text-field'] = nameExpr;
   const poi = st.layers.find(l => l.id === 'poi');
@@ -68,11 +71,11 @@ function bootFail(e) {
 let map;
 try { map = new maplibregl.Map({
   container: 'map', style: bootStyle,
-  center: hash.length >= 3 && !hash.some(isNaN) ? [hash[2], hash[1]] : [-113.4938, 53.5461], zoom: hash.length >= 3 && !isNaN(hash[0]) ? hash[0] : 12,
+  center: hash.length >= 3 && !hash.some(isNaN) ? [hash[2], hash[1]] : BJ ? BJ_CENTER : [-113.4938, 53.5461], zoom: hash.length >= 3 && !isNaN(hash[0]) ? hash[0] : BJ ? BJ_ZOOM : 12,
   attributionControl: { compact: true }, hash: false, maxPitch: 70, fadeDuration: 150, localIdeographFontFamily: '"PingFang SC","Noto Sans CJK SC","Microsoft YaHei",sans-serif',
 
 }); } catch (e) { bootFail(e); throw e; }
-window._map = map; if (NATIVE) map.once('load', () => setTimeout(() => import('./updates.js').then(m => m.initUpdates({ toast, L, store })).catch(e => console.warn(e)), 4000)); SK.hookMissingImages(map); refreshSkins(); window._skins = { ...SK, refresh: refreshSkins, use: async id => { S.skin = id; store.set('skin', id); await setStyle(); } }; window._sug = () => sugItems.map(r => ({ dbg: [r.ts, r.sc, Math.round(r.dist), r.src].join('/'), name: r.name, address: r.address, lat: r.lat, lng: r.lng, sem: !!r.sem, src: r.src, cls: r.cls || r.category }));
+window._map = map; if (NATIVE && !BJ) map.once('load', () => setTimeout(() => import('./updates.js').then(m => m.initUpdates({ toast, L, store })).catch(e => console.warn(e)), 4000)); SK.hookMissingImages(map); refreshSkins(); window._skins = { ...SK, refresh: refreshSkins, use: async id => { S.skin = id; store.set('skin', id); await setStyle(); } }; window._sug = () => sugItems.map(r => ({ dbg: [r.ts, r.sc, Math.round(r.dist), r.src].join('/'), name: r.name, address: r.address, lat: r.lat, lng: r.lng, sem: !!r.sem, src: r.src, cls: r.cls || r.category }));
 applyBodyClass();
 const updHash = () => { const c = map.getCenter(); history.replaceState(null, '', `${location.pathname}${location.search}#${map.getZoom().toFixed(2)}/${c.lat.toFixed(5)}/${c.lng.toFixed(5)}`); };
 map.on('moveend', updHash);
@@ -106,7 +109,7 @@ const BANDS = []; for (let b = 9.75; b <= 17.5; b += 0.25) BANDS.push(+b.toFixed
 const IMP = BANDS.map(b => 'rp' + String(b).replace('.', '_'));
 const YEG = [[-113.85, 53.35], [-113.15, 53.35], [-113.15, 53.72], [-113.85, 53.72], [-113.85, 53.35]];
 function addImportant() {
-  if (!map.getSource('imp')) map.addSource('imp', { type: 'geojson', data: `${base}pois_yeg.geojson${AV}`, buffer: 64, tolerance: 0 });
+  if (!map.getSource('imp')) map.addSource('imp', { type: 'geojson', data: `${base}${BJ ? 'bj_imp' : 'pois_yeg'}.geojson${AV}`, buffer: 64, tolerance: 0 });
   const poi = map.getStyle().layers.find(l => l.id === 'poi'); if (!poi) return;
   // vector-tile POIs only outside the covered area (fallback), so nothing pops in at z14 inside Edmonton
   const f0 = baseFilters.poi ||= poi.filter;
@@ -285,6 +288,7 @@ function localHits(v) {
   return out.sort((a, b) => a.dist - b.dist).slice(0, 8);
 }
 function chainEntry(v, list) {
+  if (BJ) return null; // chain lookup needs Overpass (online)
   const x = v.trim().toLowerCase(); if (x.length < 3 || /^\d/.test(x)) return null;
   const known = SEM.flatMap(e => e.brands).find(b => b.toLowerCase().replace(/[’']/g, '') === x.replace(/[’']/g, '') || (x.length > 4 && b.toLowerCase().startsWith(x)));
   const same = list.filter(r => r.name && r.name.toLowerCase().includes(x)); const multi = new Set(same.map(r => r.name.toLowerCase())).size < same.length;
@@ -607,7 +611,7 @@ async function route(autostart) {
 }
 function renderAlts() {
   $('#alts').innerHTML = S.routes.map((r, i) => `<div class="alt${i === S.routeIdx ? ' on' : ''}" data-i="${i}"><div class="d">${fmtDur(r.duration)}<small>${fmtDist(r.distance)}</small></div>
-    ${i === S.routeIdx ? `<div style="margin-top:8px"><button class="btn" id="goBtn">▲ ${t('start')}</button></div>` : ''}</div>`).join('');
+    ${r.note && i === S.routeIdx ? `<div class="sub" style="padding:4px 0">${esc(r.note)}</div>` : ''}${i === S.routeIdx ? `<div style="margin-top:8px"><button class="btn" id="goBtn">▲ ${t('start')}</button></div>` : ''}</div>`).join('');
   $('#alts').onclick = e => { if (e.target.id === 'goBtn') return startNav(); const a = e.target.closest('.alt'); if (a) { S.routeIdx = +a.dataset.i; drawRoutes(); renderAlts(); } };
   const r = S.routes[S.routeIdx];
   $('#steps').innerHTML = `<div class="dh" style="font-size:15px">${t('steps')}</div>` + r.steps.map(s => `<div class="step"><div class="i">${arrow(s)}</div><div>${esc(instruction(s))}<div class="m">${s.distance ? fmtDist(s.distance) : ''}</div></div></div>`).join('');
@@ -802,7 +806,7 @@ async function fillAddress(p, tags) {
     if (!has && p.lat > 53.38 && p.lat < 53.72 && p.lng > -113.75 && p.lng < -113.2) { const r = await AC.ADDR.reverse(p.lat, p.lng).catch(() => null); if (r && r.dist < (p.me ? 60 : 40)) { const [, hn, st] = r.name.match(/^(\S+) (.+)$/); coe = r; extra = { 'addr:housenumber': hn, 'addr:street': st, 'addr:city': 'Edmonton' }; } }
     if (!coe && (!extra || !fmtAddr({ ...extra, ...tags }))) extra = { ...(await reverseAddr(p)), _approx: !has, _nom: !has };
     if (coe) p._note = L(`最近的门牌（埃德蒙顿市政府地址点，约 ${Math.round(coe.dist)} 米）`, `Nearest address point (City of Edmonton, ~${Math.round(coe.dist)} m)`);
-    if (!coe && extra._nom) p._note = L('大致地址（Nominatim 按坐标反查）', 'Approx. address (Nominatim reverse geocode)');
+    if (!coe && extra._nom) p._note = BJ ? L('大致地址（离线按坐标估算）', 'Approx. address (offline, from coordinates)') : L('大致地址（Nominatim 按坐标反查）', 'Approx. address (Nominatim reverse geocode)');
     if (extra._approx) p._approx = true;
     if (S.place !== p || !$('#addrTx')) return;
     const merged = { ...extra, ...Object.fromEntries(Object.entries(tags).filter(([, v]) => v)) }; Object.assign(tags, Object.fromEntries(Object.entries(merged).filter(([k]) => k.startsWith('_n:') || !tags[k])));
@@ -1048,6 +1052,6 @@ tools.offline = async () => {
 };
 function offlineSearch(v) { const x = v.toLowerCase(), c = map.getCenter(); return store.get('offlineIdx', []).filter(o => (o.name + ' ' + o.n2).toLowerCase().includes(x)).map(o => ({ name: o.name, address: L('离线 · ', 'offline · ') + (o.cls || ''), lat: o.lat, lng: o.lng, category: o.cls, dist: haversine(c, o) })).sort((a, b) => a.dist - b.dist).slice(0, 12); }
 
-AC.loadIndex(`${base}pois_yeg.geojson${AV}`);
+AC.loadIndex(`${base}${BJ ? 'pois_bj' : 'pois_yeg'}.geojson${AV}`);
 window._app = { AC, ios, applySizes, setMe, updScale, sunTimes, offlineSearch, semanticSearch, semMatch, S, openSideQuests, showQuest, questData, tools, showPlace, openDirections, startNav, pick, openDrawer, closeDrawer, runSearch, setStyle, nominatimSearch };
 renderDrawer(); // re-render once all menu sections (lists, tools) are defined

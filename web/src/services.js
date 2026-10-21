@@ -1,5 +1,6 @@
 // Free, fair-use services. No API keys. See ROADMAP.md for limits.
 import { lang } from './i18n.js';
+import { BJ, bjWalk, bjReverse, inWalkArea } from './bj.js';
 
 const withTimeout = (ms) => { const c = new AbortController(); setTimeout(() => c.abort(), ms); return c.signal; };
 
@@ -18,6 +19,7 @@ export async function photon(q, center, limit = 8, zoom = 12, signal, bbox) {
   return (await r.json()).features.map(fromPhoton);
 }
 export async function photonReverse(ll) {
+  if (BJ) { const r = await bjReverse(ll); return { name: r.street || '已选位置', address: [r.district, '北京市'].filter(Boolean).join('，'), lat: ll.lat, lng: ll.lng }; }
   const r = await fetch(`https://photon.komoot.io/reverse?lat=${ll.lat}&lon=${ll.lng}&limit=1`, { signal: withTimeout(8000) });
   const f = (await r.json()).features[0];
   return f ? fromPhoton(f) : null;
@@ -98,6 +100,16 @@ export async function nearbyCategory(filter, bounds) {
 }
 
 export async function osrm(from, to, mode) {
+  if (BJ) { // offline walking graph; online engines only as a quick (≤4 s) try for driving/cycling
+    const walk = () => bjWalk(from, to).catch(e => { throw new Error(e.message === 'outside' ? '离线步行路线只覆盖朝阳、东城、西城区（起点或终点超出范围）' : '离线地图中找不到可步行的路线'); });
+    if (mode === 'walk') return walk();
+    try { return await osrmOnline(from, to, mode); } catch {}
+    if (inWalkArea(from) && inWalkArea(to)) { const r = await walk(); r[0].note = '在线路线服务无法连接，已显示离线步行路线'; return r; }
+    throw new Error('在线路线服务无法连接（网络受限）。离线时请使用“步行”。');
+  }
+  return osrmOnline(from, to, mode);
+}
+async function osrmOnline(from, to, mode) {
   const prof = mode === 'walk' ? 'routed-foot' : mode === 'bike' ? 'routed-bike' : 'routed-car';
   const u = `https://routing.openstreetmap.de/${prof}/route/v1/driving/${from.lng},${from.lat};${to.lng},${to.lat}?overview=full&geometries=geojson&steps=true&alternatives=true`;
   const r = await fetch(u, { signal: withTimeout(15000) });
@@ -192,6 +204,7 @@ export async function photosFor(tags, ll) {
 // Reverse geocode (Nominatim, queued 1 req/s, cached in memory + localStorage)
 const revCache = new Map(Object.entries(JSON.parse(localStorage.getItem('revCache') || '{}')));
 export async function reverseAddr(ll) {
+  if (BJ) { const r = await bjReverse(ll); return { 'addr:street': r.street, 'addr:city': r.district || '北京市', '_n:state': '北京市', '_n:cc': 'cn', '_n:country': '中国' }; }
   const k = ll.lat.toFixed(5) + ',' + ll.lng.toFixed(5); if (revCache.has(k)) return revCache.get(k);
   await nomQueue();
   const x = await (await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${ll.lat}&lon=${ll.lng}&format=jsonv2&addressdetails=1&zoom=18&accept-language=${lang === 'zh' ? 'zh,en' : 'en'}`, { signal: withTimeout(8000) })).json();

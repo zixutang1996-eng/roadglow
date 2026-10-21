@@ -24,6 +24,12 @@ android {
             release { def pw = pwf.text.trim(); storeFile ks; storePassword pw; keyAlias 'roadglow'; keyPassword pw; enableV1Signing true; enableV2Signing true; enableV3Signing false }
         }
     }
+    flavorDimensions = ["edition"]
+    productFlavors {
+        standard { dimension "edition" }
+        // RoadGlow 北京: offline Beijing edition, installs next to the normal app
+        beijing { dimension "edition"; applicationIdSuffix ".beijing"; versionNameSuffix "-beijing" }
+    }
     buildTypes {
         release {
             if (ks.exists() && pwf.exists()) signingConfig signingConfigs.release

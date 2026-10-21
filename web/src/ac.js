@@ -20,9 +20,11 @@ function near1(q, w) {
   return 9;
 }
 // text score: every query token must prefix-match (or 1-typo match) a distinct-ish token of name/address; CJK uses substring
+// pinyin typed with or without spaces ("chaoyang gongyuan", "chaoyanggongyuan", initials "cygy")
+const pyScore = (qn, alt) => { const q = qn.replace(/ /g, ''); if (q.length < 2 || /[^a-z0-9]/.test(q)) return -1; const w = alt.split(' '); return w.some(t => t === q) ? 3.5 : w.some(t => t.length > 4 && t.startsWith(q)) ? 2.5 : -1; };
 export function textScore(qn, name, addr = '') {
   if (!qn) return 0; const nn = norm(name), an = norm(addr);
-  if (/[\u3400-\u9fff]/.test(qn)) return nn.includes(qn) ? (nn.startsWith(qn) ? 3 : 2) : -1;
+  if (/[\u3400-\u9fff]/.test(qn)) return nn.includes(qn) ? (nn === qn ? 4.5 : nn.startsWith(qn) ? 3 : 2) : -1;
   const qt = qn.split(' '), nt = nn.split(' '), at = an.split(' ').filter(Boolean); let s = 0;
   for (const [k, t] of qt.entries()) {
     let best = 9; for (const w of nt) best = Math.min(best, near1(t, w)); let inName = best < 9;
@@ -45,11 +47,12 @@ export const INTENTS = [
   { id: 'uni', k: ['university', 'college', 'campus', '大学', '学院'], cls: ['college', 'university'], sub: ['university', 'college'], tag: ['amenity:university', 'amenity:college'], q: ['university', 'college'] },
   { id: 'park', k: ['park', 'parks', '公园'], cls: ['park'], sub: ['park', 'garden', 'nature_reserve'], tag: ['leisure:park'], q: ['park'] },
   { id: 'hotel', k: ['hotel', 'hotels', 'motel', 'inn', 'lodging', '酒店', '宾馆', '旅馆', '住宿'], cls: ['lodging', 'hotel'], tag: ['tourism:hotel', 'tourism:motel'], q: ['hotel', 'inn', 'motel'] },
+  { id: 'bank', k: ['bank', 'banks', 'atm', '银行', '取款机', '自动取款机'], cls: ['bank', 'atm'], tag: ['amenity:bank'], q: ['bank'] },
   { id: 'parking', k: ['parking', 'parking lot', 'car park', '停车场', '停车'], cls: ['parking'], tag: ['amenity:parking'], q: ['parking'] },
 ];
 export function intentOf(q) {
   const x = norm(q); if (!x) return null; const cjk = /[\u3400-\u9fff]/.test(x);
-  return INTENTS.find(e => e.k.includes(x)) || (cjk ? INTENTS.find(e => e.k.some(k => /[\u3400-\u9fff]/.test(k) && (k.includes(x) || x.includes(k)))) : null)
+  return INTENTS.find(e => e.k.includes(x)) || (cjk ? INTENTS.find(e => e.k.some(k => /[\u3400-\u9fff]/.test(k) && (k.includes(x) || (x.includes(k) && /^(附近|附近的|最近|最近的|周边|周边的|找|去|去最近的)?$/.test(x.replace(k, '').replace(/(在哪里?|在哪儿|附近)$/, '')))))) : null)
     || (x.length >= 3 ? INTENTS.find(e => e.k.some(k => k.length > 3 && (k.startsWith(x) || x === k + 's' || x.startsWith(k + ' ') || x.endsWith(' ' + k)))) : null) || null;
 }
 export const apSc = (n, it) => it?.id === 'uni' ? (/career|training|academy|language|beauty|test centre/i.test(n || '') ? -50 : /universit|universit[ée]|polytechni|institute of technology/i.test(n || '') ? 70 : 0) : it?.id === 'hospital' ? (/hospital|h[ôo]pital|medical cent(re|er)/i.test(n || '') ? 30 : 0) : it?.id !== 'airport' ? 0 : /international|intl/i.test(n || '') ? 150 : /seaplane|heli|water (aerodrome|airport)|harbou?r|air park|airpark/i.test(n || '') ? -60 : 20;
@@ -64,22 +67,22 @@ async function photonTag(q, ctx, it, signal) {
 let IDX = null, idxP = null;
 const PC = new Map(); // Photon cache by area (0.1 deg) + normalised prefix
 let PFX = null; // 2-char token-prefix -> entries (v0.9 prebuilt in-memory prefix index)
-function buildPfx() { PFX = new Map(); for (const x of IDX) { const ks = new Set(norm(x.name).split(' ').filter(w => w.length >= 2).map(w => w.slice(0, 2))); for (const k of ks) { let a = PFX.get(k); if (!a) PFX.set(k, a = []); a.push(x); } } }
-export function loadIndex(url) { return idxP ||= fetch(url).then(r => r.json()).then(j => { IDX = j.features.filter(f => f.properties.name).map(f => ({ name: f.properties.name, zh: f.properties['name:zh'], cls: f.properties.class, sc: f.properties.sc || 0, lng: f.geometry.coordinates[0], lat: f.geometry.coordinates[1], osm: f.properties.osm ? { type: f.properties.osm[0], id: +f.properties.osm.slice(1) } : null, toks: norm(f.properties.name) })); buildPfx(); return IDX; }).catch(() => (IDX = [])); }
+function buildPfx() { PFX = new Map(); for (const x of IDX) { const ks = new Set(norm(x.name + ' ' + (x.alt || '')).split(' ').filter(w => w.length >= 2).map(w => w.slice(0, 2))); for (const k of ks) { let a = PFX.get(k); if (!a) PFX.set(k, a = []); a.push(x); } } }
+export function loadIndex(url) { return idxP ||= fetch(url).then(r => r.json()).then(j => { IDX = j.features.filter(f => f.properties.name).map(f => ({ name: f.properties.name, zh: f.properties['name:zh'], cls: f.properties.class, sc: f.properties.sc || 0, lng: f.geometry.coordinates[0], lat: f.geometry.coordinates[1], osm: f.properties.osm ? { type: f.properties.osm[0], id: +f.properties.osm.slice(1) } : null, toks: norm(f.properties.name), alt: [f.properties.en, f.properties.py].filter(Boolean).join(' ') || undefined, address: [f.properties.district, f.properties.street].filter(Boolean).join(' ') || '' })); buildPfx(); return IDX; }).catch(() => (IDX = [])); }
 const tier = (x, ctx) => ctx.B && ctx.B.contains([x.lng, x.lat]) ? 0 : x.dist < 15000 ? 1 : x.dist < 60000 || ctx.prov && x.lng >= ctx.prov[0] && x.lng <= ctx.prov[2] && x.lat >= ctx.prov[1] && x.lat <= ctx.prov[3] ? 2 : 3;
-const rank = (x, ctx) => ctx.it ? -x.ts * 40 - (x.ts >= 8 ? x.sc || 0 : 0) * 2 + Math.log10(1 + x.dist) * 60 + (x.dist > 60000 ? Math.min(220, (x.dist - 60000) / 1200) : 0) : tier(x, ctx) * 300 - x.ts * 40 - (x.sc || 0) * 2 + Math.log10(1 + x.dist) * 15 + (x.dist > 60000 ? Math.min(220, (x.dist - 60000) / 1200) : 0);
+const rank = (x, ctx) => ctx.it ? -x.ts * 40 - (x.ts >= 8 ? x.sc || 0 : 0) * 2 + Math.log10(1 + x.dist) * 60 + (x.dist > 60000 ? Math.min(220, (x.dist - 60000) / 1200) : 0) : tier(x, ctx) * (x.ts >= 4.5 ? 40 : 300) - x.ts * 40 - (x.sc || 0) * 2 + Math.log10(1 + x.dist) * 15 + (x.dist > 60000 ? Math.min(220, (x.dist - 60000) / 1200) : 0);
 const key = x => norm(x.name) + '|' + (+x.lat).toFixed(3) + ',' + (+x.lng).toFixed(3);
 // local instant results
 export function localSuggest(q, ctx, extra = []) {
   const qn = norm(q); if (!qn) return []; const out = [], seen = new Set();
   const it = intentOf(q), icls = new Set(it?.cls || []); ctx.it = it;
-  const push = (x, src) => { let ts = Math.max(textScore(qn, x.name, x.address), x.zh ? textScore(qn, x.zh) : -1); if (it && (icls.has(x.cls) || icls.has(x.category) || x._cat)) { if (ts < 0 && haversine(ctx.c, x) > 150000) return; ts = Math.max(ts, 8); } else if (it) ts = Math.min(ts, 4); if (ts < 0) return; const k = key(x); if (seen.has(k)) return; seen.add(k);
+  const push = (x, src) => { let ts = Math.max(textScore(qn, x.name, x.address), x.zh ? textScore(qn, x.zh) : -1, x.alt ? Math.max(textScore(qn, x.alt) - 0.5, pyScore(qn, x.alt)) : -1); if (it && (icls.has(x.cls) || icls.has(x.category) || x._cat)) { if (ts < 0 && haversine(ctx.c, x) > 150000) return; ts = Math.max(ts, 8); } else if (it) ts = Math.min(ts, 4); if (ts < 0) return; const k = key(x); if (seen.has(k)) return; seen.add(k);
     out.push({ ...x, name: ctx.zh && x.zh ? x.zh : x.name, ts: ts + (src === 'saved' ? 2 : src === 'recent' ? 1 : 0), dist: haversine(ctx.c, x), src }); };
   for (const [src, list] of extra) for (const x of list) if (x && x.lat != null) push(x, src);
   const pool = IDX ? (PFX && qn.length >= 2 && !/[\u3400-\u9fff]/.test(qn) ? (PFX.get(qn.slice(0, 2)) || []) : IDX) : [];
-  for (const x of pool) { push({ name: x.name, zh: x.zh, address: '', category: x.cls, cls: x.cls, lat: x.lat, lng: x.lng, osm: x.osm, sc: x.sc }, 'idx'); }
-  if (it && IDX && pool !== IDX) for (const x of IDX) if (icls.has(x.cls)) push({ name: x.name, zh: x.zh, address: '', category: x.cls, cls: x.cls, lat: x.lat, lng: x.lng, osm: x.osm, sc: x.sc }, 'idx');
-  if (IDX && pool !== IDX && out.filter(o => o.src === 'idx').length < 3) for (const x of IDX) push({ name: x.name, zh: x.zh, address: '', category: x.cls, cls: x.cls, lat: x.lat, lng: x.lng, osm: x.osm, sc: x.sc }, 'idx');
+  for (const x of pool) { push({ name: x.name, zh: x.zh, alt: x.alt, address: x.address || '', category: x.cls, cls: x.cls, lat: x.lat, lng: x.lng, osm: x.osm, sc: x.sc }, 'idx'); }
+  if (it && IDX && pool !== IDX) for (const x of IDX) if (icls.has(x.cls)) push({ name: x.name, zh: x.zh, alt: x.alt, address: x.address || '', category: x.cls, cls: x.cls, lat: x.lat, lng: x.lng, osm: x.osm, sc: x.sc }, 'idx');
+  if (IDX && pool !== IDX && out.filter(o => o.src === 'idx').length < 3) for (const x of IDX) push({ name: x.name, zh: x.zh, alt: x.alt, address: x.address || '', category: x.cls, cls: x.cls, lat: x.lat, lng: x.lng, osm: x.osm, sc: x.sc }, 'idx');
   out.sort((a, b) => rank(a, ctx) - rank(b, ctx)); const dd = [];
   for (const x of out.slice(0, 40)) if (!dd.some(y => norm(y.name) === norm(x.name) && haversine(x, y) < (/airport|aerodrome/i.test(x.name) ? 9000 : 350))) dd.push(x);   // same place mapped twice (node + area)
   return farCut(dd).slice(0, 8);

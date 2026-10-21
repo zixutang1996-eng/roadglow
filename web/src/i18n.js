@@ -22,7 +22,7 @@ const D = {
     nominatim:'Search more with Nominatim', coords:'Coordinates', nearby:'Nearby', more:'More',
     about_text:'Personal navigation app. Map data © OpenStreetMap contributors (ODbL); vector tiles OpenFreeMap / OpenMapTiles; search Photon (komoot), Nominatim; details Overpass; routing FOSSGIS OSRM; photos Wikimedia Commons; side quests Wikidata (CC0); transit Transitous (MOTIS); weather Open-Meteo (CC BY 4.0); icons Maki (CC0); fonts Rajdhani, IM FELL English (OFL). Edmonton address points: Contains information licensed under the Open Government Licence – City of Edmonton (Open Data "Parcel Addresses"; no postal codes).' },
 };
-export let lang = (localStorage.getItem('lang') || (navigator.language || 'en')).toLowerCase().startsWith('zh') ? 'zh' : 'en';
+export let lang = (localStorage.getItem('lang') || (import.meta.env.VITE_EDITION === 'beijing' ? 'zh' : navigator.language || 'en')).toLowerCase().startsWith('zh') ? 'zh' : 'en';
 export const setLang = l => { if (l) localStorage.setItem('lang', l); else localStorage.removeItem('lang'); location.reload(); };
 export const t = k => D[lang][k] ?? k;
 export const fmtDist = m => m >= 1000 ? `${(m / 1000).toFixed(1)} ${t('km')}` : `${Math.round(m / 10) * 10} ${t('m')}`;

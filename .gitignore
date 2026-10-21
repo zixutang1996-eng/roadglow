@@ -51,3 +51,8 @@ tools/node_modules/
 keys/
 web/node_modules/
 web/dist/
+
+# Beijing edition build outputs / large offline data (rebuild with web/tools/beijing/)
+web/dist-bj/
+web/android/app/src/main/assets/public/
+*.osm.pbf
