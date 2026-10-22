@@ -71,7 +71,7 @@
    "version": "1.1.0",
    "minAppVersion": "0.9.5",
    "url": "blueprint-1.1.0.rgpack",
-   "sha256": "1bf90a06a93aae5fcb5c19f34e47b1ae85ead4b39501fed701b7e53a1a7b7054",
+   "sha256": "a45dacc4d184917cfde6d8ac77360ff4013eba071da77c6e22bf8b2cdafd1ad2",
    "size": 7998
   },
   {
@@ -88,7 +88,7 @@
    "version": "1.0.0",
    "minAppVersion": "0.9.5",
    "url": "calm-1.0.0.rgpack",
-   "sha256": "c95866aa5f899431ff3aa323a6da669273fbff30fe08a98a833f0a77be59f38b",
+   "sha256": "b63edff6c02f9bf3a4195c0ffb560712a7f4bd85198df910a905b326deed3637",
    "size": 1082
   }
  ]
