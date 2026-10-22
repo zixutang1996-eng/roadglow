@@ -195,3 +195,4 @@ $P #endBtn{background-image:none!important;text-decoration:none!important;outlin
 $P .pkpuck,$P .pkpuck img{width:64px!important;height:64px!important}
 $P :is(.btn.red,.btn.primary,.seg button.on,.opt.on,.vpgrid .btn.on,.chip.on){border-image-slice:46 fill!important}
 $P #endBtn{border-image-slice:58 fill!important}
+$P .uic{--ic1:transparent;--ic3:transparent;--icb:none;--ic2:currentColor}

@@ -26,7 +26,7 @@ export let lang = (localStorage.getItem('lang') || ((import.meta.env||{}).VITE_E
 export const setLang = l => { if (l) localStorage.setItem('lang', l); else localStorage.removeItem('lang'); location.reload(); };
 // v0.9.6: skin packs may override Chinese UI strings (poetic wording). OV.t: i18n keys; OV.L: inline L('中文', 'en') strings.
 export const OV = { t: {}, L: {}, dir: {} };
-const clean = o => Object.fromEntries(Object.entries(o && typeof o === 'object' ? o : {}).filter(([k, v]) => typeof k === 'string' && typeof v === 'string' && k.length <= 200 && v.length <= 300).slice(0, 2000).map(([k, v]) => [k, v.replace(/[<>&"'`]/g, '')]));
+const clean = o => Object.fromEntries(Object.entries(o && typeof o === 'object' ? o : {}).filter(([k, v]) => typeof k === 'string' && typeof v === 'string' && k.length <= 200 && v.length <= 300).slice(0, 2000).map(([k, v]) => [k, v.replace(/<\/?p>/g, m => m === '<p>' ? '\u0001' : '\u0002').replace(/[<>&"'`]/g, '').replace(/\u0001/g, '<p>').replace(/\u0002/g, '</p>')]));
 export function setOverrides(s) { const z = lang === 'zh' && s && s.zh ? s.zh : {}; OV.t = clean(z.t); OV.L = clean(z.L); OV.dir = clean(z.dir); OV.units = z.units === 'classical' ? 'classical' : ''; }
 export const tz = (k, def) => (lang === 'zh' && OV.t[k]) || def;
 // classical Chinese numerals / units (skin option "units":"classical"): 1 步 ≈ 1.5 m, 1 里 = 500 m, 1 刻 = 15 min, 1 时辰 = 2 h

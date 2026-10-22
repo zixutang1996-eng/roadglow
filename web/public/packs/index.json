@@ -71,7 +71,7 @@
    "version": "1.1.0",
    "minAppVersion": "0.9.5",
    "url": "blueprint-1.1.0.rgpack",
-   "sha256": "120e7c83dc318332be928f895dd16982c6bc45e719c7be1e3696133b21714e71",
+   "sha256": "1070d4544f41a24691e75af1a7a00e51703f91fe26e6f423e2a0cb320b811113",
    "size": 7998
   },
   {
@@ -88,8 +88,8 @@
    "version": "1.0.0",
    "minAppVersion": "0.9.6",
    "url": "sanguo-1.0.0.rgpack",
-   "sha256": "c7f33c5176fc4f35bfa215015aca6fa2e466937da777ccaea5b55c14302a7d77",
-   "size": 2083295
+   "sha256": "38e312880572860acd3746ce4a2fba4fbc4ad76b2cad8a9acc779fca456f2274",
+   "size": 2114816
   },
   {
    "type": "voice",
@@ -105,7 +105,7 @@
    "version": "1.0.0",
    "minAppVersion": "0.9.5",
    "url": "calm-1.0.0.rgpack",
-   "sha256": "6bce0fb2fe06a1260cbf3549f0b19e234d1aaea4378b1b35d7f60ffcf57e4c15",
+   "sha256": "93077408facc5c0d701a2647d72c36db1a2442d1806e1379742918c6b5291dad",
    "size": 1082
   }
  ]

@@ -195,3 +195,4 @@ html:not(#_a):not(#_b) body.pk-sanguo.west.sk-west #endBtn{background-image:none
 html:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .pkpuck,html:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .pkpuck img{width:64px!important;height:64px!important}
 html:not(#_a):not(#_b) body.pk-sanguo.west.sk-west :is(.btn.red,.btn.primary,.seg button.on,.opt.on,.vpgrid .btn.on,.chip.on){border-image-slice:46 fill!important}
 html:not(#_a):not(#_b) body.pk-sanguo.west.sk-west #endBtn{border-image-slice:58 fill!important}
+html:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .uic{--ic1:transparent;--ic3:transparent;--icb:none;--ic2:currentColor}

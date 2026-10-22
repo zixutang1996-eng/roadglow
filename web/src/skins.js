@@ -97,6 +97,8 @@ export async function packStyle(p, mode, base) {
   return { style: st, tokens: p.tokens?.[m] || {} };
 }
 export function hookMissingImages(map) {
+  // background-pattern images never trigger styleimagemissing, so pack sprites are added up front once the style is in
+  map.on('style.load', () => { for (const [k, s] of Object.entries(spriteCache)) if (!map.hasImage(k)) map.addImage(k, s.data, { pixelRatio: s.pixelRatio, sdf: s.sdf }); });
   map.on('styleimagemissing', e => { const s = spriteCache[e.id]; if (s && !map.hasImage(e.id)) map.addImage(e.id, s.data, { pixelRatio: s.pixelRatio, sdf: s.sdf }); });
 }
 export function applyTokens(t = {}) {
