@@ -14,7 +14,7 @@ export const NC_PRESETS = {
 };
 // each mode's own panel colour ("auto") and its opposite ("swap")
 const OWN0 = { west_light: '#ece0c2', west_dark: '#1c1f23', neon_light: '#f6f1e8', neon_dark: '#141824' };
-const MAPBASE0 = { west_light: '#ebddbb', west_dark: '#1c222a', neon_light: '#e9e4da', neon_dark: '#14161f' };
+const MAPBASE0 = { west_light: '#eedcb2', west_dark: '#1c222a', neon_light: '#e9e4da', neon_dark: '#14161f' };
 const OWN = { ...OWN0 }, MAPBASE = { ...MAPBASE0 };
 /** v0.9.3: the active night palette overrides the panel + map base colours. */
 export function ncOwn(key, bg, mapBase) { OWN[key] = bg || OWN0[key]; MAPBASE[key] = mapBase || MAPBASE0[key]; }

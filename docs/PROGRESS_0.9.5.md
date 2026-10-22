@@ -6,6 +6,10 @@
   padding 6/14/20 + equal negative margins. Verified in 4 variants (Playwright, desktop Chrome, 461x1024):
   `screenshots/v095/item1_chip_shadows_4skins.png`.
 
+- Item 4 Frontier S4 stitching + Y1: v095.css (generated block, SVG background layers so they don't scroll; UI chrome only,
+  NO map stitching per user). body gets class `sk-<theme>` (main.js applyBodyClass). Y1 colours patched in
+  web/public/styles/west_light.json + tools/genstyles.py + navcard MAPBASE0. Shots: screenshots/v095/frontier/.
+
 ## Next (not started)
 - 2 pack system: extend `web/src/skins.js` (existing roadglow-skin/1, IndexedDB) → roadglow-pack/2 with type skin|voice,
   minAppVersion, sha256, css theme, zip (fflate), catalog `public/packs/index.json`, screen 皮肤与语音包, share intent.
