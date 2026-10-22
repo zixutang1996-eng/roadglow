@@ -22,23 +22,34 @@ const D = {
     nominatim:'Search more with Nominatim', coords:'Coordinates', nearby:'Nearby', more:'More',
     about_text:'Personal navigation app. Map data © OpenStreetMap contributors (ODbL); vector tiles OpenFreeMap / OpenMapTiles; search Photon (komoot), Nominatim; details Overpass; routing FOSSGIS OSRM; photos Wikimedia Commons; side quests Wikidata (CC0); transit Transitous (MOTIS); weather Open-Meteo (CC BY 4.0); icons Maki (CC0); fonts Rajdhani, IM FELL English (OFL). Edmonton address points: Contains information licensed under the Open Government Licence – City of Edmonton (Open Data "Parcel Addresses"; no postal codes).' },
 };
-export let lang = (localStorage.getItem('lang') || (import.meta.env.VITE_EDITION === 'beijing' ? 'zh' : navigator.language || 'en')).toLowerCase().startsWith('zh') ? 'zh' : 'en';
+export let lang = (localStorage.getItem('lang') || ((import.meta.env||{}).VITE_EDITION === 'beijing' ? 'zh' : navigator.language || 'en')).toLowerCase().startsWith('zh') ? 'zh' : 'en';
 export const setLang = l => { if (l) localStorage.setItem('lang', l); else localStorage.removeItem('lang'); location.reload(); };
-export const t = k => D[lang][k] ?? k;
-export const fmtDist = m => m >= 1000 ? `${(m / 1000).toFixed(1)} ${t('km')}` : `${Math.round(m / 10) * 10} ${t('m')}`;
-export const fmtDur = s => { const m = Math.round(s / 60); return m >= 60 ? `${Math.floor(m / 60)} ${t('h')} ${m % 60} ${t('min')}` : `${m} ${t('min')}`; };
+// v0.9.6: skin packs may override Chinese UI strings (poetic wording). OV.t: i18n keys; OV.L: inline L('中文', 'en') strings.
+export const OV = { t: {}, L: {}, dir: {} };
+const clean = o => Object.fromEntries(Object.entries(o && typeof o === 'object' ? o : {}).filter(([k, v]) => typeof k === 'string' && typeof v === 'string' && k.length <= 200 && v.length <= 300).slice(0, 2000).map(([k, v]) => [k, v.replace(/[<>&"'`]/g, '')]));
+export function setOverrides(s) { const z = lang === 'zh' && s && s.zh ? s.zh : {}; OV.t = clean(z.t); OV.L = clean(z.L); OV.dir = clean(z.dir); OV.units = z.units === 'classical' ? 'classical' : ''; }
+export const tz = (k, def) => (lang === 'zh' && OV.t[k]) || def;
+// classical Chinese numerals / units (skin option "units":"classical"): 1 步 ≈ 1.5 m, 1 里 = 500 m, 1 刻 = 15 min, 1 时辰 = 2 h
+const CN = '〇一二三四五六七八九';
+export function cnNum(n) { n = Math.round(n); if (n < 10) return CN[n]; if (n < 20) return '十' + (n % 10 ? CN[n % 10] : ''); if (n < 100) return CN[Math.floor(n / 10)] + '十' + (n % 10 ? CN[n % 10] : '');
+  if (n < 1000) { const h = Math.floor(n / 100), r = n % 100; return CN[h] + '百' + (r ? (r < 10 ? '零' + CN[r] : (r < 20 ? '一' : '') + cnNum(r)) : ''); }
+  if (n < 10000) { const k = Math.floor(n / 1000), r = n % 1000; return CN[k] + '千' + (r ? (r < 100 ? '零' : '') + cnNum(r) : ''); } return String(n); }
+const classical = () => lang === 'zh' && OV.units === 'classical';
+export const t = k => (lang === 'zh' && OV.t[k]) || (D[lang][k] ?? k);
+export const fmtDist = m => classical() ? (m < 750 ? `${cnNum(Math.max(10, Math.round(m / 1.5 / (m < 150 ? 10 : 50)) * (m < 150 ? 10 : 50)))}步` : (h => (h >> 1 ? (h >> 1 === 2 ? '两' : cnNum(h >> 1)) + '里' + (h & 1 ? '半' : '') : '半里'))(Math.round(m / 250))) : m >= 1000 ? `${(m / 1000).toFixed(1)} ${t('km')}` : `${Math.round(m / 10) * 10} ${t('m')}`;
+export const fmtDur = s => { if (classical()) { const m = s / 60; return m < 10 ? '片刻' : m < 105 ? `${cnNum(Math.max(1, Math.round(m / 15)))}刻钟` : (h => `${h >> 1 === 2 ? '两' : cnNum(h >> 1)}${h & 1 ? '个半时辰' : '个时辰'}`)(Math.round(m / 60)); } const m = Math.round(s / 60); return m >= 60 ? `${Math.floor(m / 60)} ${t('h')} ${m % 60} ${t('min')}` : `${m} ${t('min')}`; };
 
 const dirZh = {left:'左转', right:'右转', 'slight left':'稍向左', 'slight right':'稍向右', 'sharp left':'向左急转', 'sharp right':'向右急转', straight:'直行', uturn:'掉头'};
 const dirEn = {left:'Turn left', right:'Turn right', 'slight left':'Bear left', 'slight right':'Bear right', 'sharp left':'Sharp left', 'sharp right':'Sharp right', straight:'Continue straight', uturn:'Make a U-turn'};
 export function instruction(s) {
-  const zh = lang === 'zh', n = s.name || '', d = (zh ? dirZh : dirEn)[s.modifier] || (zh ? '继续' : 'Continue');
+  const zh = lang === 'zh', n = s.name || '', d = (zh && OV.dir[s.modifier]) || (zh ? dirZh : dirEn)[s.modifier] || (zh ? (OV.dir.cont || '继续') : 'Continue');
   switch (s.type) {
-    case 'depart': return zh ? `出发${n ? '，沿' + n + '行驶' : ''}` : `Head out${n ? ' on ' + n : ''}`;
+    case 'depart': return zh ? `${OV.t.depart || '出发'}${n ? (OV.t.along || '，沿') + n + (OV.t.along2 ?? '行驶') : ''}` : `Head out${n ? ' on ' + n : ''}`;
     case 'arrive': return t('arrive');
     case 'roundabout': case 'rotary': return zh ? `进入环岛，第${s.exit || 1}个出口驶出${n ? '，进入' + n : ''}` : `At the roundabout take exit ${s.exit || 1}${n ? ' onto ' + n : ''}`;
     case 'merge': return zh ? `并入${n || '道路'}` : `Merge${n ? ' onto ' + n : ''}`;
     case 'on ramp': return zh ? `${d}，驶入匝道` : `${d} onto the ramp`;
     case 'off ramp': return zh ? `${d}，驶出匝道${n ? '前往' + n : ''}` : `${d} to take the exit${n ? ' to ' + n : ''}`;
-    default: return zh ? `${d}${n ? '，进入' + n : ''}` : `${d}${n ? ' onto ' + n : ''}`;
+    default: return zh ? `${d}${n ? (OV.t.onto || '，进入') + n : ''}` : `${d}${n ? ' onto ' + n : ''}`;
   }
 }

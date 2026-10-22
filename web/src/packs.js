@@ -62,6 +62,8 @@ export async function readPack(u8, { expectSha, appVer } = {}) {
       if (typeof md.sprite === 'string') md.sprite = { json: JSON.parse(txt(md.sprite + '.json')), png: assets[md.sprite + '.png'] };
       if (typeof md.css === 'string' && files[md.css]) md.css = txt(md.css); }
     if (typeof p.skin.css === 'string' && files[p.skin.css]) p.skin.css = txt(p.skin.css);
+    if (p.skin.puck) for (const m of ['light', 'dark']) if (typeof p.skin.puck[m] === 'string') p.skin.puck[m] = assets[p.skin.puck[m]] || null;
+    if (typeof p.strings === 'string' && files[p.strings]) p.strings = JSON.parse(txt(p.strings));
     p.skin.css = sanitizeCss(p.skin.css, assets); for (const m of ['light', 'dark']) if (p.skin.modes[m]?.css) p.skin.modes[m].css = sanitizeCss(p.skin.modes[m].css, assets);
   }
   if (p.type === 'voice' && p.voice.clips) for (const [k, f] of Object.entries(p.voice.clips)) p.voice.clips[k] = assets[f] || (/^data:audio\//.test(f) ? f : null);
@@ -72,7 +74,7 @@ export async function readPack(u8, { expectSha, appVer } = {}) {
 async function storeSkin(p, src, sha) {
   const k = p.skin, legacy = { format: SK.FORMAT, id: p.id, name: p.name, version: p.version, author: p.author || '—', license: p.license || '—', base: k.base,
     modes: Object.fromEntries(['light', 'dark'].filter(m => k.modes[m]).map(m => [m, { style: k.modes[m].style, ...(k.modes[m].sprite ? { sprite: k.modes[m].sprite } : {}) }])),
-    tokens: k.tokens || {}, css: k.css || '', cssModes: { light: k.modes.light?.css || '', dark: k.modes.dark?.css || '' }, pack2: true, sha256: sha, minAppVersion: p.minAppVersion };
+    tokens: k.tokens || {}, strings: p.strings || null, fx: Array.isArray(k.fx) ? k.fx.filter(x => typeof x === 'string').slice(0, 8) : [], puck: k.puck ? Object.fromEntries(['light', 'dark'].filter(m => typeof k.puck[m] === 'string' && /^data:image\/(png|webp);base64,/.test(k.puck[m])).map(m => [m, k.puck[m]])) : null, css: k.css || '', cssModes: { light: k.modes.light?.css || '', dark: k.modes.dark?.css || '' }, pack2: true, sha256: sha, minAppVersion: p.minAppVersion };
   for (const m of Object.keys(legacy.modes)) if (!legacy.modes[m].style) { const r = await fetch(`${new URL(import.meta.env.BASE_URL, location.href).href}styles/${k.base}_${m}.json`); legacy.modes[m].style = await r.json(); }
   return SK.installObject(legacy, src);
 }

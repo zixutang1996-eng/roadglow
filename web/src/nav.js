@@ -1,5 +1,5 @@
 // Turn-by-turn navigation with Google-Maps-like follow mode (lazy-loaded).
-import { t, fmtDist, fmtDur, instruction, lang } from './i18n.js';
+import { t, tz, fmtDist, fmtDur, instruction, lang } from './i18n.js';
 import { haversine, distToLine } from './services.js';
 import { Marker } from 'maplibre-gl';
 import { phrase, say } from './voice.js';
@@ -31,7 +31,7 @@ export function startNavigation({ map, S, setMe, makePuck, reroute, drawRoutes, 
   foot.innerHTML = `<div class="eta"></div><button class="ctl" id="hdgBtn" title="${t('compass')}">⬆</button><button class="btn red" id="endBtn"><span class="stopg" aria-hidden="true"></span>${t('nav_end')}</button>`;
   const footEta = foot.querySelector('.eta'), hdgBtn = foot.querySelector('#hdgBtn');
   foot.querySelector('#endBtn').onclick = () => end(); banner.querySelector('#navX').onclick = () => end(); hdgBtn.onclick = () => toggleHeading();
-  const rc = document.createElement('button'); rc.id = 'recenter'; rc.className = 'btn hidden'; rc.textContent = lang === 'zh' ? '◎ 重新居中' : '◎ Re-centre'; document.body.appendChild(rc);
+  const rc = document.createElement('button'); rc.id = 'recenter'; rc.className = 'btn hidden'; rc.textContent = lang === 'zh' ? tz('recenter', '◎ 重新居中') : '◎ Re-centre'; document.body.appendChild(rc);
   rc.onclick = () => { follow = true; rc.classList.add('hidden'); if (lastPos) camera(lastPos, 600); };
 
   const speak = say; st.spoken = [];
@@ -67,8 +67,8 @@ export function startNavigation({ map, S, setMe, makePuck, reroute, drawRoutes, 
     const dn = S.dest?.gps ? (lang === 'zh' ? '我的位置' : 'my location') : (S.dest?.name || (lang === 'zh' ? '目的地' : 'destination'));
     navBody.innerHTML = `<div class="objk">${lang === 'zh' ? '当前目标' : 'OBJECTIVE'}</div>
       <div class="objrow"><div class="ar">${arrowOf(s)}</div><div><div class="dd">${fmtDist(toNext)}</div><div class="tx">${instruction(s)}</div></div></div>
-      <div class="objsub">${lang === 'zh' ? `前往 ${esc(dn)} · 还剩 ${fmtDist(rem)} · ${at} 到达` : `Go to ${esc(dn)} · ${fmtDist(rem)} left · arrive ${at}`}</div>`;
-    footEta.innerHTML = `<b>${fmtDur(eta)}</b><div style="font-size:13px;color:var(--muted)">${fmtDist(rem)} · ${at}</div>`; hdgBtn.textContent = headingUp ? '⬆' : 'N';
+      <div class="objsub">${lang === 'zh' ? `${tz('nav_go', '前往')} ${esc(dn)} · ${tz('nav_rem', '还剩')} ${fmtDist(rem)} · ${at} ${tz('nav_at', '到达')}` : `Go to ${esc(dn)} · ${fmtDist(rem)} left · arrive ${at}`}</div>`;
+    footEta.innerHTML = `<b>${tz('eta_fmt', '{d}').replace('{d}', fmtDur(eta))}</b><div style="font-size:13px;color:var(--muted)">${fmtDist(rem)} · ${at}</div>`; hdgBtn.textContent = headingUp ? '⬆' : 'N';
     if (s.type === 'arrive' && toNext < 25) { sayEv('arrive'); return end(); }
     for (const th of [800, 200, 40]) {
       const k = step + '@' + th;
