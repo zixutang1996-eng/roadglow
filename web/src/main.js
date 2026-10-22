@@ -5,6 +5,7 @@ import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import './style.css';
 import './v093.css';
+import './v095.css';
 import { PALS, PAL_DEF, recolor, applyPalVars } from './palettes.js';
 import { ic, iconDefs, catIc } from './uiicons.js';
 import * as AC from './ac.js';

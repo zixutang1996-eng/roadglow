@@ -1,0 +1,5 @@
+/* ===== v0.9.5 ===== */
+/* 1) quick-action chips: the row scrolls horizontally, so overflow clipped every chip's shadow into one flat band.
+   Give the scroller room for the shadows (padding) and cancel it with negative margins so layout is unchanged. */
+html body #chips{padding:6px 14px 20px!important;margin:2px -14px -16px!important;scroll-padding:0 14px;box-sizing:border-box}
+html body #chips .chip{position:relative}
