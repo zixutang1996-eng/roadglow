@@ -39,8 +39,10 @@ function key(st) {
   if (m.includes('left')) return 'left'; if (m.includes('right')) return 'right'; return 'straight';
 }
 /** Text for an event. ev: 'step' (st, dist?), 'arrive', 'reroute', 'better' (min), 'gpslost', 'test' */
+let clip = null; // v0.9.5 voice packs may ship recorded clips per event/manoeuvre key; say() plays it instead of TTS
 export function phrase(ev, { st, dist, min } = {}) {
-  const P = PACKS[voicePack()], T = P[lang === 'zh' ? 'zh' : 'en'];
+  const P = PACKS[voicePack()] || PACKS.standard, T = P[lang === 'zh' ? 'zh' : 'en'];
+  clip = P.clips ? (P.clips[`${lang === 'zh' ? 'zh' : 'en'}.${ev === 'step' ? (st?.type === 'arrive' ? 'arrive' : key(st)) : ev}`] || P.clips[ev === 'step' ? (st?.type === 'arrive' ? 'arrive' : key(st)) : ev] || null) : null;
   if (!T) { // standard
     if (ev === 'step') { const i = key(st) === 'ferry' ? (lang === 'zh' ? '乘坐渡轮' : 'Take the ferry') : instruction(st); return dist ? (lang === 'zh' ? `${fmtDist(dist)}后，${i}` : `In ${fmtDist(dist)}, ${i}`) : i; }
     return { arrive: lang === 'zh' ? '到达目的地' : 'You have arrived', reroute: lang === 'zh' ? '正在重新规划路线' : 'Rerouting', better: lang === 'zh' ? `找到更快的路线，节省${min}分钟` : `Faster route found, saves ${min} min`, gpslost: lang === 'zh' ? 'GPS 信号丢失' : 'GPS signal lost', test: lang === 'zh' ? '这是标准导航语音。' : 'This is the standard navigation voice.' }[ev];
@@ -55,14 +57,15 @@ export function phrase(ev, { st, dist, min } = {}) {
 export function voices() { const l = lang === 'zh' ? /^zh/i : /^en/i; return (window.speechSynthesis?.getVoices() || []).filter(v => l.test(v.lang)); }
 function chooseVoice(P) {
   const saved = localStorage.getItem('voiceName'), vs = voices(); if (saved) { const v = vs.find(x => x.name === saved); if (v) return v; }
-  const pref = vs.filter(v => P.prefer[lang === 'zh' ? 'zh' : 'en'].test(v.lang));
+  const pref = vs.filter(v => (P.prefer?.[lang === 'zh' ? 'zh' : 'en'] || (lang === 'zh' ? /zh/i : /en/i)).test(v.lang));
   const pool = pref.length ? pref : vs;
   if (P.deep) { const m = pool.find(v => /male|david|guy|fred|daniel|alex|aaron|james|ralph|bruce/i.test(v.name) && !/female/i.test(v.name)); if (m) return m; }
   return pool[0] || null;
 }
 export function say(text) {
-  if (text && window.__nativeSay) { const P = PACKS[voicePack()]; return window.__nativeSay(text, lang === 'zh' ? 'zh-CN' : (P === PACKS.canuck ? 'en-CA' : 'en-US'), P.rate, P.pitch); }
+  if (clip) { const c = clip; clip = null; try { const a = new Audio(c); a.play().catch(() => say(text)); return; } catch {} }
+  if (text && window.__nativeSay) { const P = PACKS[voicePack()] || PACKS.standard; return window.__nativeSay(text, lang === 'zh' ? 'zh-CN' : (P === PACKS.canuck ? 'en-CA' : 'en-US'), P.rate, P.pitch); }
   if (!text || !window.speechSynthesis) return;
-  try { const P = PACKS[voicePack()], u = new SpeechSynthesisUtterance(text); u.lang = lang === 'zh' ? 'zh-CN' : (P === PACKS.canuck ? 'en-CA' : 'en-US');
+  try { const P = PACKS[voicePack()] || PACKS.standard, u = new SpeechSynthesisUtterance(text); u.lang = lang === 'zh' ? 'zh-CN' : (P === PACKS.canuck ? 'en-CA' : 'en-US');
     const v = chooseVoice(P); if (v) u.voice = v; u.pitch = P.pitch; u.rate = P.rate; speechSynthesis.cancel(); speechSynthesis.speak(u); } catch {}
 }

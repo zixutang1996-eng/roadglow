@@ -2,7 +2,7 @@
 // A pack is pure data (MapLibre style JSON + optional sprite sheet + colour tokens); no code or CSS is ever executed.
 import { readable, contrast } from './navcard.js';
 export const FORMAT = 'roadglow-skin/1';
-export const BUILTIN = ['neon', 'west'];
+export const BUILTIN = ['neon', 'west', 'space', 'nord', 'tac'];
 const FONTS = ['IM FELL English Italic', 'IM FELL English Regular', 'Rajdhani Bold', 'Rajdhani SemiBold'];
 const MAX_BYTES = 8 * 1024 * 1024, HEX = /^#[0-9a-f]{6}$/i, TOK = ['bg', 'fg', 'muted', 'accent', 'chip', 'line', 'route', 'themeColor'];
 
@@ -27,7 +27,7 @@ export function validate(p) {
   if (!/^\d+\.\d+\.\d+$/.test(p.version || '')) E.push('version must be semver x.y.z');
   if (!str(p.author)) E.push('author required');
   if (!str(p.license, 64)) E.push('license required (SPDX id, e.g. CC-BY-4.0)');
-  if (!BUILTIN.includes(p.base)) E.push('base must be "neon" or "west" (UI chrome family)');
+  if (!BUILTIN.includes(p.base)) E.push(`base must be one of ${BUILTIN.join(', ')} (UI chrome family)`);
   if (!p.modes || (!p.modes.light && !p.modes.dark)) E.push('modes.light and/or modes.dark required');
   for (const m of ['light', 'dark']) {
     const md = p.modes?.[m]; if (!md) continue;
@@ -35,7 +35,7 @@ export function validate(p) {
     if (!st || typeof st !== 'object') { E.push(`modes.${m}.style must be a style object (URL packs are resolved at install)`); continue; }
     if (st.version !== 8 || !Array.isArray(st.layers) || typeof st.sources !== 'object') E.push(`modes.${m}.style is not a MapLibre v8 style`);
     for (const [k, s] of Object.entries(st.sources || {})) for (const u of [s.url, ...(s.tiles || [])].filter(Boolean)) if (!/^https:\/\//.test(u)) E.push(`source ${k}: only https URLs allowed`);
-    for (const l of st.layers || []) { const f = l.layout?.['text-font']; if (Array.isArray(f) && f.some(x => !FONTS.includes(x))) { W.push(`layer ${l.id}: font replaced (only bundled fonts: ${FONTS.join(', ')})`); l.layout['text-font'] = [p.base === 'west' ? 'IM FELL English Regular' : 'Rajdhani SemiBold']; } }
+    for (const l of st.layers || []) { const f = l.layout?.['text-font']; if (Array.isArray(f) && f.some(x => !FONTS.includes(x))) { W.push(`layer ${l.id}: font replaced (only bundled fonts: ${FONTS.join(', ')})`); l.layout['text-font'] = [['west', 'nord'].includes(p.base) ? 'IM FELL English Regular' : 'Rajdhani SemiBold']; } }
     if (md.sprite && !(md.sprite.json && typeof md.sprite.json === 'object' && /^data:image\/png;base64,/.test(md.sprite.png || ''))) E.push(`modes.${m}.sprite needs {json, png:data:image/png;base64,...}`);
     const t = p.tokens?.[m] || {};
     for (const k of TOK) if (t[k] != null && !HEX.test(t[k])) E.push(`tokens.${m}.${k} must be #rrggbb`);
@@ -74,6 +74,7 @@ export async function installFromFile(file) {
   for (const m of ['light', 'dark']) if (typeof p.modes?.[m]?.style === 'string' || typeof p.modes?.[m]?.sprite === 'string') throw new Error('local files must be single-file packs (styles/sprites inlined)');
   return finish(p, 'file:' + file.name);
 }
+export const installObject = (p, src) => finish(p, src);
 async function finish(p, src) {
   const v = validate(p); if (!v.ok) { const e = new Error(v.errors.join('\n')); e.validation = v; throw e; }
   p.installedFrom = src; p.installedAt = Date.now(); await putPack(p); return v;
@@ -103,3 +104,6 @@ export function applyTokens(t = {}) {
   for (const k of ['bg', 'fg', 'muted', 'accent', 'chip', 'line']) t[k] ? r.setProperty('--' + k, t[k]) : r.removeProperty('--' + k);
 }
 export const packName = (p, zh) => typeof p.name === 'string' ? p.name : (zh ? p.name.zh || p.name.en : p.name.en || p.name.zh);
+/** v0.9.5: pack CSS theme (already sanitised at install) in one <style>; swapping it is a single style recalc, no reload. */
+export function applyPackCss(p, mode) { let el = document.getElementById('packcss'); const css = p ? (p.css || '') + '\n' + (p.cssModes?.[mode] || '') : '';
+  if (!css.trim()) { el?.remove(); return; } if (!el) { el = document.createElement('style'); el.id = 'packcss'; document.head.appendChild(el); } if (el.textContent !== css) el.textContent = css; }

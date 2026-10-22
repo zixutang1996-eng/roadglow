@@ -39,8 +39,8 @@ let _tj; const tileJSON = () => BJ ? Promise.resolve({ tiles: [BJ_TILES()], maxz
 async function loadStyle() {
   let st, pk = null;
   if (S.skin) { try { pk = await SK.getPack(S.skin); } catch {} if (!pk) { S.skin = null; store.set('skin', null); } }
-  if (pk) { S.theme = pk.base; const ps = await SK.packStyle(pk, isDark() ? 'dark' : 'light', base); st = ps.style; window.__skinTok = pk.tokens || {}; }
-  else { window.__skinTok = null; st = await (await fetch(`${base}styles/${styleKey()}.json${AV}`)).json(); st.sprite = typeof st.sprite === 'string' && st.sprite.startsWith('{SPRITE}/') && !['neon', 'west'].includes(S.theme) ? `${base}sprites/${st.sprite.slice(9)}` : `${base}sprites/${styleKey()}`; if (styleKey() === 'west_dark') recolor(st, S.pal); }
+  if (pk) { S.theme = pk.base; const ps = await SK.packStyle(pk, isDark() ? 'dark' : 'light', base); st = ps.style; window.__skinTok = pk.tokens || {}; SK.applyPackCss(pk, isDark() ? 'dark' : 'light'); }
+  else { window.__skinTok = null; SK.applyPackCss(null); st = await (await fetch(`${base}styles/${styleKey()}.json${AV}`)).json(); st.sprite = typeof st.sprite === 'string' && st.sprite.startsWith('{SPRITE}/') && !['neon', 'west'].includes(S.theme) ? `${base}sprites/${st.sprite.slice(9)}` : `${base}sprites/${styleKey()}`; if (styleKey() === 'west_dark') recolor(st, S.pal); }
   st.glyphs = `${base}glyphs/{fontstack}/{range}.pbf`;
   if (BJ) for (const [k, sr] of Object.entries(st.sources)) if (sr.type === 'vector' && /openfreemap/.test(sr.url || (sr.tiles || [])[0] || '')) st.sources[k] = { type: 'vector', tiles: [BJ_TILES()], minzoom: 0, maxzoom: 14, bounds: BJ_BOUNDS, attribution: '© OpenStreetMap contributors · OpenMapTiles · OpenFreeMap（离线）' };
   const nameExpr = lang === 'zh' ? ['coalesce', ['get', 'name:zh-Hans'], ['get', 'name:zh'], ['get', 'name'], ['get', 'name:en']] : ['coalesce', ['get', 'name:en'], ['get', 'name:latin'], ['get', 'name']];
@@ -76,7 +76,7 @@ function loadWestFonts() {
   ].map(f => f.load().then(x => (document.fonts.add(x), x)))).then(() => document.documentElement.classList.add('f093')).catch(e => console.warn('fonts', e)); };
   (window.requestIdleCallback || (f => setTimeout(f, 300)))(go, { timeout: 2500 });
 }
-function applyBodyClass() { const tc = document.getElementById('themeColor'); if (tc) tc.content = skinTok().themeColor || (styleKey() === 'west_dark' && !S.skin ? PALS[S.pal].ui.theme : THEMEC[styleKey()]) || '#101521'; document.body.className = `${FAM(S.theme)} sk-${S.theme} ${isDark() ? 'dark' : 'light'}${$('#panel').classList.contains('hidden') ? '' : ' panel-open'}${$('#panel').classList.contains('collapsed') ? ' panel-collapsed' : ''} p-${S.pal}${document.body.classList.contains('navon') ? ' navon' : ''}`; applyPalVars(S.pal, styleKey() === 'west_dark' && !S.skin); ncOwn(styleKey(), styleKey() === 'west_dark' && !S.skin ? PALS[S.pal].ui.bg : null, styleKey() === 'west_dark' && !S.skin ? PALS[S.pal].map.land : null); SK.applyTokens(skinTok()); ncApply(styleKey(), skinTok().navCard); if (window._map) { loadWestFonts(); loadSkinFonts(); } }
+function applyBodyClass() { const tc = document.getElementById('themeColor'); if (tc) tc.content = skinTok().themeColor || (styleKey() === 'west_dark' && !S.skin ? PALS[S.pal].ui.theme : THEMEC[styleKey()]) || '#101521'; document.body.className = `${FAM(S.theme)} sk-${S.theme} ${isDark() ? 'dark' : 'light'}${$('#panel').classList.contains('hidden') ? '' : ' panel-open'}${$('#panel').classList.contains('collapsed') ? ' panel-collapsed' : ''} p-${S.pal}${S.skin ? ' pk-' + S.skin : ''}${document.body.classList.contains('navon') ? ' navon' : ''}`; applyPalVars(S.pal, styleKey() === 'west_dark' && !S.skin); ncOwn(styleKey(), styleKey() === 'west_dark' && !S.skin ? PALS[S.pal].ui.bg : null, styleKey() === 'west_dark' && !S.skin ? PALS[S.pal].map.land : null); SK.applyTokens(skinTok()); ncApply(styleKey(), skinTok().navCard); if (window._map) { loadWestFonts(); loadSkinFonts(); } }
 
 // ---------- map ----------
 const hash = location.hash.slice(1).split('/').map(Number);
@@ -736,6 +736,7 @@ function renderDrawer() { drawerSig = drawerState();
    ${sec('navcard', 'dir', L('导航卡片', 'Navigation card'), `<div style="padding:4px 22px 12px 22px" id="ncBox">${ncHtml(L)}</div>`)}
    ${sec('settings2', 'layers', L('皮肤插件与语言', 'Skin plugins & language'), sub('layers', L('皮肤插件', 'Skin plugins'), pad(skinsHtml()))
      + sub('settings', t('language'), pad(`<div class="seg"><button data-lang="" class="${!localStorage.getItem('lang') ? 'on' : ''}">${t('lang_auto')}</button><button data-lang="zh" class="${localStorage.getItem('lang') === 'zh' ? 'on' : ''}">中文</button><button data-lang="en" class="${localStorage.getItem('lang') === 'en' ? 'on' : ''}">English</button></div>`)))}
+   <section class="dsec dpacks"><button class="dsh" data-tool="packs"><span class="i">${ic('layers')}</span><b>${L('皮肤与语音包', 'Skin & voice packs')}</b></button></section>
    <section class="dsec dupd"><button class="dsh" data-tool="update"><span class="i">${ic('info')}</span><b>${L('检查更新', 'Check for updates')}</b><span class="updver">v${APPVER}</span></button></section>
    ${sec('about', 'info', t('about'), `<div class="sub">${t('about_text')}</div>`)}<div class="orn" aria-hidden="true"><span class="ornl"></span><span class="ornw"><i></i><b></b></span></div>`;
   $('#drawer').onclick = e => {
@@ -960,6 +961,8 @@ document.addEventListener('input', e => { const n = e.target.dataset?.nc; if (n)
 document.addEventListener('input', e => { const k = e.target.dataset?.sz; if (!k) return; const v = SZ[+e.target.value]; store.set(k, v); $('#szv_' + k).textContent = Math.round(v * 100) + '%'; applySizes(); });
 // ---------- voice pack settings (voice.js is tiny; loaded with the drawer) ----------
 import { PACKS, voices, voicePack } from './voice.js';
+import * as PK from './packs.js';
+PK.registerVoices(PACKS);
 function voiceHtml() {
   const cur = voicePack(), vs = voices(), sel = localStorage.getItem('voiceName') || '';
   return `<div class="vpgrid">${Object.entries(PACKS).map(([k, p]) => `<button class="btn ghost${k === cur ? ' on' : ''}" data-vp="${k}">${esc(p.label[ZH ? 'zh' : 'en'])}</button>`).join('')}</div>
@@ -1111,6 +1114,42 @@ drawerExtra = () => {
 tools.transit = () => { S.travel = 'transit'; toast(L('已切换为公交模式：选择目的地后点“路线”', 'Transit mode on: pick a destination, then Directions'), 3500); q.focus(); };
 tools.weather = () => { const c = map.getCenter(); showPlace({ name: L('地图中心', 'Map centre'), address: `${c.lat.toFixed(4)}, ${c.lng.toFixed(4)}`, lat: c.lat, lng: c.lng }); };
 // v0.9.4 dedicated update channel (drawer → 检查更新); updates.js is loaded only when opened
+// v0.9.5 皮肤与语音包: hosted catalog (packs/index.json on the web app, i.e. the live-update path) + installed + local file.
+tools.packs = async () => {
+  const nm = n => typeof n === 'string' ? n : (ZH ? n?.zh || n?.en : n?.en || n?.zh) || '';
+  const draw = async (msg = '') => {
+    let cat = [], err = ''; try { cat = await PK.catalog(base); } catch (e) { err = String(e.message || e); }
+    const inst = await PK.installed(), iv = Object.fromEntries(inst.map(p => [p.type + ':' + p.id, p]));
+    const curV = voicePack(), curS = S.skin;
+    const row = (e, c) => { const k = e.type + ':' + e.id, have = iv[k], up = have && c && PK.cmpVer(c.version, have.version) > 0, inUse = e.type === 'voice' ? curV === e.id : (e.builtin ? !curS && S.theme === e.base : curS === e.id);
+      const old = !!(APPVER && c?.minAppVersion && PK.cmpVer(APPVER, c.minAppVersion) < 0);
+      return `<div class="pkrow${inUse ? ' on' : ''}"><div class="pkt"><b>${esc(nm(e.name))}</b><span class="s">${e.type === 'voice' ? L('语音', 'Voice') : L('皮肤', 'Skin')} · v${esc((have || c || e).version || '')}${e.builtin ? ' · ' + L('内置', 'built-in') : ''}${up ? ` → v${esc(c.version)}` : ''}${old ? ' · ' + L(`需要 App ${c.minAppVersion}+`, `needs app ${c.minAppVersion}+`) : ''}</span>${c?.description ? `<span class="s">${esc(nm(c.description))}</span>` : ''}</div><div class="pkb">
+        ${!e.builtin && c && (!have || up) && !old ? `<button class="btn" data-pki="${esc(c.id)}">${up ? L('更新', 'Update') : L('安装', 'Install')}</button>` : ''}
+        ${(have || e.builtin) && !inUse ? `<button class="btn ghost" data-pku="${esc(k)}"${e.builtin ? ` data-pkb="${esc(e.base)}"` : ''}>${L('使用', 'Use')}</button>` : ''}${inUse ? `<span class="pkon">✔ ${L('使用中', 'In use')}</span>` : ''}
+        ${have && !e.builtin ? `<button class="btn ghost" data-pkr="${esc(k)}">${L('移除', 'Remove')}</button>` : ''}</div></div>`; };
+    const catIds = new Set(cat.map(c => c.type + ':' + c.id));
+    const html = `<div class="pks">${msg ? `<div class="pkmsg">${esc(msg)}</div>` : ''}
+      <div class="pkh">${L('在线目录', 'Catalog')}</div>${err ? `<div class="s">${L('目录加载失败：', 'Catalog unavailable: ') + esc(err)}</div>` : cat.map(c => row(c, c)).join('')}
+      ${inst.filter(p => !catIds.has(p.type + ':' + p.id)).length ? `<div class="pkh">${L('已安装（本地）', 'Installed (local)')}</div>` + inst.filter(p => !catIds.has(p.type + ':' + p.id)).map(p => row(p, null)).join('') : ''}
+      <div class="pkh">${L('从文件安装', 'Install from file')}</div><label class="btn ghost pkfile">${L('选择 .rgpack / .json 文件', 'Choose a .rgpack / .json file')}<input type="file" id="pkFile" accept=".rgpack,.zip,.json,application/zip,application/json" hidden></label>
+      <div class="s" style="margin-top:8px">${L('皮肤包和语音包无需更新 App；格式见 docs/PACKS.md。安装前会校验 SHA-256。', 'Packs install without an app update; format in docs/PACKS.md. SHA-256 is verified before install.')}</div></div>`;
+    openPanel(html, L('皮肤与语音包', 'Skin & voice packs'));
+    const body = $('#panelBody'), find = id => cat.find(c => c.type + ':' + c.id === id || c.id === id);
+    $('#pkFile').onchange = async ev => { const f = ev.target.files[0]; if (!f) return; try { const r = await PK.installFromFile(f, APPVER); await done(r); } catch (e) { draw('✖ ' + e.message); } };
+    body.onclick = async ev => { const b = ev.target.closest('button'); if (!b) return;
+      try {
+        if (b.dataset.pki) { b.disabled = true; b.textContent = L('下载中…', 'Downloading…'); const c = find(b.dataset.pki); const r = await PK.installFromUrl(c.url, c.sha256, APPVER); return done(r); }
+        if (b.dataset.pku) { const [ty, id] = b.dataset.pku.split(':'); if (ty === 'voice') { localStorage.setItem('voicePack', id); return draw(); } S.skin = b.dataset.pkb ? null : id; if (b.dataset.pkb) S.theme = b.dataset.pkb; store.set('skin', S.skin); store.set('theme', S.theme); await setStyle(); return draw(); }
+        if (b.dataset.pkr) { const [ty, id] = b.dataset.pkr.split(':'); if (ty === 'voice' && voicePack() === id) localStorage.removeItem('voicePack'); if (ty === 'skin' && S.skin === id) { S.skin = null; store.set('skin', null); } await PK.removePack(ty, id); delete PACKS[id]; await refreshSkins(); if (ty === 'skin') await setStyle(); return draw(L('已移除', 'Removed')); }
+      } catch (e) { draw('✖ ' + e.message); } };
+    async function done(r) { await refreshSkins(); PK.registerVoices(PACKS); if (r.type === 'skin') { S.skin = r.id; store.set('skin', r.id); await setStyle(); } else localStorage.setItem('voicePack', r.id); draw(`✔ ${nm(r.name)}${r.warnings?.length ? '\n⚠ ' + r.warnings.join('\n⚠ ') : ''}`); }
+  };
+  draw();
+};
+// files handed to the app by Android (open-with / share intent; MainActivity → window event 'rgPackFile')
+let pkTok = ''; window.addEventListener('rgPackFile', async ev => { try { const d = ev.b64 ? ev : ev.detail || {}; if (d.tok && d.tok === pkTok) return; pkTok = d.tok || ''; const bin = atob(d.b64 || ''); const u8 = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+  const r = await PK.install(u8, 'share:' + (d.name || 'pack'), { appVer: APPVER }); await refreshSkins(); PK.registerVoices(PACKS); if (r.type === 'skin') { S.skin = r.id; store.set('skin', r.id); await setStyle(); } else localStorage.setItem('voicePack', r.id);
+  toast(L('已安装：', 'Installed: ') + (typeof r.name === 'string' ? r.name : (ZH ? r.name.zh : r.name.en))); } catch (e) { toast('✖ ' + (e.message || e)); } });
 tools.update = () => import('./updates.js').then(m => m.openUpdater({ openPanel, L, $, native: NATIVE, bj: BJ, webVer: APPVER })).catch(e => toast(String(e.message || e)));
 tools.list = name => {
   const items = store.get('saved', []).filter(s => (s.list || lists()[0]) === name);

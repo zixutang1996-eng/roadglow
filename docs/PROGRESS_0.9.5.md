@@ -17,6 +17,12 @@
   (OFL, LICENSES-v095.txt), lazy via loadSkinFonts(). Puck per skin in puckSvg(). previews/*.png cropped from mockups.
   Shots: web/tools/shots095.py <skin_mode,...> <map,drawer,search,layers,place,nav> → screenshots/v095/<skin>/.
 
+- Item 2 packs: web/src/packs.js (roadglow-pack/1, fflate zip, SHA-256, CSS sanitiser, voice store), skins.js
+  (BUILTIN 5 themes, installObject, applyPackCss), voice.js (clips + pack phrases), main.js tools.packs screen + drawer
+  entry + 'rgPackFile' event; Android VIEW/SEND intent filters + MainActivity.handlePack. Catalog generator
+  web/tools/genpacks.mjs → public/packs/index.json + blueprint-1.1.0.rgpack + calm-1.0.0.rgpack. Doc docs/PACKS.md.
+  Tested in desktop Chrome: catalog install (hash ok), CSS applied, switch w/o reload, voice select, remove.
+
 ## Next (not started)
 - 2 pack system: extend `web/src/skins.js` (existing roadglow-skin/1, IndexedDB) → roadglow-pack/2 with type skin|voice,
   minAppVersion, sha256, css theme, zip (fflate), catalog `public/packs/index.json`, screen 皮肤与语音包, share intent.
