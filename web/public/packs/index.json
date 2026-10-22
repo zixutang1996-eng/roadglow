@@ -11,7 +11,7 @@
     "zh": "霓虹都市",
     "en": "Neon City"
    },
-   "version": "0.9.5"
+   "version": "0.9.6"
   },
   {
    "type": "skin",
@@ -22,7 +22,7 @@
     "zh": "荒野墨图",
     "en": "Frontier Ink"
    },
-   "version": "0.9.5"
+   "version": "0.9.6"
   },
   {
    "type": "skin",
@@ -33,7 +33,7 @@
     "zh": "深空",
     "en": "Deep Space"
    },
-   "version": "0.9.5"
+   "version": "0.9.6"
   },
   {
    "type": "skin",
@@ -44,7 +44,7 @@
     "zh": "北境",
     "en": "Northland"
    },
-   "version": "0.9.5"
+   "version": "0.9.6"
   },
   {
    "type": "skin",
@@ -55,7 +55,7 @@
     "zh": "战术",
     "en": "Tactical"
    },
-   "version": "0.9.5"
+   "version": "0.9.6"
   },
   {
    "type": "skin",
@@ -71,8 +71,25 @@
    "version": "1.1.0",
    "minAppVersion": "0.9.5",
    "url": "blueprint-1.1.0.rgpack",
-   "sha256": "a45dacc4d184917cfde6d8ac77360ff4013eba071da77c6e22bf8b2cdafd1ad2",
+   "sha256": "120e7c83dc318332be928f895dd16982c6bc45e719c7be1e3696133b21714e71",
    "size": 7998
+  },
+  {
+   "type": "skin",
+   "id": "sanguo",
+   "name": {
+    "zh": "分久必合",
+    "en": "Three Kingdoms"
+   },
+   "description": {
+    "zh": "水墨三国：卷轴窗口、墨迹按钮、古文诗意文字、骏马为“我”",
+    "en": "Ink-wash Three Kingdoms: hanging-scroll windows, ink-blob buttons, a horse as “me”"
+   },
+   "version": "1.0.0",
+   "minAppVersion": "0.9.6",
+   "url": "sanguo-1.0.0.rgpack",
+   "sha256": "c7f33c5176fc4f35bfa215015aca6fa2e466937da777ccaea5b55c14302a7d77",
+   "size": 2083295
   },
   {
    "type": "voice",
@@ -88,7 +105,7 @@
    "version": "1.0.0",
    "minAppVersion": "0.9.5",
    "url": "calm-1.0.0.rgpack",
-   "sha256": "b63edff6c02f9bf3a4195c0ffb560712a7f4bd85198df910a905b326deed3637",
+   "sha256": "6bce0fb2fe06a1260cbf3549f0b19e234d1aaea4378b1b35d7f60ffcf57e4c15",
    "size": 1082
   }
  ]

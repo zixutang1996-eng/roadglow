@@ -16,7 +16,7 @@ const AV = '?v=0.9.3'; // asset version: busts caches for styles + important-POI
 document.body.insertAdjacentHTML('afterbegin', iconDefs());
 for (const [id, k] of [['menuBtn', 'menu'], ['clearBtn', 'close'], ['dirBtn', 'dir'], ['layersBtn', 'layers'], ['locBtn', 'locate']]) { const el = document.getElementById(id); if (el) el.innerHTML = ic(k); }
 import { t, lang, setLang, fmtDist, fmtDur, instruction, OV, setOverrides } from './i18n.js';
-import { initScrollFx } from './scrollfx.js';
+import { initScrollFx, fxReopen } from './scrollfx.js';
 import { photon, photonReverse, nominatim, osmElement, nearbyCategory, nearbyCategoryNominatim, osrm, photoFor, photosFor, haversine, overpass, photonBox, reverseAddr } from './services.js';
 let placeExtras = null; const tools = {}; let drawerExtra = () => ({ lists: '', tools: '' });
 document.documentElement.dataset.lang = lang; const ZH = lang === 'zh', L = (zh, en) => ZH ? (OV.L[zh] || zh) : en;
@@ -267,7 +267,7 @@ let puck;
 // original player-marker style pucks (drawn for this project)
 function puckSvg() {
   const dk = isDark();
-  if (window.__skinPuck) return `<div class="pkpuck"><img src="${window.__skinPuck}" width="56" height="56" alt="" draggable="false"></div>`;
+  if (window.__skinPuck) return `<div class="pkpuck"><img src="${window.__skinPuck}" width="64" height="64" alt="" draggable="false"></div>`;
   if (S.theme === 'tac') return `<svg class="pk-tac" width="64" height="64" viewBox="0 0 64 64" style="overflow:visible"><g fill="none" stroke="${dk ? '#d7ff3a' : '#1a1c15'}" stroke-width="1.6" style="filter:drop-shadow(0 0 1.5px ${dk ? 'rgba(0,0,0,.7)' : 'rgba(255,255,255,.85)'})"><circle cx="32" cy="32" r="17"/><path d="M32 7v9M32 48v9M7 32h9M48 32h9M32 25v3M32 36v3M25 32h3M36 32h3"/><path d="M28.5 4 32 .5 35.5 4" stroke-width="2.2"/></g><circle cx="32" cy="32" r="2" fill="${dk ? '#d7ff3a' : '#1a1c15'}"/></svg>`;
   if (S.theme === 'space') { const c = dk ? '#e9e6dc' : '#d8462b', m = dk ? '#81838a' : '#77756f'; return `<svg class="pk-space" width="150" height="150" viewBox="0 0 150 150" style="overflow:visible"><ellipse cx="75" cy="75" rx="74" ry="22" transform="rotate(-14 75 75)" fill="none" stroke="${m}" stroke-width="1" opacity=".35"/><circle cx="75" cy="75" r="48" fill="none" stroke="${m}" stroke-width="1" stroke-dasharray="3 3" opacity=".55"/><circle cx="75" cy="75" r="18" fill="${c}" opacity=".15"/><path d="M75 60 82 84 75 80 68 84Z" fill="${c}" stroke="${dk ? '#07080b' : '#fff'}" stroke-width="2" stroke-linejoin="round"/></svg>`; }
   if (S.theme === 'nord') return `<svg width="46" height="46" viewBox="0 0 32 32" style="overflow:visible"><circle cx="16" cy="16" r="13" fill="rgba(232,226,208,.18)"/><path d="M16 3.5 25 26 16 21 7 26Z" fill="#efece4" stroke="#1b1c1d" stroke-width="1.8" stroke-linejoin="round" style="filter:drop-shadow(0 2px 3px rgba(0,0,0,.5))"/></svg>`;
@@ -468,7 +468,7 @@ function ohStatus(lib, s) {
 // ---------- place card ----------
 const panel = $('#panel');
 let panelKind = '';
-function openPanel(html, title = '', kind = 'list') { panelKind = kind; $('#panelTitle').textContent = title; $('#panelBody').innerHTML = html; panel.classList.remove('hidden', 'collapsed'); panel.scrollTop = 0; applyBodyClass(); }
+function openPanel(html, title = '', kind = 'list') { panelKind = kind; $('#panelTitle').textContent = title; $('#panelBody').innerHTML = html; fxReopen(panel); panel.classList.remove('hidden', 'collapsed'); panel.scrollTop = 0; applyBodyClass(); }
 function closePanel() { panel.classList.add('hidden'); panel.classList.remove('collapsed'); applyBodyClass(); }
 function collapsePanel(on) { panel.classList.toggle('collapsed', on); panel.scrollTop = 0; applyBodyClass(); }
 $('#panelX').onclick = e => { e.stopPropagation(); if (panelKind === 'dir') return closeDirections(); closePanel(); if (panelKind === 'place') { S.place = null; drawPin(); } };

@@ -14,15 +14,19 @@ function rollup(el) {
 }
 export function initScrollFx() {
   const mo = new MutationObserver(recs => {
+    const muted = new Set();
     for (const r of recs) {
       const el = r.target.closest ? (TARGETS.some(s => r.target.matches(s)) ? r.target : r.target.closest(TARGETS.join(','))) : null; if (!el) continue;
-      if (r.type === 'childList') { if (el._rgClosing) { el._rgClosing = false; el.classList.remove('rg-rollup'); el.removeAttribute('aria-hidden'); } continue; } // re-opened with new content while rolling up
+      if (r.type === 'childList') { if (el._rgClosing && el.id === 'suggest') { el._rgClosing = false; el.classList.remove('rg-rollup'); el.removeAttribute('aria-hidden'); } continue; } // re-opened with new content while rolling up
       if (r.target !== el || r.attributeName !== 'class') continue;
-      if (el._rgMute) { el._rgMute = false; continue; }
+      if (el._rgMute) { muted.add(el); continue; }
       const was = (r.oldValue || '').split(/\s+/).includes('hidden'), now = el.classList.contains('hidden');
       if (was === now || !enabled()) continue;
       if (was && !now && !el._rgClosing) unroll(el); else if (!was && now) rollup(el);
     }
+    for (const el of muted) el._rgMute = false;
   });
   for (const s of TARGETS) { const el = document.querySelector(s); if (el) mo.observe(el, { attributes: true, attributeFilter: ['class'], attributeOldValue: true, childList: true }); }
 }
+/** The app re-opened a window that is still rolling up (e.g. a new place card): cancel the close and unroll again. */
+export function fxReopen(el) { if (!el || !el._rgClosing) return; el._rgClosing = false; el.classList.remove('rg-rollup'); el.removeAttribute('aria-hidden'); if (enabled()) unroll(el); }

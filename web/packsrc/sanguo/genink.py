@@ -124,6 +124,7 @@ for mode,blobf,glyph in (('light','mock/dots_A.png',(246,236,214)),('dark','mock
         cell=(red if n in ('hospital','quest') else blob).copy()
         gl=Image.new('RGBA',(34,34),glyph+(0,)); gl.putalpha(g); cell.alpha_composite(gl,(13,13)); cells.append((n,cell))
     pap=Image.open(f'paper_{"A" if mode=="light" else "C"}.png').convert('RGB').resize((256,256))
+    if mode=='light': pap=Image.fromarray(np.clip(np.asarray(pap,np.float32)*np.array([1.0,.975,.92])+np.array([4,2,0]),0,255).astype('uint8'))  # a touch warmer than mockup A
     Wd=10*64; Hd=64*((len(cells)+9)//10)+256
     sheet=Image.new('RGBA',(Wd,Hd),(0,0,0,0))
     for i,(n,c) in enumerate(cells):
