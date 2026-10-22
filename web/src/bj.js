@@ -14,7 +14,9 @@ if (BJ) {
     let u; try { u = new URL(typeof input === 'string' ? input : input.url, location.href); } catch { return of(input, init); }
     if (u.origin === location.origin || u.protocol === 'data:' || u.protocol === 'blob:') return of(input, init);
     if (BLOCKED.test(u.hostname)) return Promise.reject(new TypeError('offline edition: ' + u.hostname));
-    const t = AbortSignal.timeout(4000), sig = init.signal && AbortSignal.any ? AbortSignal.any([init.signal, t]) : t;
+    // v0.9.4: AbortSignal.timeout/any are missing in older system WebViews (common on Chinese-market phones) → manual fallback
+    let t; if (AbortSignal.timeout) t = AbortSignal.timeout(4000); else { const c = new AbortController(); setTimeout(() => c.abort(), 4000); t = c.signal; }
+    const sig = init.signal && AbortSignal.any ? AbortSignal.any([init.signal, t]) : t;
     return of(input, { ...init, signal: sig });
   };
 }

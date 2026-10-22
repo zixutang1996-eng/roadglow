@@ -12,7 +12,7 @@ const L = (z, e) => ZH ? z : e;
 if (NATIVE) {
   const [{ Geolocation }, { App }, { StatusBar, Style }, { KeepAwake }, { TextToSpeech }, { SplashScreen }] = await Promise.all([
     import('@capacitor/geolocation'), import('@capacitor/app'), import('@capacitor/status-bar'), import('@capacitor-community/keep-awake'), import('@capacitor-community/text-to-speech'), import('@capacitor/splash-screen')]);
-  const BG = registerPlugin('BackgroundGeolocation');
+  const BG = registerPlugin('BackgroundGeolocation'), LocEn = registerPlugin('LocationEnabler');
   document.documentElement.classList.add('native', 'android');
 
   // ---- geolocation: one-shot via @capacitor/geolocation, continuous (navigation) via a foreground service
@@ -22,7 +22,9 @@ if (NATIVE) {
   const g = navigator.geolocation || {};
   const watches = new Map(); let wid = 1;
   const native = {
-    getCurrentPosition(ok, err, o = {}) { perm().then(granted => { if (!granted) return geoErr(err, 1, 'denied'); Geolocation.getCurrentPosition({ enableHighAccuracy: o.enableHighAccuracy !== false, timeout: o.timeout || 10000, maximumAge: o.maximumAge || 0 }).then(p => ok(toPos(p)), e => geoErr(err, /timeout/i.test(e.message) ? 3 : 2, e.message)); }); },
+    // v0.9.4: permission first, then make sure device location is ON (one-tap GMS dialog, or system settings without GMS → auto-continue on return)
+    getCurrentPosition(ok, err, o = {}) { (o.noPrompt ? Geolocation.checkPermissions().then(s => s.location === 'granted' || s.coarseLocation === 'granted') : perm()).then(async granted => { if (!granted) return geoErr(err, 1, 'denied');
+      if (!o.noPrompt) try { const st = await LocEn.ensure(); if (!st.enabled) return geoErr(err, 2, L('定位服务未开启', 'Location is turned off')); } catch {} Geolocation.getCurrentPosition({ enableHighAccuracy: o.enableHighAccuracy !== false, timeout: o.timeout || 10000, maximumAge: o.maximumAge || 0 }).then(p => ok(toPos(p)), e => geoErr(err, /timeout/i.test(e.message) ? 3 : 2, e.message)); }); },
     watchPosition(ok, err) {
       const id = wid++;
       (async () => {
@@ -63,5 +65,7 @@ if (NATIVE) {
     for (const s of steps) if (s()) return;
     App.minimizeApp(); // keep navigation (foreground service) running instead of exiting
   });
-  window.addEventListener('load', () => setTimeout(() => SplashScreen.hide().catch(() => {}), 300));
+  // v0.9.4: hide the splash the moment the map has drawn (main.js calls __rgReady); 'load' is only a fallback
+  const hide = () => SplashScreen.hide({ fadeOutDuration: 180 }).catch(() => {}); window.__rgHideSplash = hide; if (window.__rgMapReady) hide();
+  window.addEventListener('load', () => setTimeout(hide, 1500));
 }

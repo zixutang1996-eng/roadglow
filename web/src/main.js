@@ -21,6 +21,7 @@ const ZH = lang === 'zh', L = (zh, en) => ZH ? zh : en;
 
 maplibregl.setWorkerUrl(workerUrl);
 const $ = s => document.querySelector(s);
+const APPVER = import.meta.env.VITE_APPVER || '';
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const store = { get: (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } }, set: (k, v) => localStorage.setItem(k, JSON.stringify(v)) };
 const S = { sat: store.get('sat', false), theme: store.get('theme', 'neon'), skin: store.get('skin', null), mode: store.get('mode', 'auto'), me: null, place: null, routes: null, routeIdx: 0, travel: BJ ? 'walk' : 'drive', from: null, catLayer: null, pal: PALS[store.get('pal', PAL_DEF)] ? store.get('pal', PAL_DEF) : PAL_DEF };
@@ -82,14 +83,33 @@ function bootFail(e) {
     : `<b>${L('地图加载失败', 'The map failed to load')}</b><div style="margin-top:8px">${esc(e?.message || e)}</div><button class="btn" style="margin-top:10px" onclick="localStorage.removeItem('skin');location.reload()">${L('重置皮肤并重新加载', 'Reset skin and reload')}</button>`;
   document.body.appendChild(el);
 }
+// v0.9.4 start view (never Edmonton by default): URL hash → last saved view → (Beijing edition: Chaoyang) → neutral world view,
+// then, without blocking the first render, refine: coarse device fix if permission is already granted, else city-level IP lookup.
+const HASHOK = hash.length >= 3 && !hash.some(isNaN), SAVEDV = store.get('view', null);
+const START = HASHOK ? { center: [hash[2], hash[1]], zoom: hash[0] } : SAVEDV?.c ? { center: SAVEDV.c, zoom: SAVEDV.z } : BJ ? { center: BJ_CENTER, zoom: BJ_ZOOM } : { center: [10, 28], zoom: 1.6 };
+const NEED_LOC = !HASHOK && !SAVEDV?.c && !BJ;
 let map;
 try { map = new maplibregl.Map({
   container: 'map', style: bootStyle,
-  center: hash.length >= 3 && !hash.some(isNaN) ? [hash[2], hash[1]] : BJ ? BJ_CENTER : [-113.4938, 53.5461], zoom: hash.length >= 3 && !isNaN(hash[0]) ? hash[0] : BJ ? BJ_ZOOM : 12,
+  center: START.center, zoom: START.zoom,
   attributionControl: { compact: true }, hash: false, maxPitch: 70, fadeDuration: 150, localIdeographFontFamily: '"PingFang SC","Noto Sans CJK SC","Microsoft YaHei",sans-serif',
 
 }); } catch (e) { bootFail(e); throw e; }
-window._map = map; map.once('load', loadWestFonts); map.once('idle', () => setTimeout(() => (window.requestIdleCallback || setTimeout)(warmDrawer, { timeout: 3000 }), 1500)); if (NATIVE && !BJ) map.once('load', () => setTimeout(() => import('./updates.js').then(m => m.initUpdates({ toast, L, store })).catch(e => console.warn(e)), 4000)); SK.hookMissingImages(map); refreshSkins(); window._skins = { ...SK, refresh: refreshSkins, use: async id => { S.skin = id; store.set('skin', id); await setStyle(); } }; window._sug = () => sugItems.map(r => ({ dbg: [r.ts, r.sc, Math.round(r.dist), r.src].join('/'), name: r.name, address: r.address, lat: r.lat, lng: r.lng, sem: !!r.sem, src: r.src, cls: r.cls || r.category }));
+let userMoved = false; map.on('dragstart', () => userMoved = true); map.on('zoomstart', e => { if (e.originalEvent) userMoved = true; });
+map.on('moveend', () => { const c = map.getCenter(); store.set('view', { c: [+c.lng.toFixed(5), +c.lat.toFixed(5)], z: +map.getZoom().toFixed(2) }); });
+if (NEED_LOC) setTimeout(async () => {
+  const go = (lng, lat, z) => { if (!userMoved && !store.get('view', null)?.u && isFinite(lng) && isFinite(lat)) map.easeTo({ center: [lng, lat], zoom: z, duration: 900 }); };
+  try { // 2. permission already granted → fast coarse fix, no GPS wait, never prompts
+    const st = await navigator.permissions?.query({ name: 'geolocation' }).catch(() => null);
+    if (st?.state === 'granted') { const p = await new Promise((ok, no) => navigator.geolocation.getCurrentPosition(ok, no, { enableHighAccuracy: false, timeout: 2500, maximumAge: 6 * 3600e3, noPrompt: true })); return go(p.coords.longitude, p.coords.latitude, 12); }
+  } catch {}
+  try { // 3. city-level IP lookup (ipapi.co, HTTPS, no key; only the bare GET is sent), cached 7 days
+    let g = store.get('ipGeo', null);
+    if (!g || Date.now() - g.t > 7 * 864e5) { const r = await fetch('https://ipapi.co/json/', { signal: AbortSignal.timeout ? AbortSignal.timeout(1500) : undefined, credentials: 'omit', referrerPolicy: 'no-referrer', cache: 'no-store' }); const j = await r.json(); if (!(isFinite(j.latitude) && isFinite(j.longitude))) throw 0; g = { lng: j.longitude, lat: j.latitude, t: Date.now() }; store.set('ipGeo', g); }
+    go(g.lng, g.lat, 10.5);
+  } catch {} // 4. stay on the neutral world view
+}, 0);
+window._map = map; map.once('load', () => { window.__rgMapReady = 1; window.__rgHideSplash?.(); window.__rgT = performance.now(); }); map.once('load', loadWestFonts); map.once('idle', () => setTimeout(() => (window.requestIdleCallback || setTimeout)(warmDrawer, { timeout: 3000 }), 1500)); if (NATIVE && !BJ) map.once('load', () => setTimeout(() => import('./updates.js').then(m => m.initUpdates({ toast, L, store, openUpd: () => tools.update() })).catch(e => console.warn(e)), 4000)); SK.hookMissingImages(map); refreshSkins(); window._skins = { ...SK, refresh: refreshSkins, use: async id => { S.skin = id; store.set('skin', id); await setStyle(); } }; window._sug = () => sugItems.map(r => ({ dbg: [r.ts, r.sc, Math.round(r.dist), r.src].join('/'), name: r.name, address: r.address, lat: r.lat, lng: r.lng, sem: !!r.sem, src: r.src, cls: r.cls || r.category }));
 applyBodyClass();
 const updHash = () => { const c = map.getCenter(); history.replaceState(null, '', `${location.pathname}${location.search}#${map.getZoom().toFixed(2)}/${c.lat.toFixed(5)}/${c.lng.toFixed(5)}`); };
 map.on('moveend', updHash);
@@ -699,6 +719,7 @@ function renderDrawer() { drawerSig = drawerState();
    ${sec('navcard', 'dir', L('导航卡片', 'Navigation card'), `<div style="padding:4px 22px 12px 22px" id="ncBox">${ncHtml(L)}</div>`)}
    ${sec('settings2', 'layers', L('皮肤插件与语言', 'Skin plugins & language'), sub('layers', L('皮肤插件', 'Skin plugins'), pad(skinsHtml()))
      + sub('settings', t('language'), pad(`<div class="seg"><button data-lang="" class="${!localStorage.getItem('lang') ? 'on' : ''}">${t('lang_auto')}</button><button data-lang="zh" class="${localStorage.getItem('lang') === 'zh' ? 'on' : ''}">中文</button><button data-lang="en" class="${localStorage.getItem('lang') === 'en' ? 'on' : ''}">English</button></div>`)))}
+   <section class="dsec dupd"><button class="dsh" data-tool="update"><span class="i">${ic('info')}</span><b>${L('检查更新', 'Check for updates')}</b><span class="updver">v${APPVER}</span></button></section>
    ${sec('about', 'info', t('about'), `<div class="sub">${t('about_text')}</div>`)}<div class="orn" aria-hidden="true"><span class="ornl"></span><span class="ornw"><i></i><b></b></span></div>`;
   $('#drawer').onclick = e => {
     const h = e.target.closest('[data-sech]'); if (h) { const o = store.get('drawerOpen', { mine: 1 }), id = h.dataset.sech, sc = h.parentElement; o[id] = sc.classList.toggle('open') ? 1 : 0; h.setAttribute('aria-expanded', !!o[id]); store.set('drawerOpen', o); return; }
@@ -1072,6 +1093,8 @@ drawerExtra = () => {
 };
 tools.transit = () => { S.travel = 'transit'; toast(L('已切换为公交模式：选择目的地后点“路线”', 'Transit mode on: pick a destination, then Directions'), 3500); q.focus(); };
 tools.weather = () => { const c = map.getCenter(); showPlace({ name: L('地图中心', 'Map centre'), address: `${c.lat.toFixed(4)}, ${c.lng.toFixed(4)}`, lat: c.lat, lng: c.lng }); };
+// v0.9.4 dedicated update channel (drawer → 检查更新); updates.js is loaded only when opened
+tools.update = () => import('./updates.js').then(m => m.openUpdater({ openPanel, L, $, native: NATIVE, bj: BJ, webVer: APPVER })).catch(e => toast(String(e.message || e)));
 tools.list = name => {
   const items = store.get('saved', []).filter(s => (s.list || lists()[0]) === name);
   openPanel(`<div class="list">${items.map((it, i) => `<div class="it" data-i="${i}"><div>${ic('star')} ${esc(it.name)}</div><div class="s">${esc(it.address || '')}</div></div>`).join('') || `<div class="row">${t('empty')}</div>`}</div>`, `${name} · ${items.length}`);

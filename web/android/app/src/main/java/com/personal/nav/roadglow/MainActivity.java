@@ -37,6 +37,8 @@ public class MainActivity extends BridgeActivity {
                 }
             }
         } catch (Exception ignored) {}
+        registerPlugin(ApkUpdaterPlugin.class);
+        registerPlugin(LocationEnablerPlugin.class);
         super.onCreate(savedInstanceState);
     }
 }

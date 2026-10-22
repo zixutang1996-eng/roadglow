@@ -231,3 +231,23 @@ html body.west :is(#suggest .sug,.step,.list .it)+:is(.sug,.step,.it)::after{con
   -webkit-mask:var(--dv) center/100% 10px no-repeat;mask:var(--dv) center/100% 10px no-repeat}
 html body.west :is(#suggest .sug,.step){color:var(--fg)!important}
 html body.west :is(#toast){font-family:var(--f093)}
+/* v0.9.4 update screen (drawer → 检查更新): follows both skins via the shared panel; only opacity/transform animate */
+#drawer .dupd .dsh{width:100%}
+#drawer .dupd .updver{margin-left:auto;font-size:13px;color:var(--muted);font-variant-numeric:lining-nums tabular-nums}
+.upd{padding:4px 16px 16px}
+.updv{display:flex;gap:12px;margin-bottom:12px}
+.updv>div{flex:1;padding:10px 12px;background:color-mix(in srgb,var(--fg,#888) 6%,transparent)}
+.updk{font-size:12.5px;color:var(--muted);margin-bottom:2px}
+.updn{padding:8px 0;line-height:1.5}
+.updok{color:var(--accent)}
+.updsub{font-size:12.5px;color:var(--muted);margin-left:6px}
+.updnotes{margin:8px 0 12px;padding:10px 12px;background:color-mix(in srgb,var(--fg,#888) 5%,transparent);max-height:34vh;overflow:auto}
+.updtxt{white-space:pre-wrap;font-size:14px;line-height:1.55}
+.updbtns{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 4px}
+.upd .prog i{width:100%!important;transform-origin:0 50%;transform:scaleX(0);transition:transform .15s linear;will-change:transform}
+.updspin{display:inline-block;width:14px;height:14px;margin-right:8px;vertical-align:-2px;border:2px solid var(--muted);border-top-color:transparent;border-radius:50%;animation:updspin .8s linear infinite}
+@keyframes updspin{to{transform:rotate(360deg)}}
+/* Neon: chamfered sub-panels with the dim 20% hairline; Frontier: rounded, shadow only */
+body.neon .updv>div,body.neon .updnotes{border-radius:0;clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px);box-shadow:inset 0 0 0 1px rgba(79,214,232,.20)}
+body.neon.light .updv>div,body.neon.light .updnotes{box-shadow:inset 0 0 0 1px rgba(138,74,93,.20)}
+body.west .updv>div,body.west .updnotes{border-radius:14px;border:0;box-shadow:0 1px 2px rgba(0,0,0,.08),0 4px 12px rgba(0,0,0,.08)}

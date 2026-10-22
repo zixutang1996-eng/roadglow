@@ -1,4 +1,4 @@
-# RoadGlow Android app (v0.9.2)
+# RoadGlow Android app (v0.9.4)
 
 The Android app is the same web app, wrapped in a **Capacitor 8** shell (`web/android`).
 iOS can be added later in the same project with `npx cap add ios`. Every native feature lives behind standard Web APIs (`src/native.js`), so the web code is shared.
@@ -12,7 +12,7 @@ npx cap sync android
 cd android && ./gradlew assembleStandardRelease   # signs with ../../keys/roadglow-release.jks if present (never commit keys/)
 ```
 - Needs Node 22+, JDK 21 and Android SDK 36.
-- `versionCode = 9020` for 0.9.2. The scheme is major·10000 + minor·1000 + patch·10, which is above 0.1.4's 2005, so it installs as an upgrade.
+- `versionCode = 9040` for 0.9.4 (9020 for 0.9.2). The scheme is major·10000 + minor·1000 + patch·10, which is above 0.1.4's 2005, so it installs as an upgrade.
 
 ## Native features
 | Feature | How |
@@ -26,6 +26,14 @@ cd android && ./gradlew assembleStandardRelease   # signs with ../../keys/roadgl
 | Language | Follows the system zh/en unless set in the menu |
 
 ## Updates
+**v0.9.4 update channel (drawer → 检查更新 / Check for updates).** Shows the installed APK version and the web-content version, checks
+`api.github.com/repos/zixutang1996-eng/roadglow/releases/latest` on demand, and shows the release notes. **下载并安装** downloads
+`releases/latest/download/RoadGlow.apk` inside the app (native `ApkUpdater` plugin: HTTPS, github.com/*.githubusercontent.com only, progress bar,
+cancel), checks the file is this package with a higher versionCode, then opens the system installer via FileProvider
+(`REQUEST_INSTALL_PACKAGES`). If "Install unknown apps" isn't allowed, the screen offers **去设置** (opens that permission page) and **安装** again.
+APKs older than 0.9.4 that receive this screen via a live web update have no plugin and fall back to a browser download.
+Publishing: create a GitHub release `vX.Y.Z`, asset named exactly `RoadGlow.apk`, marked *latest*; Beijing releases must use `--latest=false`.
+
 1. **APK updates:** when the app starts (at most every 6 h), it checks `api.github.com/repos/zixutang1996-eng/roadglow/releases/latest`.
    - If the tag is newer, a card offers **Download**: `https://github.com/zixutang1996-eng/roadglow/releases/latest/download/RoadGlow.apk`.
    - Android installs it over the old app because the signature is the same.
@@ -50,3 +58,11 @@ To publish a web update, push to `main`. The Pages workflow rebuilds and publish
   - Known foreign hosts fail instantly; any other external request is aborted after 4 s.
   - The GitHub update checker and live update are disabled.
 - **Test:** `node tools/beijing/test_offline.cjs` (serve `web/dist-bj` on 127.0.0.1:18795).
+
+### v0.9.4 additions
+- **Beijing build target:** `chrome89`/es2022 (top-level await needs Chrome 89) with an `AbortSignal.timeout` fallback for older system WebViews.
+- **Beijing update channel:** disabled. GitHub (API, release downloads, Pages) is not reliably reachable in mainland China and no free, registration-free China-reachable host is set up. The 检查更新 screen says new versions arrive as an APK file sent by family.
+- **Turn location on:** native `LocationEnabler` plugin. Standard flavour: Google Play services `SettingsClient` one-tap dialog (`standardImplementation play-services-location`). Beijing flavour (stub `GmsLocation`) and phones without GMS: opens `Settings.ACTION_LOCATION_SOURCE_SETTINGS` and resumes the locate automatically on return. Runtime permission is requested first.
+- **Start view:** URL hash → last saved view → (Beijing: Chaoyang) → neutral world view; then, without blocking, a coarse fix (only if permission is already granted, never prompts) or a city-level IP lookup via `https://ipapi.co/json/` (no key; free tier ~1,000 requests/day, 30k/month, non-commercial; 1.5 s timeout; cached 7 days; bare GET, no cookies/referrer). Skipped in the Beijing edition. The map only eases there if the user hasn't moved it.
+- **Splash:** hidden as soon as the map's first `load` (4 s cap); `android:hardwareAccelerated` set explicitly.
+- **Icon:** concept B, `web/tools/icon/genicon.mjs` → adaptive background/foreground/monochrome layers, legacy + round mipmaps, splash and PWA icons.

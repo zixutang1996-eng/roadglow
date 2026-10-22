@@ -4,7 +4,7 @@
   "webDir": "dist",
   "android": { "useLegacyBridge": true, "allowMixedContent": false, "backgroundColor": "#14161f" },
   "plugins": {
-    "SplashScreen": { "launchShowDuration": 2500, "launchAutoHide": true, "backgroundColor": "#14161f", "showSpinner": false, "androidScaleType": "CENTER_INSIDE" },
+    "SplashScreen": { "launchShowDuration": 4000, "launchAutoHide": true, "backgroundColor": "#0b1224", "showSpinner": false, "androidScaleType": "CENTER_INSIDE" },
     "SystemBars": { "insetsHandling": "css", "style": "DEFAULT" }
   }
 }
