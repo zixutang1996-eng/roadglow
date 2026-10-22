@@ -11,7 +11,7 @@
     "zh": "霓虹都市",
     "en": "Neon City"
    },
-   "version": "0.9.6"
+   "version": "0.9.7"
   },
   {
    "type": "skin",
@@ -22,7 +22,7 @@
     "zh": "荒野墨图",
     "en": "Frontier Ink"
    },
-   "version": "0.9.6"
+   "version": "0.9.7"
   },
   {
    "type": "skin",
@@ -33,7 +33,7 @@
     "zh": "深空",
     "en": "Deep Space"
    },
-   "version": "0.9.6"
+   "version": "0.9.7"
   },
   {
    "type": "skin",
@@ -44,7 +44,7 @@
     "zh": "北境",
     "en": "Northland"
    },
-   "version": "0.9.6"
+   "version": "0.9.7"
   },
   {
    "type": "skin",
@@ -55,7 +55,7 @@
     "zh": "战术",
     "en": "Tactical"
    },
-   "version": "0.9.6"
+   "version": "0.9.7"
   },
   {
    "type": "skin",
@@ -71,7 +71,7 @@
    "version": "1.1.0",
    "minAppVersion": "0.9.5",
    "url": "blueprint-1.1.0.rgpack",
-   "sha256": "5a4ec6b9b87a0b287e873484780d882d1a6653028aa27e7be52808cde6f71f9f",
+   "sha256": "52bc3cacc5176e79145b82d63df8814365301fc70fc9ec0dc29d459f3b775883",
    "size": 7998
   },
   {
@@ -82,14 +82,14 @@
     "en": "Three Kingdoms"
    },
    "description": {
-    "zh": "水墨三国：卷轴窗口、墨迹按钮、古文诗意文字、骏马为“我”",
-    "en": "Ink-wash Three Kingdoms: hanging-scroll windows, ink-blob buttons, a horse as “me”"
+    "zh": "水墨三国：卷轴窗口、墨迹按钮、古文诗意文字、墨箭为“我”",
+    "en": "Ink-wash Three Kingdoms: hanging-scroll windows, ink-blob buttons, an ink arrowhead as “me”"
    },
-   "version": "1.0.0",
-   "minAppVersion": "0.9.6",
-   "url": "sanguo-1.0.0.rgpack",
-   "sha256": "3279f221eff5a554c6f19e93d8578479c0f7f2f193f2c8589aafdc5e0ed6d492",
-   "size": 2115029
+   "version": "1.1.0",
+   "minAppVersion": "0.9.7",
+   "url": "sanguo-1.1.0.rgpack",
+   "sha256": "aa0b2098677cd0fe95d300000f04e16f51061642768d546b1d0c1189ed2fd5ca",
+   "size": 2332177
   },
   {
    "type": "voice",
@@ -105,7 +105,7 @@
    "version": "1.0.0",
    "minAppVersion": "0.9.5",
    "url": "calm-1.0.0.rgpack",
-   "sha256": "a3d5efefc3a1856709cc8e5acdba1e322734e0f35a70349f6c7862f8b7b3f60a",
+   "sha256": "63f6edc0f1ed62da6d6957a1dad00bba76072350244cd84405d36823f84fc7f7",
    "size": 1082
   }
  ]

@@ -24,3 +24,16 @@ Fonts: pyftsubset MaShanZheng-Regular.ttf --text-file=<UI chars> ; LXGWWenKai-Me
 ## Known gaps
 - Map labels still use the bundled glyph fonts (IM FELL / system CJK), not the brush fonts.
 - Not tested on a phone. Beijing edition not rebuilt (no native change; it does not live-update).
+
+## Checkpoint 2026-10-22: pack sanguo 1.1.0 / web 0.9.7
+- Rebuilt the drawer, search, place, skin switcher and nav to match the 7 targets (`screenshots/ink_pack_v11/compare_*.png` puts each target on the left and our build on the right; `compare_before_*` shows the v1.0 state).
+- Thick baked ink rings; no live SVG filters. POI blobs are black with white glyphs. Quick buttons and the compass are black/white. The "me" marker is an ink arrowhead puck with a halo.
+- Poems: 世间无限丹青手 sits under the title, and 一片伤心画不成 runs vertically above the rider, in both zh and en.
+- scrollfx rewrite: open 320 ms and close 280 ms. A reversal mid-animation continues from its current position. Animations are filtered by target and have a timeout fallback, and `--rh` is re-measured on resize.
+- Stress test (headless Chromium, `web/tools/ink/anim11.py`, data in `anim_timings.json`):
+  - Rapid toggles, open during close, close during open, resize during open and the back button all end in the correct state. No stuck states.
+  - Chip tap to the next frame: 11–17 ms. It was about 130 ms before, caused by the filters.
+  - Frames on a warm open/close stay at about 16.7 ms. The first (cold) opens drop 2–3 frames (100–133 ms), which is image decode on first paint.
+  - The place card open drops 2 frames even when warm (re-render on each open).
+- Overlap check: 0 on every screen, except search with 1 hit (a list icon in a clipped, scrolled-off row against the 茶寮 chip). Visually there is no overlap, and it is believed to be a false positive.
+- NOT tested on a real phone. Known gaps: a faint rectangle remains around the rider; the chips have no icon discs; the English drawer title wraps to two lines; no 1.4× font-scale shots were taken.

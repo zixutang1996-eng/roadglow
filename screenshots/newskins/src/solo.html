@@ -1,0 +1,8 @@
+<!doctype html><html><body style="margin:0;background:#11140f;display:flex;align-items:center;justify-content:center;width:1000px;height:800px"><div id="o" style="color:#d7ff3a"></div>
+<script type="module">
+const src=await (await fetch('page.js')).text();
+const grab=n=>{const m=src.match(new RegExp('const '+n+'=([`\'])([\\s\\S]*?)\\1;'));return m[2]};
+const k=new URLSearchParams(location.search).get('k');
+let svg=grab(k).replace(/<svg class="\w+"/,'<svg width="'+(k==='operator'?900:520)+'"');
+document.getElementById('o').innerHTML=svg;window._ready=1;
+</script></body></html>

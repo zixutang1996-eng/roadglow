@@ -203,3 +203,152 @@ html[data-lang=en]:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .seg button{fon
 html:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .szrow span{white-space:nowrap;min-width:2.6em;flex:none}
 html:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .szrow input[type=range]{flex:1;min-width:0}
 html:not(#_a):not(#_b) body.pk-sanguo.west.sk-west #suggest .sugx+.sug{padding-right:46px!important}
+/* =====================================================================================================
+   v1.1.0 "inkui": layout replicated from the seven target frames (461×1024 css). Thick dry-brush rings
+   (border-image, slices from out/target_meta.json at 2× → css widths are half), no drop-shadow filters
+   (shadows are baked into the images; filters made chip taps repaint ~130 ms), black/white quick buttons.
+   ===================================================================================================== */
+html:not(#_a):not(#_b) body.pk-sanguo.west.sk-west{--r-search:url(search_light.webp);--r-banner:url(banner_light.webp);--r-then:url(then_light.webp);--r-card:url(navcard_light.webp);--r-chip:url(chip_light.webp);--r-chips:url(chips_light.webp);--r-chip2:url(chip2_light.webp);
+  --r-fab:url(fab_light.webp);--r-fab2:url(fab2_light.webp);--r-speed:url(speed_light.webp);--r-x:url(xbtn_light.webp);--r-rule:url(rule_light.png);--r-ruleP:url(ruleP_light.png);--r-band:url(mtnband_light.webp);
+  --gl:#f4ecdb;--blk:#1e1b18}
+html:not(#_a):not(#_b) body.pk-sanguo.west.sk-west.dark{--r-search:url(search_dark.webp);--r-banner:url(banner_dark.webp);--r-then:url(then_dark.webp);--r-card:url(navcard_dark.webp);--r-chip:url(chip_dark.webp);--r-chips:url(chips_dark.webp);--r-chip2:url(chip2_dark.webp);
+  --r-fab:url(fab_dark.webp);--r-fab2:url(fab2_dark.webp);--r-speed:url(speed_dark.webp);--r-x:url(xbtn_dark.webp);--r-rule:url(rule_dark.png);--r-ruleP:url(ruleP_dark.png);--r-band:url(mtnband_dark.webp);
+  --gl:#1c1a18;--blk:#e6dcc8}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west :is(.chip,.btn,.ctl,#controls .ctl,.zoomgrp .ctl,#navBanner,#navFoot,#toast,.opt,.seg button,#areaPill,#recenter){filter:none!important}
+/* search bar (target: 434×62 at y44) */
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west #searchbar{height:62px!important;padding:0 8px 0 14px!important;border-image:var(--r-search) 40 72 fill / 20px 36px / 0 stretch!important}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west #dirBtn{width:32px!important;height:32px!important;border-image:url(seal_xl.webp) 0 fill / 0 / 0 stretch!important;border-width:0!important;background:url(seal_xl.webp) center/contain no-repeat!important}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west #dirBtn :is(.uic,svg){opacity:0}
+/* chips: thick round-ended ring, black ink glyph disc */
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west #chips{gap:10px!important;padding:0 10px 8px 12px!important;margin-top:8px!important}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .chip{height:42px!important;padding:0 14px 0 8px!important;white-space:nowrap!important;flex:none!important;border-image:var(--r-chip) 26 46 fill / 13px 23px / 0 stretch!important;transition:transform .08s ease-out}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .chip:active{transform:scale(.96)}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .chip.on{border-image:var(--r-chip2) 22 40 fill / 11px 20px / 0 stretch!important;color:var(--red)!important}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .chip :is(.uic,svg){width:22px!important;height:22px!important;padding:3px;box-sizing:content-box;background:var(--blk);color:var(--gl)!important;border-radius:46% 54% 50% 48%}
+/* quick buttons: black/white ring blobs, no red (the user's rule, compass included) */
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west :is(.ctl,#controls .ctl,.zoomgrp .ctl,#locBtn,#recenter){width:58px!important;height:60px!important;border-width:0!important;border-image:none!important;background:var(--r-fab) center/100% 100% no-repeat!important;color:var(--ink)!important}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west :is(#locBtn,#controls .ctl:nth-child(even)){background-image:var(--r-fab2)!important}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west #locBtn .uic,html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west #needle{color:var(--ink)!important}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west :is(.ctl,#locBtn):active{transform:scale(.94)}
+/* POI search rows: black dry-brush blob, white glyph */
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .sug .i{width:38px!important;height:38px!important;border:0!important;border-image:none!important;background:url(dot0_light.webp) center/100% 100% no-repeat!important;color:#f4ecdb!important}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west.dark .sug .i{background-image:url(dot0_dark.webp)!important;color:#1c1a18!important}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .sug .i :is(svg,.uic,.lic){color:inherit!important;width:20px!important;height:20px!important}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .lic{fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;width:22px;height:22px;flex:none}
+/* ---------- drawer (target: scroll 14..334, title 52/112, menu rows 46px, rider at bottom) ---------- */
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west #drawer{width:min(322px,calc(100% - 40px))!important}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west #drawer .dh>span::after{font-size:15px;margin-top:10px;letter-spacing:.22em}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .inkpoem{display:none}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west #drawer .dh>.xbtn{display:none!important}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west #drawer .dh>span::before{font-size:38px;white-space:nowrap}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west #drawer .dh{position:relative;padding:18px 4px 0 18px!important}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west #drawer .dh::after{content:'';position:absolute;left:186px;top:24px;width:32px;height:32px;background:url(seal_dq.webp) center/contain no-repeat;pointer-events:none}
+html[data-lang=en].fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west #drawer .dh::after{left:auto;right:30px}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west #drawer>:not(.dh,.inkm,.orn){display:none!important}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west #drawer.all>:not(.dh,.orn){display:revert!important}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west #drawer.all>.inkm>:not(.ikback){display:none!important}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west #drawer:not(.all) .ikback{display:none!important}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .inkm{display:flex;flex-direction:column;padding:0 12px 0 14px;flex:none}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .inkpoem{font:400 15px/1.2 var(--f-head);letter-spacing:.2em;color:var(--ink2);margin:6px 0 4px 6px}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .ikrule{height:12px;margin:2px -4px 14px;background:var(--r-ruleP) center/100% 100% no-repeat}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .ikm,html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .ikback{display:flex;align-items:center;gap:16px;height:46px;padding:0 10px;background:none;border:0;color:var(--ink);font:400 calc(19px * var(--ts,1))/1 var(--f-head);text-align:left;cursor:pointer;white-space:nowrap;min-width:0}
+html[data-lang=en]:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .ikm,html[data-lang=en]:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .ikback{font:600 calc(16px * var(--ts,1))/1 var(--f-body)}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .ikm em{font:400 13px/1 var(--f-head);color:var(--red);font-style:normal;margin-left:4px;overflow:hidden;text-overflow:ellipsis}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .ikm:active{background:rgba(172,48,36,.07)}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .ikbrush{height:10px;margin:6px 4px;background:var(--dv) center/100% 100% no-repeat}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .ikbrush:nth-of-type(2n){background-image:var(--dv2)}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west #drawer .orn{height:280px!important;margin-top:auto!important;background:var(--rider) 8px 100%/259px auto no-repeat!important}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west.dark #drawer .orn{background-image:url(rider_dark.webp)!important}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west #drawer .orn::after{right:14px;top:-10px;font-size:21px;letter-spacing:.06em}
+/* ---------- search result scroll (target: rows 88px, 拂去 at right, 常寻之所 chips 2 rows) ---------- */
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west #suggest.inks{padding:12px 18px 0!important}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .iks-h{display:flex;align-items:baseline;justify-content:space-between;padding:6px 6px 0 8px;font:400 calc(22px * var(--ts,1))/1.2 var(--f-head);color:var(--ink)}
+html[data-lang=en]:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .iks-h{font:700 calc(18px * var(--ts,1))/1.2 var(--f-body)}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .iks-clr{background:none;border:0;color:var(--ink2);font:400 15px var(--f-head);padding:6px;min-height:32px}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .iks-h+.ikrule,html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .sug.iks{background:none!important}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .sug.iks{padding:10px 6px 14px!important;gap:14px!important;position:relative}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .sug.iks::after{content:'';position:absolute;left:0;right:0;bottom:-4px;height:9px;background:var(--dv) center/100% 100% no-repeat}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .sug.iks:nth-child(odd)::after{background-image:var(--dv2)}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .sug.iks .i.r{background-image:url(dotr.webp)!important;color:#f6ead6!important}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .sug.iks .t{font-size:calc(20px * var(--ts,1))!important}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .sug.iks .oh{color:var(--red)!important;font-size:13px}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .iks-h.k{margin-top:14px}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .iks-ch{display:flex;flex-wrap:wrap;gap:10px 12px;padding:10px 4px 16px}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .ikc{height:38px;min-width:72px;padding:0 14px;background:none;border:0 solid transparent;border-image:var(--r-chips) 26 42 fill / 13px 21px / 0 stretch;color:var(--ink);font:400 calc(16px * var(--ts,1))/1 var(--f-head);white-space:nowrap;cursor:pointer}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .ikc:active{transform:scale(.95)}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .iks-mtn{height:200px;margin:0 -18px;background:var(--r-band) center bottom/100% auto no-repeat;pointer-events:none}
+/* ---------- place card (target: title seal + h3 38px, double-line grid, two double-rule buttons) ---------- */
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .pc.ink:not(.more)>:not(.ikp),html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west #panel:has(.pc.ink:not(.more)) #panelHead{display:none!important}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .ikp{padding:10px 14px 12px}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .ikp-h{display:flex;align-items:center;gap:12px;padding:6px 0 4px}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .ikp-h h3{margin:0;font:400 calc(32px * var(--ts,1))/1.15 var(--f-head);color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:1}
+html[data-lang=en]:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .ikp-h h3{font:700 calc(24px * var(--ts,1))/1.15 var(--f-body)}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .ikseal{flex:none;display:inline-grid;place-items:center;width:30px;height:30px;background:url(seal_sm.webp) center/100% 100% no-repeat;color:#f6ead6;font:400 12px/1 var(--f-head);font-style:normal;writing-mode:horizontal-tb}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .ikseal.g :is(svg,.uic,.lic){width:18px;height:18px;color:#f6ead6!important}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .ikp-sub{text-align:center;font:400 calc(17px * var(--ts,1))/1.3 var(--f-head);color:var(--ink);margin:-4px 0 8px}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .ikp-d{font-size:calc(14.5px * var(--ts,1));line-height:1.75;color:var(--ink);margin:0 4px}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .ikmtn{height:108px;margin:6px -14px 8px;background:var(--mtn) center bottom/100% auto no-repeat}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .ikgrid{display:grid;grid-template-columns:1fr 1fr;border:3px double var(--ink);margin:0 0 10px}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .ikgrid>div{display:block;padding:8px 8px 10px;min-width:0;border-right:1.5px solid var(--ink);border-bottom:1.5px solid var(--ink)}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .ikgrid>div:nth-child(2n){border-right:0}html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .ikgrid>div:nth-child(n+3){border-bottom:0}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .ikgrid>div>b{display:flex;align-items:center;gap:8px;margin-bottom:3px}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .ikgrid .gi{flex:none;width:26px;height:26px;display:grid;place-items:center;background:url(dot0_light.webp) center/100% 100% no-repeat;color:#f4ecdb}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west.dark .ikgrid .gi{background-image:url(dot0_dark.webp);color:#1c1a18}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .ikgrid .gi :is(svg,.lic){width:15px;height:15px}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .ikgrid b{font:400 calc(16px * var(--ts,1))/1.3 var(--f-head)}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .ikgrid>div>span{display:block;margin-left:34px;font-size:calc(13px * var(--ts,1));line-height:1.45;color:var(--ink);overflow-wrap:anywhere}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .ikacts{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .ikb{height:50px;display:flex;align-items:center;justify-content:center;gap:12px;background:none;border:3px double var(--ink);outline:1px solid var(--ink);outline-offset:2px;color:var(--ink);font:400 calc(21px * var(--ts,1))/1 var(--f-head);white-space:nowrap;cursor:pointer;margin:3px}
+html[data-lang=en]:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .ikb{font:600 calc(16px * var(--ts,1))/1 var(--f-body)}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .ikb.red{color:var(--red);border-color:var(--red);outline-color:var(--red);background:rgba(172,48,36,.1)}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .ikb:active{transform:scale(.97)}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .ikb.wide{width:calc(100% - 6px);margin-top:14px}
+/* ---------- skin switcher (target: 300 wide, rows 70px, seal on the active one) ---------- */
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west #layersPop.inkl{width:300px!important;padding:14px 16px 16px!important}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west #layersPop.inkl>:not(.ikl-h,.ikrule,.ikl-list,.ikb,.ikl-sat){display:none!important}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .ikl-h{display:flex;align-items:center;justify-content:space-between;padding:8px 0 6px 8px;font:400 calc(28px * var(--ts,1))/1.2 var(--f-head)}
+html[data-lang=en]:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .ikl-h{font:700 calc(21px * var(--ts,1))/1.2 var(--f-body)}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west #layersPop .ikl-h .popx{width:60px!important;height:62px!important;border:0!important;border-image:none!important;background:var(--r-x) center/100% 100% no-repeat!important}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west #layersPop .ikl-h .popx::before{background:var(--ink)!important}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .ikl{display:flex;align-items:center;gap:14px;width:100%;height:70px;padding:0 8px;background:none;border:0;position:relative;color:var(--ink);text-align:left;cursor:pointer}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .ikl::after{content:'';position:absolute;left:12px;right:6px;bottom:-2px;height:8px;background:var(--dv) center/100% 100% no-repeat}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .ikl .i{width:38px;height:38px;flex:none;display:grid;place-items:center;background:url(dot0_light.webp) center/100% 100% no-repeat;color:#f4ecdb}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west.dark .ikl .i{background-image:url(dot0_dark.webp);color:#1c1a18}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .ikl.on .i{background-image:url(dotr.webp);color:#f6ead6}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .ikl .tt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .ikl .tt b{font:400 calc(20px * var(--ts,1))/1.2 var(--f-head);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .ikl .tt small{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .ikuse{width:24px;height:24px;flex:none;background:url(seal_sm.webp) center/100% 100% no-repeat;color:#f6ead6;font:400 10px/24px var(--f-head);text-align:center;font-style:normal}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .ikl-sat{display:flex;justify-content:center;margin-top:8px;font-size:13px;color:var(--ink2)}
+/* ---------- nav (target: banner 434×130 @y40, then-pill 176×50, speed blob 68, footer 434×122) ---------- */
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west #navBanner{min-height:130px;padding:18px 20px 18px 30px!important;border-image:var(--r-banner) 52 72 fill / 26px 36px / 0 stretch!important}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .ikn{display:flex;align-items:center;gap:18px;min-width:0}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .ika{width:40px;height:40px;flex:none;fill:none;stroke:currentColor;stroke-width:3.4;stroke-linecap:round;stroke-linejoin:round}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .ikn-t{flex:1;min-width:0}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .ikd{font:400 calc(20px * var(--ts,1))/1.3 var(--f-head);color:var(--ink2)}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .ikx{font:400 calc(28px * var(--ts,1))/1.25 var(--f-head);color:var(--ink);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+html[data-lang=en]:not(#_a):not(#_b) body.pk-sanguo.west.sk-west :is(.ikd,.ikx){font-family:var(--f-body)}html[data-lang=en]:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .ikx{font-weight:700;font-size:calc(21px * var(--ts,1))}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .ikn .ikseal{width:30px;height:30px;font-size:14px}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west #inkThen{position:fixed;left:12px;top:calc(var(--sat,0px) + 182px);z-index:30;display:inline-flex;align-items:center;gap:6px;height:50px;padding:0 20px;max-width:calc(100% - 100px);white-space:nowrap;
+  border:0 solid transparent;border-image:var(--r-then) 30 48 fill / 15px 24px / 0 stretch;font:400 calc(17px * var(--ts,1))/1 var(--f-head);color:var(--ink)}
+html[data-lang=en]:not(#_a):not(#_b) body.pk-sanguo.west.sk-west #inkThen{font:600 calc(14px * var(--ts,1))/1 var(--f-body)}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west #inkThen .ika{width:16px;height:16px;stroke-width:2.4}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west #inkSpd{position:fixed;left:14px;bottom:calc(var(--sab,0px) + 180px);z-index:30;width:68px;height:68px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--r-speed) center/100% 100% no-repeat;color:var(--ink);pointer-events:none}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west #inkSpd b{font:400 24px/1 var(--f-head)}html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west #inkSpd small{font-size:10px;margin-top:2px}
+html[data-lang=en]:not(#_a):not(#_b) body.pk-sanguo.west.sk-west #inkSpd b{font:700 22px/1 var(--f-body)}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west #navFoot{min-height:122px;padding:20px 22px 20px 28px!important;border-image:var(--r-card) 56 80 fill / 28px 40px / 0 stretch!important}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west #navFoot .eta b{font-size:calc(30px * var(--ts,1))!important}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west #navFoot .iks{font-size:calc(14px * var(--ts,1));color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west #endBtn{width:108px;height:58px!important;border-width:0!important;border-image:none!important;background:url(stop.webp) center/100% 100% no-repeat!important}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west #hdgBtn{display:none!important}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .hidden{display:none!important}
+/* the "me" marker: ink arrowhead with paper halo (rotated with the heading by the map marker) */
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .pkpuck,html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .pkpuck img{width:52px!important;height:52px!important}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west #layersPop .ikl-sat{width:100%;background:none!important;border:0!important;border-image:none!important;padding:8px;font:400 14px var(--f-head);color:var(--ink2)!important;text-decoration:underline dotted;text-underline-offset:4px}
+/* compass: simplified ink needle (black half points north after the app's -90° rotation), no colour */
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west #compassBtn #needle{display:block;width:30px;height:30px;font-size:0!important;color:transparent!important;background:none!important;position:relative}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west #compassBtn #needle::before{content:'';position:absolute;inset:0;background:var(--ink);-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 30 30%27%3E%3Cpath d=%27M28 15 15 10.6 15 19.4Z%27/%3E%3Cpath d=%27M2.5 15 15 10.6 15 19.4Z%27 fill=%27none%27 stroke=%27%23000%27 stroke-width=%271.6%27 stroke-linejoin=%27round%27/%3E%3Ccircle cx=%2715%27 cy=%2715%27 r=%271.8%27/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 30 30%27%3E%3Cpath d=%27M28 15 15 10.6 15 19.4Z%27/%3E%3Cpath d=%27M2.5 15 15 10.6 15 19.4Z%27 fill=%27none%27 stroke=%27%23000%27 stroke-width=%271.6%27 stroke-linejoin=%27round%27/%3E%3Ccircle cx=%2715%27 cy=%2715%27 r=%271.8%27/%3E%3C/svg%3E") center/contain no-repeat}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .sug .i :is(svg,.uic,.lic){width:22px!important;height:22px!important}
+html[data-lang=en].fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west #drawer .dh>span::before{font:700 26px/1.15 var(--f-body);padding-right:46px;white-space:normal}
+html[data-lang=en].fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west #drawer .dh::after{top:22px}
+html.fx-inkui:not(#_a):not(#_b) body.pk-sanguo.west.sk-west .sug .i{flex:0 0 38px!important;margin-right:14px!important}

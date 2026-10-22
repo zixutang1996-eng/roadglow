@@ -30,6 +30,19 @@ const S = { sat: store.get('sat', false), theme: store.get('theme', 'neon'), ski
 import * as SK from './skins.js';
 let SKINS = []; const refreshSkins = async () => { try { SKINS = await SK.listInstalled(); } catch { SKINS = []; } };
 export const THEMES = ['neon', 'west', 'space', 'nord', 'tac'];
+// v0.9.7 'inkui' pack layout (skin.fx: ["inkui"] → <html class="fx-inkui">): extra, skin-styled blocks are prepended to the
+// existing windows; the original DOM and its handlers stay (the pack CSS hides them until the user asks for details).
+const INK = () => document.documentElement.classList.contains('fx-inkui');
+const LIP = { star: 'M12 3.2l2.6 5.6 6.1.6-4.6 4.1 1.3 6-5.4-3.1-5.4 3.1 1.3-6-4.6-4.1 6.1-.6z', list: 'M8.5 6h12M8.5 12h12M8.5 18h12M3.6 6h1.2M3.6 12h1.2M3.6 18h1.2', clock: 'M12 3a9 9 0 1 1 0 18 9 9 0 1 1 0-18zM12 7.2V12l3.2 2.4',
+  brush: 'M20.5 3.5c-3.6 2.4-7.4 6.4-9.6 9.4M10.9 12.9c-2.2-.4-4 .9-4.4 3.1-.3 1.9-1.4 3-3 3.6 3.2 1.1 7.1.2 8-2.6.4-1.3.2-2.9-.6-4.1z', layers: 'M12 3.5l9 4.8-9 4.8-9-4.8zM3.4 12.6l8.6 4.6 8.6-4.6M3.4 16.6l8.6 4.6 8.6-4.6',
+  sun: 'M12 8.4a3.6 3.6 0 1 1 0 7.2 3.6 3.6 0 1 1 0-7.2zM12 2.5v2.6M12 18.9v2.6M2.5 12h2.6M18.9 12h2.6M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8', dl: 'M12 3.5v11M7.4 10.2l4.6 4.8 4.6-4.8M4 19.8h16',
+  pin: 'M12 21s-6.5-6.6-6.5-11.3a6.5 6.5 0 0 1 13 0C18.5 14.4 12 21 12 21zM12 7.4a2.3 2.3 0 1 0 0 4.6 2.3 2.3 0 1 0 0-4.6z', heart: 'M12 20s-7.6-4.8-8.6-9.6C2.8 7.2 5 4.6 7.8 4.6c1.8 0 3.2 1.1 4.2 2.6 1-1.5 2.4-2.6 4.2-2.6 2.8 0 5 2.6 4.4 5.8C19.6 15.2 12 20 12 20z',
+  cup: 'M4.5 8.5h12v5a5 5 0 0 1-5 5h-2a5 5 0 0 1-5-5zM16.5 10h1.6a2.3 2.3 0 0 1 0 4.6h-1.6M8 3.5c-.8 1 .8 1.8 0 3M11.5 3.5c-.8 1 .8 1.8 0 3', go: 'M12 3l3.4 9L12 21l-3.4-9z' };
+const li = (k, cls = '') => `<svg class="lic ${cls}" viewBox="0 0 24 24" aria-hidden="true"><path d="${LIP[k] || LIP.pin}"/></svg>`;
+const CNUM = n => { const d = '〇一二三四五六七八九'; n = Math.round(n); if (n <= 10) return n === 10 ? '十' : d[n]; if (n < 20) return '十' + d[n % 10]; if (n < 100) return d[Math.floor(n / 10)] + '十' + (n % 10 ? d[n % 10] : ''); return String(n).split('').map(c => d[+c]).join(''); };
+const SHI = ['子', '丑', '寅', '卯', '辰', '巳', '午', '未', '申', '酉', '戌', '亥'], shiOf = h => SHI[Math.floor(((h + 1) % 24) / 2)];
+const DIRZ = ['北', '东北', '东', '东南', '南', '西南', '西', '西北'], DIRE = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+const brg = (a, b) => { const r = Math.PI / 180, y = Math.sin((b.lng - a.lng) * r) * Math.cos(b.lat * r), x = Math.cos(a.lat * r) * Math.sin(b.lat * r) - Math.sin(a.lat * r) * Math.cos(b.lat * r) * Math.cos((b.lng - a.lng) * r); return (Math.atan2(y, x) / r + 360) % 360; };
 const FAM = th => th === 'neon' ? 'neon' : 'west'; // CSS chrome family; new skins override tokens on top of it (v095.css)
 const isDark = () => S.mode === 'dark' || (S.mode === 'auto' && matchMedia('(prefers-color-scheme: dark)').matches);
 const styleKey = () => `${S.theme}_${isDark() ? 'dark' : 'light'}`;
@@ -40,8 +53,8 @@ let _tj; const tileJSON = () => BJ ? Promise.resolve({ tiles: [BJ_TILES()], maxz
 async function loadStyle() {
   let st, pk = null;
   if (S.skin) { try { pk = await SK.getPack(S.skin); } catch {} if (!pk) { S.skin = null; store.set('skin', null); } }
-  if (pk) { S.theme = pk.base; const ps = await SK.packStyle(pk, isDark() ? 'dark' : 'light', base); st = ps.style; window.__skinTok = pk.tokens || {}; SK.applyPackCss(pk, isDark() ? 'dark' : 'light'); setOverrides(pk.strings); window.__skinPuck = pk.puck?.[isDark() ? 'dark' : 'light'] || pk.puck?.light || null; document.documentElement.classList.toggle('fx-scroll', (pk.fx || []).includes('scroll')); }
-  else { window.__skinTok = null; SK.applyPackCss(null); setOverrides(null); window.__skinPuck = null; document.documentElement.classList.remove('fx-scroll'); st = await (await fetch(`${base}styles/${styleKey()}.json${AV}`)).json(); st.sprite = typeof st.sprite === 'string' && st.sprite.startsWith('{SPRITE}/') && !['neon', 'west'].includes(S.theme) ? `${base}sprites/${st.sprite.slice(9)}` : `${base}sprites/${styleKey()}`; if (styleKey() === 'west_dark') recolor(st, S.pal); }
+  if (pk) { S.theme = pk.base; const ps = await SK.packStyle(pk, isDark() ? 'dark' : 'light', base); st = ps.style; window.__skinTok = pk.tokens || {}; SK.applyPackCss(pk, isDark() ? 'dark' : 'light'); setOverrides(pk.strings); window.__skinPuck = pk.puck?.[isDark() ? 'dark' : 'light'] || pk.puck?.light || null; document.documentElement.classList.toggle('fx-scroll', (pk.fx || []).includes('scroll')); document.documentElement.classList.toggle('fx-inkui', (pk.fx || []).includes('inkui')); }
+  else { window.__skinTok = null; SK.applyPackCss(null); setOverrides(null); window.__skinPuck = null; document.documentElement.classList.remove('fx-scroll', 'fx-inkui'); st = await (await fetch(`${base}styles/${styleKey()}.json${AV}`)).json(); st.sprite = typeof st.sprite === 'string' && st.sprite.startsWith('{SPRITE}/') && !['neon', 'west'].includes(S.theme) ? `${base}sprites/${st.sprite.slice(9)}` : `${base}sprites/${styleKey()}`; if (styleKey() === 'west_dark') recolor(st, S.pal); }
   st.glyphs = `${base}glyphs/{fontstack}/{range}.pbf`;
   if (BJ) for (const [k, sr] of Object.entries(st.sources)) if (sr.type === 'vector' && /openfreemap/.test(sr.url || (sr.tiles || [])[0] || '')) st.sources[k] = { type: 'vector', tiles: [BJ_TILES()], minzoom: 0, maxzoom: 14, bounds: BJ_BOUNDS, attribution: '© OpenStreetMap contributors · OpenMapTiles · OpenFreeMap（离线）' };
   const nameExpr = lang === 'zh' ? ['coalesce', ['get', 'name:zh-Hans'], ['get', 'name:zh'], ['get', 'name'], ['get', 'name:en']] : ['coalesce', ['get', 'name:en'], ['get', 'name:latin'], ['get', 'name']];
@@ -387,12 +400,16 @@ function renderSuggest(items, keepSel, qForNom) {
   sugItems = items; if (!keepSel) sugSel = -1;
   const box = $('#suggest');
   if (!items.length && qForNom === undefined) { box.classList.add('hidden'); return; }
+  if (INK() && items.length && items.every(r => r.recent || r.inkSaved)) { box.innerHTML = inkSugHtml(items); box.classList.add('inks'); box.classList.remove('hidden'); return; }
+  box.classList.remove('inks');
   box.innerHTML = items.map((r, i) => `<div class="sug${i === sugSel ? ' sel' : ''}" data-i="${i}"><div class="i">${r.sem ? ic('search') : r.recent || r.src === 'recent' ? ic('clock') : r.src === 'saved' ? ic('star') : catIc(r.cls || r.category)}</div><div style="flex:1;min-width:0"><div class="t">${esc(r.name)}</div><div class="s">${esc(shortAddr(r))}</div></div>${r.dist != null ? `<div class="s" style="flex:none">${fmtDist(r.dist)}</div>` : ''}</div>`).join('')
     + (!items.length ? `<div class="sug"><div class="s">${t('noresults')}</div></div>` : '')
     + (qForNom ? `<div class="sug" data-nom="1"><div class="i">${ic('search')}</div><div class="t">${t('nominatim')}</div></div>` : '');
   box.classList.remove('hidden');
 }
 $('#suggest').addEventListener('click', e => {
+  const ik = e.target.closest('[data-inkclr],[data-inkk]');
+  if (ik) { if (ik.dataset.inkclr) { store.set('recents', []); $('#suggest').classList.add('hidden'); return; } const b = document.querySelector(`.chip[data-k="${ik.dataset.inkk}"]`); $('#suggest').classList.add('hidden'); q.blur(); if (b) runChip(b); return; }
   const el = e.target.closest('.sug'); if (!el) return;
   if (el.dataset.nom) return nominatimSearch(q.value.trim());
   if (el.dataset.i) pick(sugItems[+el.dataset.i]);
@@ -509,7 +526,8 @@ function renderPlace(p, tags, extra) {
   const addr = [tags['addr:housenumber'], tags['addr:street']].filter(Boolean).join(' ') + (tags['addr:city'] ? ', ' + tags['addr:city'] : '');
   const cat = catLabel(tags.amenity ? 'amenity=' + tags.amenity : tags.shop ? 'shop=' + tags.shop : tags.tourism ? 'tourism=' + tags.tourism : tags.leisure ? 'leisure=' + tags.leisure : p.category);
   const web = tags.website || tags['contact:website'], tel = tags.phone || tags['contact:phone'];
-  openPanel(`<div class="pc">
+  const ink = INK() ? inkPlaceHtml(p, tags, extra, cat) : '';
+  openPanel(`<div class="pc${ink ? ' ink' : ''}">${ink}
     ${extra?.photo?.length ? `<details class="fold gfold" data-fold="gal"${fold('gal', 1) ? ' open' : ''}><summary class="fsum">${ic('info')}${L('照片', 'Photos')} · ${extra.photo.length}</summary>${galleryHtml(extra.photo)}</details>` : ''}
     <h2>${esc(tags[lang === 'zh' ? 'name:zh' : 'name:en'] || p.name)}</h2><div class="cat">${esc(cat)}${tags.cuisine ? ' · ' + esc(tags.cuisine.replace(/;/g, ', ')) : ''}</div>
     <div class="acts">
@@ -530,6 +548,7 @@ function renderPlace(p, tags, extra) {
     <div class="row"><span class="i">${ic('coord')}</span><div style="flex:1">${p.lat.toFixed(6)}, ${p.lng.toFixed(6)}</div><button class="btn ghost" id="copyLL" style="flex:none;padding:6px 12px">${L('复制', 'Copy')}</button></div>
     ${p.osm ? `<div class="tags"><a href="https://www.openstreetmap.org/${{ N: 'node', W: 'way', R: 'relation' }[p.osm.type] || p.osm.type}/${p.osm.id}" target="_blank" rel="noopener">OpenStreetMap</a></div>` : ''}
   </div>`, tags[lang === 'zh' ? 'name:zh' : 'name:en'] || p.name, 'place');
+  const ika = $('#panelBody .ikacts'); if (ika) ika.onclick = e => { const b = e.target.closest('[data-ika]'); if (!b) return; if (b.dataset.ika === 'more') { const pc = $('#panelBody .pc'); b.setAttribute('aria-expanded', pc.classList.toggle('more')); return; } $('#panelBody .acts [data-a=start]')?.click(); };
   $('#panelBody .acts').onclick = e => {
     const a = e.target.closest('.act')?.dataset.a;
     if (a === 'dir') openDirections(p);
@@ -543,6 +562,23 @@ function renderPlace(p, tags, extra) {
   $('#copyLL').onclick = async () => { const tx = `${p.lat.toFixed(6)}, ${p.lng.toFixed(6)}`; try { await navigator.clipboard.writeText(tx); toast(L('坐标已复制', 'Coordinates copied')); } catch { prompt('', tx); } };
   $('#copyAddr').onclick = async () => { const tx = $('#addrTx').textContent; try { await navigator.clipboard.writeText(tx); toast(L('地址已复制', 'Address copied')); } catch { prompt(L('地址', 'Address'), tx); } };
   if (extra?.photo?.length) bindGallery($('#panelBody .gal'), extra.photo);
+}
+// v0.9.7 ink place card (targets: place_light / place_dark): seal + name, rule, sub-line, description, mountain band, 2×2 grid, 启程 / 详观
+function inkPlaceHtml(p, tags, extra, cat) {
+  const nm = tags[lang === 'zh' ? 'name:zh' : 'name:en'] || p.name;
+  const d = S.me ? haversine(S.me, p) : null;
+  const dist = d == null ? '' : lang === 'zh' ? (d < 500 ? ` · 距此${CNUM(Math.max(1, Math.round(d / 1.5 / 10) * 10))}步` : ` · 距此${CNUM(Math.max(1, Math.round(d / 500)))}里`) : ` · ${fmtDist(d)} ${'away'}`;
+  const dirTx = S.me && d > 30 ? (lang === 'zh' ? DIRZ : DIRE)[Math.round(brg(S.me, p) / 45) % 8] : '';
+  const addr = fmtAddr(tags) || p.address || '';
+  const hrs = extra?.oh ? String(extra.oh.badge).replace(/<[^>]+>/g, '') : tags.opening_hours || '';
+  const feat = [tags.cuisine, tags.brand, tags.outdoor_seating === 'yes' ? L('有露天座', 'outdoor seating') : '', tags.wheelchair === 'yes' ? L('无障碍', 'step-free') : ''].filter(Boolean).join(' · ').replace(/;/g, ', ');
+  const desc = p.desc || tags.description || '';
+  const seal = lang === 'zh' ? `<i class="ikseal">${esc(String(cat).replace(/[^\u4e00-\u9fff]/g, '').slice(0, 2) || '名所')}</i>` : `<i class="ikseal g">${catIc(p.category || (tags.amenity ? 'amenity=' + tags.amenity : ''))}</i>`;
+  const cell = (icn, k, v) => `<div><b><span class="gi">${li(icn)}</span>${k}</b><span>${esc(v || '—')}</span></div>`;
+  return `<div class="ikp"><div class="ikp-h">${seal}<h3>${esc(nm)}</h3></div><div class="ikrule"><i></i></div>
+    <div class="ikp-sub">${esc(cat)}${esc(dist)}</div>${desc ? `<div class="ikp-d">${esc(desc)}</div>` : ''}<div class="ikmtn"></div>
+    <div class="ikgrid">${cell('pin', L('方位', 'Where'), [dirTx, addr].filter(Boolean).join(' · '))}${cell('cup', L('类别', 'Kind'), cat + (tags.cuisine ? ' · ' + tags.cuisine.split(';')[0] : ''))}${cell('clock', L('营业', 'Hours'), hrs)}${cell('star', L('特色', 'Notes'), feat)}</div>
+    <div class="ikacts"><button class="ikb red" data-ika="start">${li('go')}<b>${L('启程', 'Go')}</b></button><button class="ikb" data-ika="more" aria-expanded="false">${li('list')}<b>${L('详观', 'Details')}</b></button></div></div>`;
 }
 async function share(p) {
   const url = `${location.origin}${location.pathname}?p=${p.lat.toFixed(6)},${p.lng.toFixed(6)}&n=${encodeURIComponent(p.name)}#17/${p.lat.toFixed(5)}/${p.lng.toFixed(5)}`;
@@ -706,12 +742,36 @@ function onCompass(h) { S.compassHdg = h; const n = performance.now(); if (n - c
 setTimeout(() => ios.maybeShowA2HS(), 2500);
 $('#layersBtn').onclick = () => { renderLayersPop(); $('#layersPop').classList.toggle('hidden'); };
 function renderLayersPop() {
+  if (INK()) return inkLayersPop();
+  $('#layersPop').classList.remove('inkl');
   $('#layersPop').innerHTML = `<button class="xbig popx" data-x="1" aria-label="close">✕</button><div style="font-weight:600;margin:6px 0 14px;font-size:18px">${t('styles')}</div>
    <div class="grid2 g5">${THEMES.map(th => `<button class="opt${S.theme === th ? ' on' : ''}" data-th="${th}"><img src="${base}previews/${th}_${isDark() ? 'dark' : 'light'}.png" alt="">${t(th)}</button>`).join('')}</div>
    <div class="seg" style="margin-top:10px">${['auto', 'light', 'dark'].map(m => `<button data-md="${m}" class="${S.mode === m ? 'on' : ''}">${t(m)}</button>`).join('')}</div>
    <div class="seg" style="margin-top:10px"><button data-sat="0" class="${!S.sat ? 'on' : ''}">${lang === 'zh' ? '地图' : 'Map'}</button><button data-sat="1" class="${S.sat ? 'on' : ''}">${lang === 'zh' ? '卫星' : 'Satellite'}</button></div>
    <div style="font-size:12px;color:var(--muted);margin-top:6px">${lang === 'zh' ? '卫星：EOX Sentinel‑2 无云（非商业）+ 埃德蒙顿市航拍' : 'Satellite: EOX Sentinel‑2 cloudless (non‑commercial) + City of Edmonton orthophoto'}</div>`;
   $('#layersPop').onclick = e => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.x) return $('#layersPop').classList.add('hidden'); if (b.dataset.th) { S.theme = b.dataset.th; S.skin = null; store.set('skin', null); } if (b.dataset.md) S.mode = b.dataset.md; if (b.dataset.sat) { S.sat = b.dataset.sat === '1'; store.set('sat', S.sat); } setStyle(); };
+}
+
+// v0.9.7 ink skin list (target: skinswitch): active pack (昼 / 夜), the other skins, 另觅皮相
+function inkLayersPop() {
+  const lp = $('#layersPop'), dk = isDark(), cur = S.skin ? SKINS.find(p => p.id === S.skin) : null;
+  const row = (attrs, icn, nm, sub, on) => `<button class="ikl${on ? ' on' : ''}" ${attrs}><span class="i">${li(icn)}</span><span class="tt"><b>${esc(nm)}</b><small>${esc(sub)}</small></span>${on ? `<i class="ikuse">${L('用', '✓')}</i>` : ''}</button>`;
+  const rows = [];
+  if (cur) { const nm = SK.packName(cur, ZH); rows.push(row('data-md="light"', 'brush', nm, L('水墨 · 昼', 'Ink · day'), !dk), row('data-md="dark"', 'layers', nm, L('水墨 · 夜', 'Ink · night'), dk)); }
+  for (const p of SKINS) if (p.id !== S.skin) rows.push(row(`data-skin="${esc(p.id)}"`, 'layers', SK.packName(p, ZH), L('昼夜', 'Day & night'), false));
+  for (const th of THEMES) rows.push(row(`data-th="${th}"`, 'layers', t(th), L('昼夜', 'Day & night'), !cur && S.theme === th));
+  lp.classList.add('inkl');
+  lp.innerHTML = `<div class="ikl-h"><b>${L('易换皮相', 'Change skin')}</b><button class="xbig popx" data-x="1" aria-label="close">✕</button></div><div class="ikrule"><i></i></div>
+    <div class="ikl-list">${rows.join('')}</div>
+    <button class="ikb wide" data-more="1">${li('dl')}<b>${L('另觅皮相', 'Find more skins')}</b></button>
+    <button class="ikl-sat" data-sat="${S.sat ? 0 : 1}">${S.sat ? L('改用舆图', 'Use map') : L('改用卫星', 'Use satellite')}</button>`;
+  lp.onclick = e => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.x) return lp.classList.add('hidden');
+    if (b.dataset.more) { lp.classList.add('hidden'); return tools.packs?.(); }
+    if (b.dataset.th) { S.theme = b.dataset.th; S.skin = null; store.set('skin', null); }
+    if (b.dataset.skin) { S.skin = b.dataset.skin; store.set('skin', S.skin); }
+    if (b.dataset.md) S.mode = b.dataset.md;
+    if (b.dataset.sat) { S.sat = b.dataset.sat === '1'; store.set('sat', S.sat); }
+    setStyle().then(() => { if (!lp.classList.contains('hidden')) renderLayersPop(); }); };
 }
 
 // ---------- drawer ----------
@@ -725,7 +785,7 @@ function renderDrawer() { drawerSig = drawerState();
   const pad = h => `<div style="padding:0 22px 10px 58px">${h}</div>`;
   const X = drawerExtra(), open = store.get('drawerOpen', { mine: 1 });
   const sec = (id, icn, title, inner) => `<section class="dsec${open[id] ? ' open' : ''}" data-sec="${id}"><button class="dsh" data-sech="${id}" aria-expanded="${!!open[id]}"><span class="i">${ic(icn)}</span><b>${title}</b><span class="chev"></span></button><div class="dsb"><div class="dsi">${inner}</div></div></section>`;
-  $('#drawer').innerHTML = `<div class="dh"><span>RoadGlow</span><button class="xbig xbtn" data-close="1" aria-label="close">${ic('close')}</button></div>
+  $('#drawer').innerHTML = `<div class="dh"><span>RoadGlow</span><button class="xbig xbtn" data-close="1" aria-label="close">${ic('close')}</button></div>${INK() ? inkMenuHtml() : ''}
    ${sec('mine', 'star', L('我的地点', 'My places'), sub('star', t('saved'), li(saved, 's')) + X.lists + sub('clock', t('recents'), li(rec, 'r') + (rec.length ? `<div class="di" data-clear="1"><span class="i">${ic('trash')}</span>${t('clear_history')}</div>` : '')))}
    ${sec('explore', 'quest', L('探索', 'Explore'), `<div class="ds"><div class="di" data-sq="1"><span class="i">${ic('quest')}</span><div><b>${L('支线任务', 'Side quests')}</b><div class="s" style="font-size:13.5px;color:var(--muted)">${L('鬼镇、废墟、奇特景点、观景台', 'Ghost towns, ruins, oddities, viewpoints')} · ${questDone().length} ✔</div></div></div>
      <div class="di" data-tool="transit"><span class="i">${ic('dir')}</span><div><b>${L('公共交通', 'Transit')}</b><div class="s" style="font-size:13.5px;color:var(--muted)">${L('Transitous 社区数据（含 ETS）', 'Transitous community data (incl. ETS)')}</div></div></div>
@@ -742,6 +802,7 @@ function renderDrawer() { drawerSig = drawerState();
    <section class="dsec dupd"><button class="dsh" data-tool="update"><span class="i">${ic('info')}</span><b>${L('检查更新', 'Check for updates')}</b><span class="updver">v${APPVER}</span></button></section>
    ${sec('about', 'info', t('about'), `<div class="sub">${t('about_text')}</div>`)}<div class="orn" aria-hidden="true"><span class="ornl"></span><span class="ornw"><i></i><b></b></span></div>`;
   $('#drawer').onclick = e => {
+    const ik = e.target.closest('[data-ink]'); if (ik) return inkMenu(ik.dataset.ink);
     const h = e.target.closest('[data-sech]'); if (h) { const o = store.get('drawerOpen', { mine: 1 }), id = h.dataset.sech, sc = h.parentElement; o[id] = sc.classList.toggle('open') ? 1 : 0; h.setAttribute('aria-expanded', !!o[id]); store.set('drawerOpen', o); return; }
     const el = e.target.closest('[data-s],[data-r],[data-th],[data-md],[data-pal],[data-lang],[data-clear],[data-close],[data-sq],[data-tool],[data-vp],[data-vtest],[data-szreset],[data-ncc],[data-ncreset],[data-skin],[data-skrm],[data-skurl]'); if (!el) return;
     if (el.dataset.close) return closeDrawer();
@@ -762,6 +823,36 @@ function renderDrawer() { drawerSig = drawerState();
     else if (el.dataset.lang !== undefined) setLang(el.dataset.lang);
     else if (el.dataset.clear) { store.set('recents', []); renderDrawer(); }
   };
+}
+// v0.9.7 ink drawer: a short classical menu (targets: drawer_zh / drawer_en); 诸般设置 reveals every original section
+function inkMenuHtml() {
+  const curName = S.skin ? SK.packName(SKINS.find(p => p.id === S.skin) || { name: { zh: S.skin, en: S.skin } }, ZH) : t(S.theme);
+  const row = (k, icn, zh, en, extra = '') => `<button class="ikm" data-ink="${k}">${li(icn)}<b>${L(zh, en)}</b>${extra}</button>`;
+  return `<div class="inkm"><div class="ikrule"><i></i></div>
+    ${row('saved', 'star', '珍藏之地', 'Saved places')}${row('trips', 'list', '行程录', 'Trips')}${row('recent', 'clock', '近日行迹', 'Recent')}
+    <div class="ikbrush"></div>${row('skins', 'brush', '皮相与声腔', 'Skins & voices')}${row('style', 'layers', '舆图风格', 'Map style', `<em>${esc(curName)}</em>`)}
+    <div class="ikbrush b2"></div>${row('all', 'sun', '诸般设置', 'Settings')}${row('update', 'dl', '手新版', 'Check for updates')}</div>
+    <button class="ikback" data-ink="back">‹ ${L('返', 'Back')}</button><div class="inkpoem" aria-hidden="true"></div>`;
+}
+function inkMenu(k) {
+  const d = $('#drawer');
+  if (k === 'all') { d.classList.add('all'); d.scrollTop = 0; return; }
+  if (k === 'back') { d.classList.remove('all'); d.scrollTop = 0; return; }
+  if (k === 'trips') { const o = store.get('drawerOpen', { mine: 1 }); o.mine = 1; store.set('drawerOpen', o); d.classList.add('all'); renderDrawer(); d.querySelector('[data-sec=mine]')?.classList.add('open'); d.scrollTop = 0; return; }
+  closeDrawer();
+  if (k === 'skins') return tools.packs?.();
+  if (k === 'update') return tools.update?.();
+  if (k === 'style') { renderLayersPop(); return $('#layersPop').classList.remove('hidden'); }
+  if (k === 'saved' || k === 'recent') { S.inkList = k; renderSuggest(k === 'saved' ? store.get('saved', []).map(r => ({ ...r, src: 'saved', inkSaved: true })) : recentItems()); }
+}
+// v0.9.7 ink search window: recents (or saved) as a classical list + 常寻之所 chips (target: search)
+const INK_CH = ['restaurant', 'cafe', 'hotel', 'pharmacy', 'parking', 'fuel'];
+function inkSugHtml(items) {
+  const sv = store.get('saved', []), isSaved = r => sv.some(x => Math.abs(x.lat - r.lat) < 1e-5 && Math.abs(x.lng - r.lng) < 1e-5);
+  const title = items[0]?.inkSaved ? L('珍藏之地', 'Saved places') : L('近日行迹', 'Recent');
+  return `<div class="iks-h"><b>${title}</b>${items[0]?.inkSaved ? '' : `<button class="iks-clr" data-inkclr="1">${L('拂去', 'Clear')}</button>`}</div>`
+    + items.map((r, i) => { const s2 = isSaved(r); return `<div class="sug iks${i === sugSel ? ' sel' : ''}" data-i="${i}"><div class="i${s2 ? ' r' : ''}">${li(s2 ? 'heart' : r.inkSaved ? 'star' : i % 2 ? 'pin' : 'clock')}</div><div style="flex:1;min-width:0"><div class="t">${esc(r.name)}</div><div class="s">${s2 ? L('已入珍藏', 'Saved') : esc(shortAddr(r))}</div></div></div>`; }).join('')
+    + `<div class="iks-h k"><b>${L('常寻之所', 'Frequent')}</b></div><div class="iks-ch">${INK_CH.map(k => `<button class="ikc" data-inkk="${k}">${t(k)}</button>`).join('')}</div><div class="iks-mtn"></div>`;
 }
 // v0.9.3 drawer: the wrapper slides (transform only); frost = one-time downscaled+blurred map snapshot, else dim scrim
 // The WebGL readback is the expensive part, so it runs only after the slide has finished (never during the animation),
@@ -791,7 +882,7 @@ function warmDrawer() {
   const st = w.style; st.transition = 'none'; st.opacity = '0.01'; st.transform = 'none'; d.style.pointerEvents = 'none';
   requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(() => { st.transform = st.opacity = ''; d.style.pointerEvents = ''; requestAnimationFrame(() => { st.transition = ''; }); }, 60)));
 }
-const openDrawer = () => { renderDrawerIfStale(); $('#drawer').classList.add('open'); $('#drawerW')?.classList.add('open'); $('#scrim').classList.remove('hidden'); frostSnap(); };
+const openDrawer = () => { $('#drawer').classList.remove('all'); renderDrawerIfStale(); $('#drawer').classList.add('open'); $('#drawerW')?.classList.add('open'); $('#scrim').classList.remove('hidden'); frostSnap(); };
 const closeDrawer = () => { $('#drawer').classList.remove('open'); $('#drawerW')?.classList.remove('open'); $('#scrim').classList.add('hidden'); $('#frost')?.classList.remove('on'); };
 $('#menuBtn').onclick = openDrawer; $('#scrim').onclick = closeDrawer;
 

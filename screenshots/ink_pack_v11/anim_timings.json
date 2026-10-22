@@ -1,0 +1,328 @@
+{
+ "throttle": 1,
+ "tests": {
+  "rapid9": [
+   {
+    "s": "#panel",
+    "h": true,
+    "bad": []
+   },
+   {
+    "s": "#suggest",
+    "h": true,
+    "bad": []
+   },
+   {
+    "s": "#layersPop",
+    "h": false,
+    "bad": []
+   },
+   {
+    "s": "#toast",
+    "h": true,
+    "bad": []
+   }
+  ],
+  "rapid9_expect_open": true,
+  "rapid10_same_frame_pairs": [
+   {
+    "s": "#panel",
+    "h": true,
+    "bad": []
+   },
+   {
+    "s": "#suggest",
+    "h": true,
+    "bad": []
+   },
+   {
+    "s": "#layersPop",
+    "h": false,
+    "bad": []
+   },
+   {
+    "s": "#toast",
+    "h": true,
+    "bad": []
+   }
+  ],
+  "open_during_close": [
+   {
+    "s": "#panel",
+    "h": true,
+    "bad": []
+   },
+   {
+    "s": "#suggest",
+    "h": true,
+    "bad": []
+   },
+   {
+    "s": "#layersPop",
+    "h": false,
+    "bad": []
+   },
+   {
+    "s": "#toast",
+    "h": true,
+    "bad": []
+   }
+  ],
+  "open_during_close_open": true,
+  "close_during_open": [
+   {
+    "s": "#panel",
+    "h": true,
+    "bad": []
+   },
+   {
+    "s": "#suggest",
+    "h": true,
+    "bad": []
+   },
+   {
+    "s": "#layersPop",
+    "h": true,
+    "bad": []
+   },
+   {
+    "s": "#toast",
+    "h": true,
+    "bad": []
+   }
+  ],
+  "close_during_open_closed": true,
+  "resize_during_open": [
+   {
+    "s": "#panel",
+    "h": true,
+    "bad": []
+   },
+   {
+    "s": "#suggest",
+    "h": true,
+    "bad": []
+   },
+   {
+    "s": "#layersPop",
+    "h": false,
+    "bad": []
+   },
+   {
+    "s": "#toast",
+    "h": true,
+    "bad": []
+   }
+  ],
+  "resize_open": true,
+  "back_twice": [
+   "#layersPop",
+   null
+  ],
+  "back_during_close": [
+   {
+    "s": "#panel",
+    "h": true,
+    "bad": []
+   },
+   {
+    "s": "#suggest",
+    "h": true,
+    "bad": []
+   },
+   {
+    "s": "#layersPop",
+    "h": true,
+    "bad": []
+   },
+   {
+    "s": "#toast",
+    "h": true,
+    "bad": []
+   }
+  ],
+  "panel_reopen": [
+   {
+    "s": "#panel",
+    "h": false,
+    "bad": []
+   },
+   {
+    "s": "#suggest",
+    "h": true,
+    "bad": []
+   },
+   {
+    "s": "#layersPop",
+    "h": true,
+    "bad": []
+   },
+   {
+    "s": "#toast",
+    "h": true,
+    "bad": []
+   }
+  ],
+  "panel_closed": [
+   {
+    "s": "#panel",
+    "h": true,
+    "bad": []
+   },
+   {
+    "s": "#suggest",
+    "h": true,
+    "bad": []
+   },
+   {
+    "s": "#layersPop",
+    "h": true,
+    "bad": []
+   },
+   {
+    "s": "#toast",
+    "h": true,
+    "bad": []
+   }
+  ],
+  "toast_reopen": [
+   {
+    "s": "#panel",
+    "h": true,
+    "bad": []
+   },
+   {
+    "s": "#suggest",
+    "h": true,
+    "bad": []
+   },
+   {
+    "s": "#layersPop",
+    "h": true,
+    "bad": []
+   },
+   {
+    "s": "#toast",
+    "h": false,
+    "bad": []
+   }
+  ],
+  "toast_closed": [
+   {
+    "s": "#panel",
+    "h": true,
+    "bad": []
+   },
+   {
+    "s": "#suggest",
+    "h": true,
+    "bad": []
+   },
+   {
+    "s": "#layersPop",
+    "h": true,
+    "bad": []
+   },
+   {
+    "s": "#toast",
+    "h": true,
+    "bad": []
+   }
+  ]
+ },
+ "frames": {
+  "cold_layers_open": {
+   "frames": 33,
+   "worst": 133.3,
+   "over25": 3,
+   "p50": 16.7
+  },
+  "cold_layers_close": {
+   "frames": 43,
+   "worst": 16.8,
+   "over25": 0,
+   "p50": 16.7
+  },
+  "cold_place_open": {
+   "frames": 36,
+   "worst": 116.7,
+   "over25": 3,
+   "p50": 16.7
+  },
+  "cold_place_close": {
+   "frames": 41,
+   "worst": 49.9,
+   "over25": 1,
+   "p50": 16.7
+  },
+  "cold_drawer_open": {
+   "frames": 37,
+   "worst": 100,
+   "over25": 2,
+   "p50": 16.7
+  },
+  "cold_drawer_close": {
+   "frames": 43,
+   "worst": 16.8,
+   "over25": 0,
+   "p50": 16.7
+  },
+  "cold_suggest_open": {
+   "frames": 43,
+   "worst": 33.3,
+   "over25": 1,
+   "p50": 16.7
+  },
+  "warm_layers_open": {
+   "frames": 44,
+   "worst": 16.8,
+   "over25": 0,
+   "p50": 16.7
+  },
+  "warm_layers_close": {
+   "frames": 43,
+   "worst": 16.8,
+   "over25": 0,
+   "p50": 16.7
+  },
+  "warm_place_open": {
+   "frames": 38,
+   "worst": 83.3,
+   "over25": 2,
+   "p50": 16.7
+  },
+  "warm_place_close": {
+   "frames": 42,
+   "worst": 33.4,
+   "over25": 1,
+   "p50": 16.7
+  },
+  "warm_drawer_open": {
+   "frames": 44,
+   "worst": 16.8,
+   "over25": 0,
+   "p50": 16.7
+  },
+  "warm_drawer_close": {
+   "frames": 43,
+   "worst": 16.8,
+   "over25": 0,
+   "p50": 16.7
+  },
+  "warm_suggest_open": {
+   "frames": 43,
+   "worst": 16.7,
+   "over25": 0,
+   "p50": 16.7
+  }
+ },
+ "chip_tap_to_frame_ms": [
+  20.4,
+  11,
+  16.9,
+  12.2,
+  15.7
+ ],
+ "errors": [],
+ "bad": []
+}
