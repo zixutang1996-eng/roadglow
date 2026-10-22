@@ -1,0 +1,3 @@
+Alegreya-500.woff2 / Alegreya-700.woff2: Alegreya by Juan Pablo del Peral (Huerta Tipografica), SIL Open Font License 1.1. Latin subset, lnum kept.
+WenKaiM-ui.woff2: LXGW WenKai Medium by LXGW, SIL Open Font License 1.1. Subset to the UI characters used by RoadGlow.
+Map labels keep their existing glyph stacks (unchanged).

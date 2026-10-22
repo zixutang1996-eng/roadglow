@@ -13,8 +13,11 @@ export const NC_PRESETS = {
   paper:     { bg: '#f6f3ea', fg: '#1b1f24', zh: '白纸', en: 'Paper' },
 };
 // each mode's own panel colour ("auto") and its opposite ("swap")
-const OWN = { west_light: '#ead9b4', west_dark: '#4c3a27', neon_light: '#ffffff', neon_dark: '#1f2129' };
-const MAPBASE = { west_light: '#ebddbb', west_dark: '#26201a', neon_light: '#8e94a2', neon_dark: '#14161f' };
+const OWN0 = { west_light: '#ece0c2', west_dark: '#1c1f23', neon_light: '#f6f1e8', neon_dark: '#141824' };
+const MAPBASE0 = { west_light: '#ebddbb', west_dark: '#1c222a', neon_light: '#e9e4da', neon_dark: '#14161f' };
+const OWN = { ...OWN0 }, MAPBASE = { ...MAPBASE0 };
+/** v0.9.3: the active night palette overrides the panel + map base colours. */
+export function ncOwn(key, bg, mapBase) { OWN[key] = bg || OWN0[key]; MAPBASE[key] = mapBase || MAPBASE0[key]; }
 const OPP = { west_light: 'west_dark', west_dark: 'west_light', neon_light: 'neon_dark', neon_dark: 'neon_light' };
 
 export const ncGet = () => { try { return { ...NC_DEF, ...(JSON.parse(localStorage.getItem(K)) || {}) }; } catch { return { ...NC_DEF }; } };

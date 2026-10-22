@@ -1,0 +1,119 @@
+/* ===== v0.9.3 redesign: Frontier Ink (option 4) + Neon City (continuous chamfers) =====
+   Perf rules: only transform/opacity animate; shadows are static; no backdrop-filter over the map. */
+html body #paper{display:none}
+
+/* ---------- fonts (applied only after the lazy FontFace load completes; system serif until then) ---------- */
+html body.west{--f093:Georgia,"Noto Serif SC","Songti SC","SimSun",serif}
+html.f093 body.west{--f093:"Alegreya","LXGW WenKai UI",Georgia,"Noto Serif SC","Songti SC",serif}
+html body.west :is(#top,#panel,#drawer,#layersPop,#suggest,#navBanner,#navFoot,#areaPill,#toast,#controls){font-family:var(--f093)!important;font-variant-numeric:lining-nums;font-feature-settings:"lnum" 1}
+
+/* ---------- Frontier Ink tokens ---------- */
+html body.west{--bg:#ece0c2;--chip:#ece0c2;--fg:#2e2216;--muted:#4f3d29;--line:rgba(79,61,41,.22);--accent:#7a5a28;--wine:#6e2a26;
+  --wsh:0 1px 2px rgba(60,40,15,.26),0 4px 10px rgba(60,40,15,.16),0 12px 26px rgba(60,40,15,.14);--whl:inset 0 1px 0 rgba(255,250,235,.55)}
+html body.west.dark{--bg:var(--p-bg,#1c1f23);--chip:var(--p-bg,#1c1f23);--fg:var(--p-fg,#ece4d4);--muted:var(--p-muted,#c4bba9);--line:rgba(236,228,212,.14);--accent:var(--p-acc,#d9b36a);--wine:#5a1f22;
+  --wsh:0 1px 2px rgba(0,0,0,.55),0 5px 12px rgba(0,0,0,.42),0 14px 30px rgba(0,0,0,.38);--whl:inset 0 1px 0 var(--p-hl,rgba(220,228,240,.13))}
+html body.west :is(.floatw,.sugw,.navw){filter:none!important}
+html body.west :is(#searchbar,.chip,#areaPill,#controls,#panel,#suggest,#layersPop,#drawer,#toast,.card:not(#navFoot)){
+  background:var(--bg)!important;background-image:none!important;color:var(--fg)!important;border:0!important;border-image:none!important;
+  clip-path:none!important;-webkit-mask:none!important;mask:none!important;-webkit-mask-box-image:none!important;
+  box-shadow:var(--whl),var(--wsh)!important;outline:0}
+html body.west:not(.ncc) :is(#navBanner,#navFoot){background:var(--bg)!important;background-image:none!important;color:var(--fg)!important}
+html body.west :is(#navBanner,#navFoot){border:0!important;border-image:none!important;clip-path:none!important;-webkit-mask:none!important;mask:none!important;-webkit-mask-box-image:none!important;box-shadow:var(--whl),var(--wsh)!important;border-radius:22px!important}
+html body.west #navFoot,html body.west #panel,html body.west #layersPop{border-radius:22px!important}
+html body.west #suggest{border-radius:18px!important;overflow:hidden auto}
+html body.west #searchbar{border-radius:20px!important}
+html body.west .chip{border-radius:999px!important}
+html body.west .chip.on,html body.west .chip[aria-pressed=true]{background:var(--accent)!important;color:var(--bg)!important}
+html body.west #areaPill{border-radius:999px!important}
+html body.west #toast{border-radius:16px!important}
+html body.west :is(#panel,#suggest,#layersPop,#drawer) .card{box-shadow:none!important;background:transparent!important}
+@media (max-width:700px){html body.west #panel{border-radius:22px 22px 0 0!important}}
+/* merged right-hand strip */
+html body:is(.west,.neon) #controls{gap:0!important;padding:0}
+html body.west #controls{border-radius:18px!important;overflow:hidden}
+html body:is(.west,.neon) #controls .ctl,html body:is(.west,.neon) #controls .zoomgrp{background:transparent!important;box-shadow:none!important;border:0!important;border-radius:0!important;clip-path:none!important;-webkit-mask:none!important;mask:none!important;border-image:none!important;filter:none!important}
+html body:is(.west,.neon) #controls>*+*{border-top:1px solid var(--line)!important}
+html body:is(.west,.neon) #controls .zoomgrp .ctl+.ctl{border-top:1px solid var(--line)!important}
+html body.west #controls .ctl{color:var(--muted)!important}
+/* brass compass (needle drawn pointing east; JS rotates by -90-bearing) */
+html body:is(.west,.neon) #compassBtn #needle{font-size:0!important;width:30px;height:30px;border-radius:50%;box-shadow:none!important;background:center/contain no-repeat;color:transparent!important}
+html body.west #compassBtn #needle{background-color:transparent!important;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Ccircle cx='20' cy='20' r='17.5' fill='%23b8893d' stroke='%23e6c27a' stroke-width='1.6'/%3E%3Ccircle cx='20' cy='20' r='14' fill='none' stroke='%237a5520' stroke-width='.9'/%3E%3Cpath d='M20 9v3M20 28v3M9 20h3' stroke='%237a5520' stroke-width='1.4' stroke-linecap='round'/%3E%3Cpath d='M33 20 20 15.5 20 24.5Z' fill='%236e2a26'/%3E%3Cpath d='M7 20 20 15.5 20 24.5Z' fill='%23f2e3bd'/%3E%3Ccircle cx='20' cy='20' r='2.2' fill='%23e6c27a' stroke='%237a5520' stroke-width='.8'/%3E%3C/svg%3E")!important}
+html body.neon #compassBtn #needle{background-color:transparent!important;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cpath d='M13 4h14l9 9v14l-9 9H13l-9-9V13z' fill='none' stroke='%234fd6e8' stroke-opacity='.45' stroke-width='1.3'/%3E%3Cpath d='M33 20 20 15.5 20 24.5Z' fill='%23c77a9a'/%3E%3Cpath d='M7 20 20 15.5 20 24.5Z' fill='%234fd6e8' fill-opacity='.7'/%3E%3C/svg%3E")!important}
+html body.neon.light #compassBtn #needle{filter:brightness(.6) saturate(1.2)}
+/* dark wine end-navigation */
+html body.west #endBtn{background:var(--wine)!important;color:#f3e6cf!important;border:0!important;border-image:none!important;clip-path:none!important;border-radius:14px!important;box-shadow:inset 0 1px 0 rgba(255,220,200,.18),0 2px 6px rgba(0,0,0,.25)!important}
+
+/* ---------- drawer (both skins): wrapper carries the slide; drawer itself is static ---------- */
+html body:is(.west,.neon) #drawerW{transform:translate3d(-110%,0,0);transition:transform .24s cubic-bezier(.2,.8,.2,1)}
+html body:is(.west,.neon) #drawerW.open{transform:none}
+html body:is(.west,.neon) #drawer{transform:none!important;transition:none!important;will-change:auto!important;left:12px;top:calc(20px + var(--sat,0px));bottom:calc(20px + var(--sab,0px));width:min(330px,calc(100% - 52px));max-width:none;padding-top:0!important;padding-bottom:0!important;display:flex;flex-direction:column;overflow:hidden auto;overscroll-behavior:contain}
+html body.west #drawer{border-radius:22px!important}
+@media (prefers-reduced-motion:reduce){html body #drawerW{transition:none!important}}
+html body:is(.west,.neon) #scrim{background:rgba(0,0,0,.22)!important;opacity:1}
+html body.west.dark #scrim,html body.neon.dark #scrim{background:rgba(0,0,0,.32)!important}
+#frost{position:absolute;inset:0;width:100%;height:100%;opacity:0;transition:opacity .2s linear;pointer-events:none}
+#frost.on{opacity:1}
+html body.west.light #frost{opacity:0}html body.west.light #frost.on{opacity:.9}
+html body:is(.west,.neon) #drawer .dh{border-bottom:0!important;background:transparent!important;flex:none}
+html body:is(.west,.neon) #drawer .dsec{border-top:0!important;border-image:none!important;flex:none}
+html body:is(.west,.neon) #drawer .dsec+.dsec::before{content:'';display:block;height:10px;margin:0 22px;background:currentColor;opacity:.42;
+  -webkit-mask:var(--dv) center/100% 10px no-repeat;mask:var(--dv) center/100% 10px no-repeat}
+html body.west{--dv:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 10' preserveAspectRatio='none'%3E%3Cpath d='M0 4.6h138v.8H0zM162 4.6h138v.8H162z'/%3E%3Cpath d='M150 0l5 5-5 5-5-5z'/%3E%3Cpath d='M141 5l2-2 2 2-2 2zM155 5l2-2 2 2-2 2z'/%3E%3C/svg%3E")}
+html body.west #drawer .dsec+.dsec::before{color:var(--accent)}
+html body.neon{--dv:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 10' preserveAspectRatio='none'%3E%3ClinearGradient id='g'%3E%3Cstop offset='0' stop-opacity='1'/%3E%3Cstop offset='1' stop-opacity='0'/%3E%3C/linearGradient%3E%3Cpath d='M0 1h2v8H0z'/%3E%3Cpath d='M6 4.5h294v1H6z' fill='url(%23g)'/%3E%3C/svg%3E")}
+html body.neon #drawer .dsec+.dsec::before{color:var(--acc093)}
+#drawer .orn{flex:none;margin-top:auto;padding:18px 0 22px;display:flex;justify-content:center;pointer-events:none}
+#drawer .orn i{display:block;position:relative;background:currentColor;-webkit-mask:var(--om) center/contain no-repeat;mask:var(--om) center/contain no-repeat}
+html body.west #drawer .orn i{--om:url(/orn/skull_west.svg);width:150px;height:56px;color:var(--accent);opacity:.55}
+html body.neon #drawer .orn i{--om:url(/orn/skull_neon.svg);width:78px;height:78px;color:var(--acc093);opacity:.55}
+html body.neon #drawer .orn i::after{content:'';position:absolute;inset:0;background:var(--berry);-webkit-mask:url(/orn/skull_neon_visor.svg) center/contain no-repeat;mask:url(/orn/skull_neon_visor.svg) center/contain no-repeat;opacity:1}
+
+/* ---------- Neon City tokens ---------- */
+html body.neon.dark{--nbg:#141824;--nbg2:#1d2333;--bg:#141824;--chip:#141824;--fg:#e2e9f3;--muted:#a3b2c6;--acc093:#4fd6e8;--berry:#c77a9a;--hair:rgba(79,214,232,.20);--line:rgba(79,214,232,.14);
+  --nsh:drop-shadow(0 0 4px rgba(79,214,232,.08)) drop-shadow(0 2px 3px rgba(0,0,0,.45)) drop-shadow(0 8px 14px rgba(0,0,0,.35))}
+html body.neon.light{--nbg:#f6f1e8;--nbg2:#ebe4d8;--bg:#f6f1e8;--chip:#f6f1e8;--fg:#1d1a22;--muted:#4a4452;--acc093:#0b6f75;--berry:#8a4a5d;--hair:rgba(11,111,117,.30);--line:rgba(29,26,34,.12);
+  --nsh:drop-shadow(0 1px 2px rgba(40,30,50,.22)) drop-shadow(0 6px 12px rgba(40,30,50,.16))}
+html body.neon{--c:10px}
+html body.neon :is(.chip,#areaPill){--c:7px}
+html body.neon :is(#panel,#drawer,#navBanner,#navFoot,#layersPop){--c:16px}
+/* A) non-scrolling panels: two chamfered pseudo layers (hairline + fill); shadow follows the shape */
+html body.neon :is(#searchbar,.chip,#areaPill,#controls,#navBanner,#navFoot,#toast){background:transparent!important;background-image:none!important;border:0!important;border-image:none!important;
+  clip-path:none!important;-webkit-mask:none!important;mask:none!important;box-shadow:none!important;border-radius:0!important;isolation:isolate;filter:var(--nsh)}
+html body.neon :is(#searchbar,.chip){position:relative}
+html body.neon :is(#searchbar,.chip,#areaPill,#controls,#navBanner,#navFoot,#toast)::before,
+html body.neon :is(#searchbar,.chip,#areaPill,#controls,#navBanner,#navFoot,#toast)::after{content:'';position:absolute;z-index:-1;pointer-events:none;
+  clip-path:polygon(var(--c) 0,100% 0,100% calc(100% - var(--c)),calc(100% - var(--c)) 100%,0 100%,0 var(--c))}
+html body.neon :is(#searchbar,.chip,#areaPill,#controls,#navBanner,#navFoot,#toast)::before{inset:0;background:var(--hair)}
+html body.neon :is(#searchbar,.chip,#areaPill,#controls,#navBanner,#navFoot,#toast)::after{inset:1px;background:var(--nbg)}
+html body.neon.ncc :is(#navBanner,#navFoot)::after{background:var(--ncbg,var(--nbg))}
+html body.neon :is(#navBanner,#navFoot){color:var(--fg)}
+html body.neon .navw{filter:none!important}
+html body.neon .chip.on::after,html body.neon .chip[aria-pressed=true]::after{background:var(--berry)}
+html body.neon .chip.on,html body.neon .chip[aria-pressed=true]{color:#fff!important}
+/* B) scrolling panels: clip-path + inset hairline + gradient diagonals; outer shadow from static wrapper filter */
+html body.neon :is(#panel,#suggest,#layersPop,#drawer){border:0!important;border-image:none!important;border-radius:0!important;-webkit-mask:none!important;mask:none!important;color:var(--fg)!important;
+  clip-path:polygon(var(--c) 0,100% 0,100% calc(100% - var(--c)),calc(100% - var(--c)) 100%,0 100%,0 var(--c))!important;
+  box-shadow:inset 0 0 0 1px var(--hair)!important;
+  background:linear-gradient(135deg,transparent calc(50% - .9px),var(--hair) calc(50% - .9px),var(--hair) calc(50% + .5px),transparent calc(50% + .5px)) 0 0/var(--c) var(--c) no-repeat,
+    linear-gradient(135deg,transparent calc(50% - .5px),var(--hair) calc(50% - .5px),var(--hair) calc(50% + .9px),transparent calc(50% + .9px)) 100% 100%/var(--c) var(--c) no-repeat,var(--nbg)!important}
+html body.neon :is(#panel,#suggest,#layersPop,#drawer) .card{box-shadow:none!important;background:transparent!important;clip-path:none!important}
+html body.neon :is(.floatw,.sugw){filter:var(--nsh)!important}
+html body:is(.west,.neon) #drawerW{filter:none!important;will-change:transform}
+html body.neon #drawerW::before{content:'';position:absolute;left:14px;top:calc(22px + var(--sat,0px));bottom:calc(22px + var(--sab,0px));width:calc(min(330px,calc(100% - 52px)) - 4px);border-radius:20px;pointer-events:none;
+  box-shadow:0 0 4px rgba(79,214,232,.08),0 2px 4px rgba(0,0,0,.4),0 10px 24px rgba(0,0,0,.42)}
+html body.neon.light #drawerW::before{box-shadow:0 1px 3px rgba(40,30,50,.2),0 8px 20px rgba(40,30,50,.18)}
+html body.neon #controls .ctl{color:var(--acc093)!important}
+html body.neon #endBtn{background:var(--berry)!important;color:#fff!important}
+
+/* v0.9.3 fixes after screenshot review */
+html body:is(.west,.neon) #controls{height:fit-content!important;bottom:auto}
+@media (min-width:701px){html body:is(.west,.neon) #controls{top:auto;bottom:calc(28px + var(--sab,0px))}}
+html body.west :is(#drawer,#panel,#navBanner) .xbig{background:var(--line)!important;background-image:none!important;border:0!important;border-image:none!important;clip-path:none!important;-webkit-mask:none!important;mask:none!important;border-radius:50%!important;color:var(--fg)!important;box-shadow:none!important}
+html body:is(.west,.neon) #drawer .ds{border:0!important}
+html body.neon:not(.ncc) #navBanner,html body.neon:not(.ncc) #navBanner *:not(.ar):not(.objk),html body.neon:not(.ncc) #navFoot .eta,html body.neon:not(.ncc) #navFoot .eta *{color:var(--fg)!important}
+html body.neon:not(.ncc) #navBanner .objsub,html body.neon:not(.ncc) #navFoot .eta .s{color:var(--muted)!important}
+html body.neon:not(.ncc) #navBanner :is(.ar,.objk){color:var(--acc093)!important}
+html body.neon.light:not(.ncc) #navFoot .eta b{color:#1f6b3a!important}
+/* scrim stays composited (opacity, not display) so showing it costs no raster on open */
+html body:is(.west,.neon) #scrim{transition:opacity .2s linear;will-change:opacity}
+html body:is(.west,.neon) #scrim.hidden{display:block!important;opacity:0;pointer-events:none}

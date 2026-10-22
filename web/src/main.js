@@ -4,12 +4,14 @@ import * as maplibregl from 'maplibre-gl';
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import './style.css';
+import './v093.css';
+import { PALS, PAL_DEF, recolor, applyPalVars } from './palettes.js';
 import { ic, iconDefs, catIc } from './uiicons.js';
 import * as AC from './ac.js';
 import * as TP from './tilepoi.js';
 import * as MP from './majorpoi.js';
 import * as ios from './ios.js';
-const AV = '?v=0.9.2'; // asset version: busts caches for styles + important-POI data
+const AV = '?v=0.9.3'; // asset version: busts caches for styles + important-POI data
 document.body.insertAdjacentHTML('afterbegin', iconDefs());
 for (const [id, k] of [['menuBtn', 'menu'], ['clearBtn', 'close'], ['dirBtn', 'dir'], ['layersBtn', 'layers'], ['locBtn', 'locate']]) { const el = document.getElementById(id); if (el) el.innerHTML = ic(k); }
 import { t, lang, setLang, fmtDist, fmtDur, instruction } from './i18n.js';
@@ -21,7 +23,7 @@ maplibregl.setWorkerUrl(workerUrl);
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const store = { get: (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } }, set: (k, v) => localStorage.setItem(k, JSON.stringify(v)) };
-const S = { sat: store.get('sat', false), theme: store.get('theme', 'neon'), skin: store.get('skin', null), mode: store.get('mode', 'auto'), me: null, place: null, routes: null, routeIdx: 0, travel: BJ ? 'walk' : 'drive', from: null, catLayer: null };
+const S = { sat: store.get('sat', false), theme: store.get('theme', 'neon'), skin: store.get('skin', null), mode: store.get('mode', 'auto'), me: null, place: null, routes: null, routeIdx: 0, travel: BJ ? 'walk' : 'drive', from: null, catLayer: null, pal: PALS[store.get('pal', PAL_DEF)] ? store.get('pal', PAL_DEF) : PAL_DEF };
 import * as SK from './skins.js';
 let SKINS = []; const refreshSkins = async () => { try { SKINS = await SK.listInstalled(); } catch { SKINS = []; } };
 const isDark = () => S.mode === 'dark' || (S.mode === 'auto' && matchMedia('(prefers-color-scheme: dark)').matches);
@@ -34,7 +36,7 @@ async function loadStyle() {
   let st, pk = null;
   if (S.skin) { try { pk = await SK.getPack(S.skin); } catch {} if (!pk) { S.skin = null; store.set('skin', null); } }
   if (pk) { S.theme = pk.base; const ps = await SK.packStyle(pk, isDark() ? 'dark' : 'light', base); st = ps.style; window.__skinTok = pk.tokens || {}; }
-  else { window.__skinTok = null; st = await (await fetch(`${base}styles/${styleKey()}.json${AV}`)).json(); st.sprite = `${base}sprites/${styleKey()}`; }
+  else { window.__skinTok = null; st = await (await fetch(`${base}styles/${styleKey()}.json${AV}`)).json(); st.sprite = `${base}sprites/${styleKey()}`; if (styleKey() === 'west_dark') recolor(st, S.pal); }
   st.glyphs = `${base}glyphs/{fontstack}/{range}.pbf`;
   if (BJ) for (const [k, sr] of Object.entries(st.sources)) if (sr.type === 'vector' && /openfreemap/.test(sr.url || (sr.tiles || [])[0] || '')) st.sources[k] = { type: 'vector', tiles: [BJ_TILES()], minzoom: 0, maxzoom: 14, bounds: BJ_BOUNDS, attribution: '© OpenStreetMap contributors · OpenMapTiles · OpenFreeMap（离线）' };
   const nameExpr = lang === 'zh' ? ['coalesce', ['get', 'name:zh-Hans'], ['get', 'name:zh'], ['get', 'name'], ['get', 'name:en']] : ['coalesce', ['get', 'name:en'], ['get', 'name:latin'], ['get', 'name']];
@@ -43,11 +45,23 @@ async function loadStyle() {
   if (poi) poi.layout['icon-image'] = ['case', ['==', ['get', 'class'], 'aerodrome'], 'airport', poi.layout['icon-image']];
   return st;
 }
-const routeColor = () => skinTok().route || ({ neon_dark: '#4fd6e8', neon_light: '#c2309a', west_light: '#9a2a18', west_dark: '#e0a46a' })[styleKey()];
-const THEMEC = { neon_light: '#2a2f3c', neon_dark: '#0f131c', west_light: '#5a3a1a', west_dark: '#24170c' };
-import { ncApply, ncHtml, ncSet, NC_SCALES, NC_DEF } from './navcard.js';
+const routeColor = () => skinTok().route || ({ neon_dark: '#4fd6e8', neon_light: '#0b6f75', west_light: '#9a2a18', west_dark: PALS[S.pal].map.route })[styleKey()];
+const THEMEC = { neon_light: '#e9e4da', neon_dark: '#0f131c', west_light: '#5a3a1a', west_dark: '#24170c' };
+import { ncApply, ncHtml, ncSet, ncOwn, NC_SCALES, NC_DEF } from './navcard.js';
 export const skinTok = () => window.__skinTok?.[isDark() ? 'dark' : 'light'] || {};
-function applyBodyClass() { const tc = document.getElementById('themeColor'); if (tc) tc.content = skinTok().themeColor || THEMEC[`${S.theme}_${isDark() ? 'dark' : 'light'}`] || '#101521'; document.body.className = `${S.theme} ${isDark() ? 'dark' : 'light'}${$('#panel').classList.contains('hidden') ? '' : ' panel-open'}${$('#panel').classList.contains('collapsed') ? ' panel-collapsed' : ''}`; SK.applyTokens(skinTok()); ncApply(styleKey(), skinTok().navCard); }
+// v0.9.3 F3 fonts (Frontier Ink only): lazy-loaded after first render via FontFace (swap); system serif until ready.
+let fontsP = null;
+function loadWestFonts() {
+  if (fontsP || S.theme !== 'west' || S.skin || !('FontFace' in window)) return;
+  const u = f => `url(${base}fonts/${f}) format("woff2")`;
+  const go = () => { fontsP = Promise.all([
+    new FontFace('Alegreya', u('Alegreya-500.woff2'), { weight: '400 600', display: 'swap', unicodeRange: 'U+0000-024F,U+2000-206F,U+20AC,U+2190-21FF' }),
+    new FontFace('Alegreya', u('Alegreya-700.woff2'), { weight: '700 900', display: 'swap', unicodeRange: 'U+0000-024F,U+2000-206F,U+20AC,U+2190-21FF' }),
+    new FontFace('LXGW WenKai UI', u('WenKaiM-ui.woff2'), { weight: '100 900', display: 'swap', unicodeRange: 'U+2E80-9FFF,U+FF00-FFEF' }),
+  ].map(f => f.load().then(x => (document.fonts.add(x), x)))).then(() => document.documentElement.classList.add('f093')).catch(e => console.warn('fonts', e)); };
+  (window.requestIdleCallback || (f => setTimeout(f, 300)))(go, { timeout: 2500 });
+}
+function applyBodyClass() { const tc = document.getElementById('themeColor'); if (tc) tc.content = skinTok().themeColor || (styleKey() === 'west_dark' && !S.skin ? PALS[S.pal].ui.theme : THEMEC[styleKey()]) || '#101521'; document.body.className = `${S.theme} ${isDark() ? 'dark' : 'light'}${$('#panel').classList.contains('hidden') ? '' : ' panel-open'}${$('#panel').classList.contains('collapsed') ? ' panel-collapsed' : ''} p-${S.pal}`; applyPalVars(S.pal, styleKey() === 'west_dark' && !S.skin); ncOwn(styleKey(), styleKey() === 'west_dark' && !S.skin ? PALS[S.pal].ui.bg : null, styleKey() === 'west_dark' && !S.skin ? PALS[S.pal].map.land : null); SK.applyTokens(skinTok()); ncApply(styleKey(), skinTok().navCard); if (window._map) loadWestFonts(); }
 
 // ---------- map ----------
 const hash = location.hash.slice(1).split('/').map(Number);
@@ -75,7 +89,7 @@ try { map = new maplibregl.Map({
   attributionControl: { compact: true }, hash: false, maxPitch: 70, fadeDuration: 150, localIdeographFontFamily: '"PingFang SC","Noto Sans CJK SC","Microsoft YaHei",sans-serif',
 
 }); } catch (e) { bootFail(e); throw e; }
-window._map = map; if (NATIVE && !BJ) map.once('load', () => setTimeout(() => import('./updates.js').then(m => m.initUpdates({ toast, L, store })).catch(e => console.warn(e)), 4000)); SK.hookMissingImages(map); refreshSkins(); window._skins = { ...SK, refresh: refreshSkins, use: async id => { S.skin = id; store.set('skin', id); await setStyle(); } }; window._sug = () => sugItems.map(r => ({ dbg: [r.ts, r.sc, Math.round(r.dist), r.src].join('/'), name: r.name, address: r.address, lat: r.lat, lng: r.lng, sem: !!r.sem, src: r.src, cls: r.cls || r.category }));
+window._map = map; map.once('load', loadWestFonts); map.once('idle', () => setTimeout(() => (window.requestIdleCallback || setTimeout)(warmDrawer, { timeout: 3000 }), 1500)); if (NATIVE && !BJ) map.once('load', () => setTimeout(() => import('./updates.js').then(m => m.initUpdates({ toast, L, store })).catch(e => console.warn(e)), 4000)); SK.hookMissingImages(map); refreshSkins(); window._skins = { ...SK, refresh: refreshSkins, use: async id => { S.skin = id; store.set('skin', id); await setStyle(); } }; window._sug = () => sugItems.map(r => ({ dbg: [r.ts, r.sc, Math.round(r.dist), r.src].join('/'), name: r.name, address: r.address, lat: r.lat, lng: r.lng, sem: !!r.sem, src: r.src, cls: r.cls || r.category }));
 applyBodyClass();
 const updHash = () => { const c = map.getCenter(); history.replaceState(null, '', `${location.pathname}${location.search}#${map.getZoom().toFixed(2)}/${c.lat.toFixed(5)}/${c.lng.toFixed(5)}`); };
 map.on('moveend', updHash);
@@ -177,13 +191,19 @@ const TSCORE = ['+', ['case',
 // custom scale bar with round metric steps
 const scaleEl = document.createElement('div'); scaleEl.id = 'scale'; scaleEl.innerHTML = '<div class="sbar"></div><span></span>'; document.body.appendChild(scaleEl);
 const STEPS = [5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000, 500000, 1000000];
-function updScale() {
-  const y = map.getContainer().clientHeight / 2, a = map.unproject([0, y]), b = map.unproject([100, y]);
+// v0.9.3: rAF-coalesced, cached container height (no layout read per move frame), DOM writes only when the value changes
+let scH = 0, scRaf = 0, scLast = '';
+const scMeasure = () => { scH = map.getContainer().clientHeight; };
+function updScaleNow() {
+  scRaf = 0; if (!scH) scMeasure();
+  const y = scH / 2, a = map.unproject([0, y]), b = map.unproject([100, y]);
   const mpp = haversine({ lat: a.lat, lng: a.lng }, { lat: b.lat, lng: b.lng }) / 100, maxW = 130;
   let m = STEPS[0]; for (const s of STEPS) if (s / mpp <= maxW) m = s;
-  scaleEl.querySelector('.sbar').style.width = Math.round(m / mpp) + 'px'; scaleEl.querySelector('span').textContent = m >= 1000 ? `${m / 1000} ${ZH ? '公里' : 'km'}` : `${m} ${ZH ? '米' : 'm'}`;
+  const w = Math.round(m / mpp), k = w + '|' + m; if (k === scLast) return; scLast = k;
+  scaleEl.querySelector('.sbar').style.width = w + 'px'; scaleEl.querySelector('span').textContent = m >= 1000 ? `${m / 1000} ${ZH ? '公里' : 'km'}` : `${m} ${ZH ? '米' : 'm'}`;
 }
-map.on('move', updScale); map.on('load', updScale);
+const updScale = () => { if (!scRaf) scRaf = requestAnimationFrame(updScaleNow); };
+map.on('move', updScale); map.on('load', updScale); map.on('resize', () => { scMeasure(); updScale(); });
 async function setStyle() {
   store.set('theme', S.theme); store.set('mode', S.mode); applyBodyClass();
   map.setStyle(await loadStyle(), { diff: false });
@@ -655,7 +675,10 @@ function renderLayersPop() {
 }
 
 // ---------- drawer ----------
-function renderDrawer() {
+let drawerSig = '';
+const drawerState = () => { let x = [S.theme, S.mode, S.pal, S.skin, lang, SKINS.length, isDark()].join(); for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); x += '|' + k + '=' + localStorage.getItem(k); } return x; };
+function renderDrawerIfStale() { const g = drawerState(); if (g !== drawerSig || !$('#drawer').firstChild) renderDrawer(); }
+function renderDrawer() { drawerSig = drawerState();
   const saved = store.get('saved', []), rec = store.get('recents', []);
   const li = (arr, k) => arr.slice(0, 6).map((p, i) => `<div class="di" data-${k}="${i}"><span class="i">${k === 's' ? ic('star') : ic('clock')}</span><div>${esc(p.name)}<div class="s" style="font-size:12px;color:var(--muted)">${esc(p.address || '')}</div></div></div>`).join('') || `<div class="sub">${t('empty')}</div>`;
   const sub = (icn, title, inner) => `<div class="ds"><div class="di"><span class="i">${ic(icn)}</span><b>${title}</b></div>${inner}</div>`;
@@ -669,16 +692,16 @@ function renderDrawer() {
      <div class="di" data-tool="weather"><span class="i">${ic('info')}</span><div><b>${L('天气（地图中心）', 'Weather (map centre)')}</b><div class="s" style="font-size:13.5px;color:var(--muted)">Open-Meteo</div></div></div></div>`)}
    ${sec('tools', 'measure', L('工具', 'Tools'), X.tools)}
    ${sec('settings', 'settings', t('settings'), sub('layers', t('styles'), pad(`<div class="seg">${['neon', 'west'].map(th => `<button data-th="${th}" class="${S.theme === th ? 'on' : ''}">${t(th)}</button>`).join('')}</div>
-     <div class="seg" style="margin-top:8px">${['auto', 'light', 'dark'].map(m => `<button data-md="${m}" class="${S.mode === m ? 'on' : ''}">${t(m)}</button>`).join('')}</div>`))
+     <div class="seg" style="margin-top:8px">${['auto', 'light', 'dark'].map(m => `<button data-md="${m}" class="${S.mode === m ? 'on' : ''}">${t(m)}</button>`).join('')}</div>${S.theme === 'west' && !S.skin ? `<div class="s" style="margin:10px 0 6px;font-size:13.5px;color:var(--muted)">${L('夜间配色', 'Night palette')}</div><div class="seg palseg">${Object.entries(PALS).map(([k, p]) => `<button data-pal="${k}" class="${S.pal === k ? 'on' : ''}" title="${L(p.zh, p.en)}"><i style="display:inline-block;width:12px;height:12px;border-radius:50%;vertical-align:-1px;margin-right:5px;background:${p.map.mot};box-shadow:0 0 0 2px ${p.map.land}"></i>${k.toUpperCase()}</button>`).join('')}</div><div class="s" style="margin-top:4px;font-size:12.5px;color:var(--muted)">${L(PALS[S.pal].zh, PALS[S.pal].en)}${isDark() ? '' : L(' · 深色模式下生效', ' · applies in dark mode')}</div>` : ''}`))
      + sub('voice', L('导航语音包', 'Voice pack'), `<div style="padding:0 22px 12px 58px" id="voiceBox">${voiceHtml()}</div>`)
      + sub('size', L('文字与图标大小', 'Text & icon size'), pad(sizeHtml())))}
    ${sec('navcard', 'dir', L('导航卡片', 'Navigation card'), `<div style="padding:4px 22px 12px 22px" id="ncBox">${ncHtml(L)}</div>`)}
    ${sec('settings2', 'layers', L('皮肤插件与语言', 'Skin plugins & language'), sub('layers', L('皮肤插件', 'Skin plugins'), pad(skinsHtml()))
      + sub('settings', t('language'), pad(`<div class="seg"><button data-lang="" class="${!localStorage.getItem('lang') ? 'on' : ''}">${t('lang_auto')}</button><button data-lang="zh" class="${localStorage.getItem('lang') === 'zh' ? 'on' : ''}">中文</button><button data-lang="en" class="${localStorage.getItem('lang') === 'en' ? 'on' : ''}">English</button></div>`)))}
-   ${sec('about', 'info', t('about'), `<div class="sub">${t('about_text')}</div>`)}`;
+   ${sec('about', 'info', t('about'), `<div class="sub">${t('about_text')}</div>`)}<div class="orn" aria-hidden="true"><i></i></div>`;
   $('#drawer').onclick = e => {
     const h = e.target.closest('[data-sech]'); if (h) { const o = store.get('drawerOpen', { mine: 1 }), id = h.dataset.sech, sc = h.parentElement; o[id] = sc.classList.toggle('open') ? 1 : 0; h.setAttribute('aria-expanded', !!o[id]); store.set('drawerOpen', o); return; }
-    const el = e.target.closest('[data-s],[data-r],[data-th],[data-md],[data-lang],[data-clear],[data-close],[data-sq],[data-tool],[data-vp],[data-vtest],[data-szreset],[data-ncc],[data-ncreset],[data-skin],[data-skrm],[data-skurl]'); if (!el) return;
+    const el = e.target.closest('[data-s],[data-r],[data-th],[data-md],[data-pal],[data-lang],[data-clear],[data-close],[data-sq],[data-tool],[data-vp],[data-vtest],[data-szreset],[data-ncc],[data-ncreset],[data-skin],[data-skrm],[data-skurl]'); if (!el) return;
     if (el.dataset.close) return closeDrawer();
     if (el.dataset.ncc || el.dataset.ncreset) { if (el.dataset.ncreset) localStorage.removeItem('navCard'); else ncSet({ color: el.dataset.ncc }); applyBodyClass(); $('#ncBox').innerHTML = ncHtml(L); return; }
     if (el.dataset.skin !== undefined) { S.skin = el.dataset.skin || null; if (!S.skin) S.theme = el.dataset.th2 || S.theme; store.set('skin', S.skin); return setStyle(); }
@@ -693,12 +716,41 @@ function renderDrawer() {
     else if (el.dataset.r) { closeDrawer(); pick(rec[+el.dataset.r]); }
     else if (el.dataset.th) { S.theme = el.dataset.th; S.skin = null; store.set('skin', null); setStyle(); }
     else if (el.dataset.md) { S.mode = el.dataset.md; setStyle(); }
+    else if (el.dataset.pal) { S.pal = el.dataset.pal; store.set('pal', S.pal); renderDrawer(); if (styleKey() === 'west_dark' && !S.skin) setStyle(); else applyBodyClass(); }
     else if (el.dataset.lang !== undefined) setLang(el.dataset.lang);
     else if (el.dataset.clear) { store.set('recents', []); renderDrawer(); }
   };
 }
-const openDrawer = () => { renderDrawer(); $('#drawer').classList.add('open'); $('#scrim').classList.remove('hidden'); };
-const closeDrawer = () => { $('#drawer').classList.remove('open'); $('#scrim').classList.add('hidden'); };
+// v0.9.3 drawer: the wrapper slides (transform only); frost = one-time downscaled+blurred map snapshot, else dim scrim
+// The WebGL readback is the expensive part, so it runs only after the slide has finished (never during the animation),
+// and the snapshot is reused while the camera has not moved.
+let frostKey = '';
+function frostSnap() {
+  const fc = $('#frost'); if (!fc) return;
+  const k = [map.getCenter().lng.toFixed(5), map.getCenter().lat.toFixed(5), map.getZoom().toFixed(2), map.getBearing().toFixed(1), map.getPitch().toFixed(0), styleKey(), S.pal].join();
+  if (k === frostKey) return void fc.classList.add('on');
+  fc.classList.remove('on');
+  const snap = () => map.once('render', () => {
+    if (!$('#drawer').classList.contains('open')) return;
+    try {
+      const src = map.getCanvas(), w = Math.max(1, src.clientWidth >> 2), h = Math.max(1, src.clientHeight >> 2);
+      fc.width = w; fc.height = h; const c = fc.getContext('2d'); c.filter = 'blur(1px)';
+      c.drawImage(src, 0, 0, w, h); c.filter = 'none';
+      c.fillStyle = isDark() ? 'rgba(0,0,0,.18)' : 'rgba(255,250,240,.12)'; c.fillRect(0, 0, w, h);
+      frostKey = k; requestAnimationFrame(() => fc.classList.add('on'));
+    } catch { /* lost context: dim scrim alone */ }
+  }) && map.triggerRepaint();
+  setTimeout(snap, 340); // after the 240 ms slide has settled
+}
+// v0.9.3: pre-render + pre-rasterise the drawer once while idle (invisible, non-interactive) so the first open is a pure compositor slide
+function warmDrawer() {
+  const w = $('#drawerW'), d = $('#drawer'); if (!w || d.classList.contains('open')) return;
+  try { renderDrawer(); } catch { return; }
+  const st = w.style; st.transition = 'none'; st.opacity = '0.01'; st.transform = 'none'; d.style.pointerEvents = 'none';
+  requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(() => { st.transform = st.opacity = ''; d.style.pointerEvents = ''; requestAnimationFrame(() => { st.transition = ''; }); }, 60)));
+}
+const openDrawer = () => { renderDrawerIfStale(); $('#drawer').classList.add('open'); $('#drawerW')?.classList.add('open'); $('#scrim').classList.remove('hidden'); frostSnap(); };
+const closeDrawer = () => { $('#drawer').classList.remove('open'); $('#drawerW')?.classList.remove('open'); $('#scrim').classList.add('hidden'); $('#frost')?.classList.remove('on'); };
 $('#menuBtn').onclick = openDrawer; $('#scrim').onclick = closeDrawer;
 
 let toastT; export function toast(s, ms = 2200) { const el = $('#toast'); el.textContent = s; el.classList.remove('hidden'); clearTimeout(toastT); toastT = setTimeout(() => el.classList.add('hidden'), ms); }
