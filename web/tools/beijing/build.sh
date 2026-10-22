@@ -4,7 +4,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/../.."            # web/
 BJDATA=${BJDATA:-/workspace/bjdata}; VER=$(node -p "require('./package.json').version")
-node tools/gensprites.mjs && node tools/genskins.mjs
+node tools/gensprites.mjs && node tools/genskins.mjs && node tools/gennewskins.mjs && node tools/genpacks.mjs
 VITE_EDITION=beijing npx vite build --outDir dist-bj --emptyOutDir
 rm -rf dist-bj/addr dist-bj/pois_yeg.geojson dist-bj/important_yeg.geojson dist-bj/sidequests_ca.json dist-bj/sw.js
 cp -r "$BJDATA/tiles" dist-bj/tiles
