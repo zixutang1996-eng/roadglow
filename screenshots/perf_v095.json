@@ -1,0 +1,110 @@
+{
+ "west_dark": {
+  "first_render_ms": 2441,
+  "map_idle_ms": 4348,
+  "drawer_open": {
+   "frames": 32,
+   "fps": 51.7,
+   "dropped": 1,
+   "worst": 99.9
+  },
+  "drawer_open_ms": 28,
+  "drawer_close": {
+   "frames": 35,
+   "fps": 56.7,
+   "dropped": 1,
+   "worst": 49.9
+  },
+  "tap_layers_ms": 55.5,
+  "tap_chip_ms": 31.1,
+  "pan": {
+   "frames": 70,
+   "fps": 46.5,
+   "dropped": 6,
+   "worst": 183.3
+  },
+  "zoom": {
+   "frames": 92,
+   "fps": 60,
+   "dropped": 0,
+   "worst": 16.8
+  },
+  "switch_to_west_ms": 1112,
+  "switch_to_space_ms": 1102,
+  "switch_to_nord_ms": 1257,
+  "switch_to_tac_ms": 948,
+  "switch_to_neon_ms": 2484
+ },
+ "neon_dark": {
+  "first_render_ms": 1889,
+  "map_idle_ms": 3765,
+  "drawer_open": {
+   "frames": 30,
+   "fps": 48.3,
+   "dropped": 3,
+   "worst": 66.6
+  },
+  "drawer_open_ms": 28,
+  "drawer_close": {
+   "frames": 36,
+   "fps": 58.3,
+   "dropped": 1,
+   "worst": 33.3
+  },
+  "tap_layers_ms": 78.6,
+  "tap_chip_ms": 40.8,
+  "pan": {
+   "frames": 66,
+   "fps": 44.3,
+   "dropped": 7,
+   "worst": 116.6
+  },
+  "zoom": {
+   "frames": 92,
+   "fps": 60,
+   "dropped": 0,
+   "worst": 16.8
+  },
+  "switch_to_west_ms": 1893,
+  "switch_to_space_ms": 1040,
+  "switch_to_nord_ms": 1080,
+  "switch_to_tac_ms": 972,
+  "switch_to_neon_ms": 1351
+ },
+ "tac_dark": {
+  "first_render_ms": 1478,
+  "map_idle_ms": 3900,
+  "drawer_open": {
+   "frames": 32,
+   "fps": 51.7,
+   "dropped": 2,
+   "worst": 66.7
+  },
+  "drawer_open_ms": 27,
+  "drawer_close": {
+   "frames": 32,
+   "fps": 54.7,
+   "dropped": 1,
+   "worst": 66.6
+  },
+  "tap_layers_ms": 44.3,
+  "tap_chip_ms": 39.1,
+  "pan": {
+   "frames": 73,
+   "fps": 50.2,
+   "dropped": 5,
+   "worst": 83.4
+  },
+  "zoom": {
+   "frames": 92,
+   "fps": 60,
+   "dropped": 0,
+   "worst": 16.8
+  },
+  "switch_to_west_ms": 2479,
+  "switch_to_space_ms": 974,
+  "switch_to_nord_ms": 982,
+  "switch_to_tac_ms": 867,
+  "switch_to_neon_ms": 1975
+ }
+}

@@ -23,15 +23,12 @@
   web/tools/genpacks.mjs → public/packs/index.json + blueprint-1.1.0.rgpack + calm-1.0.0.rgpack. Doc docs/PACKS.md.
   Tested in desktop Chrome: catalog install (hash ok), CSS applied, switch w/o reload, voice select, remove.
 
-## Next (not started)
-- 2 pack system: extend `web/src/skins.js` (existing roadglow-skin/1, IndexedDB) → roadglow-pack/2 with type skin|voice,
-  minAppVersion, sha256, css theme, zip (fflate), catalog `public/packs/index.json`, screen 皮肤与语音包, share intent.
-- 3 new skins space/nord/tac: plan = derive map styles from neon_*.json layer ids recoloured with PAL in
-  `screenshots/newskins/src/style.js`; UI via body class family `west` + `sk-<id>` token overrides in v095.css;
-  UI fonts subset with pyftsubset from /usr/share/fonts/truetype/sand-box/google (OFL), lazy FontFace per skin.
-  Map label glyphs: Rajdhani (space/tac) and IM FELL (nord) — same as mockup generator; CJK via localIdeographFontFamily.
-- 4 Frontier stitching S4 + Y1 light palette.
-- 5 audit (tools/audit093.py pattern), 6 perf (tools/perf093.py; baseline 0.9.4 not yet measured), 7 release v0.9.5 + Beijing.
+- Item 5 audit: web/tools/shots095.py, all 10 variants × map/drawer/search/layers/place/packs/update/toast/nav → screenshots/v095/<skin>/.
+- Item 6 perf: web/tools/perf095.py (4× CPU, 461×1024@2x, swiftshader). Results screenshots/perf_v094.json, perf_v095.json.
+
+## In progress
+- Item 7: merge wip/0.9.5 → main, build+sign standard & Beijing APKs, publish v0.9.5 (latest, RoadGlow.apk) + v0.9.5-beijing (not latest),
+  verify releases/latest API + asset URL. Release notes draft: /tmp/notes095.md (copy in docs/RELEASE_0.9.5.md).
 
 ## Notes
 - Dev server: `npx vite --port 18785 --strictPort` in web/ (18781/18782 are used by other agents' servers).
