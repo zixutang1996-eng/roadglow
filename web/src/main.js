@@ -698,7 +698,7 @@ function renderDrawer() { drawerSig = drawerState();
    ${sec('navcard', 'dir', L('导航卡片', 'Navigation card'), `<div style="padding:4px 22px 12px 22px" id="ncBox">${ncHtml(L)}</div>`)}
    ${sec('settings2', 'layers', L('皮肤插件与语言', 'Skin plugins & language'), sub('layers', L('皮肤插件', 'Skin plugins'), pad(skinsHtml()))
      + sub('settings', t('language'), pad(`<div class="seg"><button data-lang="" class="${!localStorage.getItem('lang') ? 'on' : ''}">${t('lang_auto')}</button><button data-lang="zh" class="${localStorage.getItem('lang') === 'zh' ? 'on' : ''}">中文</button><button data-lang="en" class="${localStorage.getItem('lang') === 'en' ? 'on' : ''}">English</button></div>`)))}
-   ${sec('about', 'info', t('about'), `<div class="sub">${t('about_text')}</div>`)}<div class="orn" aria-hidden="true"><i></i></div>`;
+   ${sec('about', 'info', t('about'), `<div class="sub">${t('about_text')}</div>`)}<div class="orn" aria-hidden="true"><span class="ornl"></span><span class="ornw"><i></i><b></b></span></div>`;
   $('#drawer').onclick = e => {
     const h = e.target.closest('[data-sech]'); if (h) { const o = store.get('drawerOpen', { mine: 1 }), id = h.dataset.sech, sc = h.parentElement; o[id] = sc.classList.toggle('open') ? 1 : 0; h.setAttribute('aria-expanded', !!o[id]); store.set('drawerOpen', o); return; }
     const el = e.target.closest('[data-s],[data-r],[data-th],[data-md],[data-pal],[data-lang],[data-clear],[data-close],[data-sq],[data-tool],[data-vp],[data-vtest],[data-szreset],[data-ncc],[data-ncreset],[data-skin],[data-skrm],[data-skurl]'); if (!el) return;
