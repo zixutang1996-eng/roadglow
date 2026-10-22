@@ -1,0 +1,7 @@
+RoadGlow 0.9.5 skin fonts (Latin subsets, woff2). All SIL Open Font License 1.1 (https://openfontlicense.org):
+- Space Grotesk — Copyright 2020 The Space Grotesk Project Authors
+- IBM Plex Mono — Copyright © 2017 IBM Corp. ("Plex" is a reserved font name)
+- Cinzel — Copyright 2020 The Cinzel Project Authors
+- Cormorant Garamond — Copyright 2015 The Cormorant Project Authors
+- Barlow Condensed — Copyright 2017 The Barlow Project Authors
+Chinese text uses the device's system CJK fonts (Noto Serif/Sans CJK where present).
