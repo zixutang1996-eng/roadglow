@@ -26,7 +26,10 @@
 - Item 5 audit: web/tools/shots095.py, all 10 variants × map/drawer/search/layers/place/packs/update/toast/nav → screenshots/v095/<skin>/.
 - Item 6 perf: web/tools/perf095.py (4× CPU, 461×1024@2x, swiftshader). Results screenshots/perf_v094.json, perf_v095.json.
 
-## In progress
+## Done (release)
+- Item 7: merged to main (d8f76d1); v0.9.5 latest (RoadGlow.apk, versionCode 9050, same cert 7d6bebe1…); v0.9.5-beijing not latest; API latest=v0.9.5, asset URL 200; Pages bundle manifest 0.9.5 + packs/index.json live.
+
+## (was in progress)
 - Item 7: merge wip/0.9.5 → main, build+sign standard & Beijing APKs, publish v0.9.5 (latest, RoadGlow.apk) + v0.9.5-beijing (not latest),
   verify releases/latest API + asset URL. Release notes draft: /tmp/notes095.md (copy in docs/RELEASE_0.9.5.md).
 
