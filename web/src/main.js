@@ -449,7 +449,8 @@ function drawPin() {
   const src = map.getSource('pins'); if (!src) return;
   src.setData({ type: 'FeatureCollection', features: S.place && !S.place.fromPoi && !S.place.dropped ? [{ type: 'Feature', properties: {}, geometry: { type: 'Point', coordinates: [S.place.lng, S.place.lat] } }] : [] });
 }
-const catLabel = c => (c || '').replace(/^(amenity|shop|tourism|leisure|place|building|highway|office|craft)=/, '').replace(/_/g, ' ');
+const CAT_ZH = { pharmacy: '药店', chemist: '药店', station: '车站', railway: '铁路', halt: '车站', tram_stop: '电车站', bus_stop: '公交站', bus_station: '公交总站', restaurant: '餐厅', fast_food: '快餐', cafe: '咖啡', bar: '酒吧', pub: '酒馆', supermarket: '超市', convenience: '便利店', fuel: '加油站', hotel: '酒店', motel: '汽车旅馆', park: '公园', hospital: '医院', clinic: '诊所', doctors: '诊所', dentist: '牙科', school: '学校', university: '大学', college: '学院', library: '图书馆', bank: '银行', atm: 'ATM', parking: '停车场', museum: '博物馆', attraction: '景点', viewpoint: '观景台', theatre: '剧院', cinema: '电影院', mall: '购物中心', clothes: '服装店', bakery: '面包店', ice_cream: '冰淇淋', post_office: '邮局', police: '警察局', place_of_worship: '宗教场所', aerodrome: '机场', airport: '机场', ferry_terminal: '渡口', zoo: '动物园', stadium: '体育场', sports_centre: '体育中心', playground: '游乐场', garden: '花园', city: '城市', town: '镇', village: '村', suburb: '城区', neighbourhood: '社区', house: '住宅', residential: '住宅区', road: '道路', street: '街道', city_hall: '市政厅', townhall: '市政厅', hardware: '五金店', department_store: '百货商店', books: '书店', car_repair: '汽修', gift: '礼品店', hairdresser: '理发店', beauty: '美容店' };
+const catLabel = c => { const k = String(c || '').replace(/^(amenity|shop|tourism|leisure|place|building|highway|office|craft|railway|public_transport|aeroway)=/, ''); return ZH && CAT_ZH[k] ? CAT_ZH[k] : k.replace(/_/g, ' '); };
 async function showPlace(p) {
   S.place = p; drawPin(); if (!p.me) addRecent(p);
   renderPlace(p, p.tags || null, null);

@@ -8,7 +8,7 @@ html.f093 body.west{--f093:"Alegreya","LXGW WenKai UI",Georgia,"Noto Serif SC","
 html body.west :is(#top,#panel,#drawer,#layersPop,#suggest,#navBanner,#navFoot,#areaPill,#toast,#controls){font-family:var(--f093)!important;font-variant-numeric:lining-nums;font-feature-settings:"lnum" 1}
 
 /* ---------- Frontier Ink tokens ---------- */
-html body.west{--bg:#ece0c2;--chip:#ece0c2;--fg:#2e2216;--muted:#4f3d29;--line:rgba(79,61,41,.22);--accent:#7a5a28;--wine:#6e2a26;
+html body.west,html body.west.light{--bg:#ece0c2;--chip:#ece0c2;--fg:#2e2216;--muted:#4f3d29;--line:rgba(79,61,41,.22);--accent:#7a5a28;--wine:#6e2a26;
   --wsh:0 1px 2px rgba(60,40,15,.26),0 4px 10px rgba(60,40,15,.16),0 12px 26px rgba(60,40,15,.14);--whl:inset 0 1px 0 rgba(255,250,235,.55)}
 html body.west.dark{--bg:var(--p-bg,#1c1f23);--chip:var(--p-bg,#1c1f23);--fg:var(--p-fg,#ece4d4);--muted:var(--p-muted,#c4bba9);--line:rgba(236,228,212,.14);--accent:var(--p-acc,#d9b36a);--wine:#5a1f22;
   --wsh:0 1px 2px rgba(0,0,0,.55),0 5px 12px rgba(0,0,0,.42),0 14px 30px rgba(0,0,0,.38);--whl:inset 0 1px 0 var(--p-hl,rgba(220,228,240,.13))}
@@ -154,3 +154,80 @@ html body.neon #drawer .orn .ornl{display:block;width:120px;height:10px;backgrou
   mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 10'%3E%3ClinearGradient id='a'%3E%3Cstop offset='0' stop-opacity='0'/%3E%3Cstop offset='1'/%3E%3C/linearGradient%3E%3ClinearGradient id='b'%3E%3Cstop offset='0'/%3E%3Cstop offset='1' stop-opacity='0'/%3E%3C/linearGradient%3E%3Cpath d='M0 4.5h52v1H0z' fill='url(%23a)'/%3E%3Cpath d='M68 4.5h52v1H68z' fill='url(%23b)'/%3E%3Cpath d='M60 1l4 4-4 4-4-4z' fill='none' stroke='%23000' stroke-width='1.2'/%3E%3C/svg%3E") center/contain no-repeat}
 html body.neon #drawer .orn i{width:118px!important;height:118px!important;opacity:.8!important}
 html body.neon #drawer .orn b{display:block;position:absolute;inset:0;background:var(--berry);opacity:.6;-webkit-mask:url(/orn/skull_neon_visor.svg) center/contain no-repeat;mask:url(/orn/skull_neon_visor.svg) center/contain no-repeat}
+
+/* ===================== v0.9.3c full-surface consistency pass ===================== */
+/* stray centred X: the .sugx row itself was matched by the X-glyph rule; only its button draws an X */
+html body .sugx::before{display:none!important;content:none!important}
+html body .sugx{padding:4px 6px 0!important;background:transparent!important;clip-path:none!important;border:0!important;box-shadow:none!important}
+
+/* ---------- NEON: flat icons everywhere (no octagon frames, no yellow ticks) ---------- */
+html body.neon:is(.dark,.light){--ic1:transparent;--icb:none;--ic3:transparent;--ic2:var(--acc093)}
+html body.neon .act.primary{--ic2:var(--berry)}
+/* every close/exit: dark-filled chamfered square, 20% hairline, cream X */
+html body.neon :is(.xbig,.xbtn,#navX,.gx,.popx,#panelX,.sugx button,.swap){--c:8px;border:0!important;outline:0;border-radius:0!important;color:#e9eef5!important;
+  clip-path:polygon(var(--c) 0,100% 0,100% calc(100% - var(--c)),calc(100% - var(--c)) 100%,0 100%,0 var(--c))!important;
+  background:linear-gradient(135deg,transparent 47%,var(--hair) 47%,var(--hair) 56%,transparent 56%) 0 0/var(--c) var(--c) no-repeat,
+    linear-gradient(135deg,transparent 44%,var(--hair) 44%,var(--hair) 53%,transparent 53%) 100% 100%/var(--c) var(--c) no-repeat,var(--nbg2)!important;
+  box-shadow:inset 0 0 0 1px var(--hair)!important;filter:none!important}
+html body.neon.light :is(.xbig,.xbtn,#navX,.gx,.popx,#panelX,.sugx button,.swap){color:var(--fg)!important}
+html body.neon :is(.xbig,.xbtn,#navX,.gx,.popx,#panelX,.sugx button){width:40px!important;height:40px!important;min-width:0}
+html body.neon.ncc #navBanner #navX{background:transparent!important;color:var(--ncfg)!important;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ncfg) 30%,transparent)!important}
+/* segmented controls: subtle tint + underline instead of a solid cyan block */
+html body.neon .seg{border:1px solid var(--hair)!important;background:transparent!important;border-radius:0!important;box-shadow:none!important}
+html body.neon .seg button{color:var(--muted)!important;font-weight:400!important;background:transparent!important;clip-path:none!important;border-radius:0!important}
+html body.neon .seg button.on{background:color-mix(in srgb,var(--acc093) 13%,transparent)!important;color:var(--acc093)!important;box-shadow:inset 0 -2px 0 var(--acc093)!important}
+html body.neon .opt{border:1px solid var(--hair)!important;box-shadow:none!important;background:var(--nbg2)!important;color:var(--fg)!important;font-weight:400!important}
+html body.neon .opt.on{border-color:color-mix(in srgb,var(--acc093) 55%,transparent)!important;background:color-mix(in srgb,var(--acc093) 10%,var(--nbg2))!important;color:var(--acc093)!important}
+/* buttons: berry primary, dark chamfered ghost */
+html body.neon .btn{--c:8px;font-family:inherit!important;font-weight:500!important;letter-spacing:0!important;border:0!important;
+  clip-path:polygon(var(--c) 0,100% 0,100% calc(100% - var(--c)),calc(100% - var(--c)) 100%,0 100%,0 var(--c))!important}
+html body.neon .btn:not(.ghost){background:var(--berry)!important;color:#fff!important;box-shadow:none!important}
+html body.neon .btn.ghost{background:var(--nbg2)!important;color:var(--fg)!important;box-shadow:inset 0 0 0 1px var(--hair)!important}
+html body.neon .btn.ghost.on{background:color-mix(in srgb,var(--acc093) 13%,var(--nbg2))!important;color:var(--acc093)!important;box-shadow:inset 0 0 0 1px var(--hair),inset 0 -2px 0 var(--acc093)!important}
+/* inputs */
+html body.neon :is(.dir input,.fld input,.vsel,select,#skUrl,.acbox input,input[type=text],input[type=url]){--c:6px;background:var(--nbg2)!important;color:var(--fg)!important;border:0!important;border-radius:0!important;
+  box-shadow:inset 0 0 0 1px var(--hair)!important;clip-path:polygon(var(--c) 0,100% 0,100% calc(100% - var(--c)),calc(100% - var(--c)) 100%,0 100%,0 var(--c))!important}
+html body.neon #searchbar input{background:transparent!important;box-shadow:none!important;clip-path:none!important}
+html body.neon input[type=range]{accent-color:var(--acc093)}
+/* text weight + list rows */
+html body.neon :is(.di b,.alt .d,.sug .t,.it,.step,.row,.pc .sub,.objk){font-weight:400!important}
+html body.neon :is(#panelTitle,.pc h2){font-weight:600!important;letter-spacing:.02em}
+html body.neon :is(#suggest .sug,.step,.list .it)+:is(.sug,.step,.it){border-top:1px solid color-mix(in srgb,var(--acc093) 10%,transparent)!important}
+html body.neon :is(#suggest .sug,.step,.alt,.list .it){border-color:color-mix(in srgb,var(--acc093) 10%,transparent)!important}
+html body.neon #suggest .sug .i,html body.neon .step .i{color:var(--acc093)!important}
+html body.neon .alt.on{box-shadow:inset 3px 0 0 var(--berry)!important;background:color-mix(in srgb,var(--berry) 8%,transparent)!important}
+html body.neon .act .b{background:transparent!important;border:0!important;clip-path:none!important;box-shadow:none!important}
+html body.neon .act span,html body.neon .act{font-weight:400!important}
+/* no-WebGL card */
+html body.neon #bootFail{--c:16px;border:0!important;color:var(--fg)!important;clip-path:polygon(var(--c) 0,100% 0,100% calc(100% - var(--c)),calc(100% - var(--c)) 100%,0 100%,0 var(--c))!important;
+  background:linear-gradient(135deg,transparent calc(50% - .9px),var(--hair) calc(50% - .9px),var(--hair) calc(50% + .5px),transparent calc(50% + .5px)) 0 0/var(--c) var(--c) no-repeat,linear-gradient(135deg,transparent calc(50% - .5px),var(--hair) calc(50% - .5px),var(--hair) calc(50% + .9px),transparent calc(50% + .9px)) 100% 100%/var(--c) var(--c) no-repeat,var(--nbg)!important;box-shadow:inset 0 0 0 1px var(--hair)!important}
+
+/* ---------- FRONTIER: rounded, shadow-only, palette colours, brass accents ---------- */
+html body.west{--wbg2:color-mix(in srgb,var(--fg) 7%,var(--bg));--wsh-s:0 1px 2px rgba(0,0,0,.22),0 2px 6px rgba(0,0,0,.14)}
+html body.west.dark{--wsh-s:0 1px 2px rgba(0,0,0,.5),0 3px 8px rgba(0,0,0,.35)}
+html body.west:is(.dark,.light) :is(.xbig,.xbtn,#navX,.gx,.popx,#panelX,.sugx button,.swap){border:0!important;border-image:none!important;clip-path:none!important;-webkit-mask:none!important;mask:none!important;
+  border-radius:50%!important;background:var(--bg)!important;background-image:none!important;color:var(--fg)!important;box-shadow:var(--whl),var(--wsh-s)!important;filter:none!important}
+html body.west:is(.dark,.light) :is(.xbig,.xbtn,#navX,.gx,.popx,#panelX,.sugx button){width:40px!important;height:40px!important}
+html body.west.ncc:is(.dark,.light) #navBanner #navX{background:transparent!important;color:var(--ncfg)!important;box-shadow:none!important}
+html body.west :is(.seg){border:0!important;border-image:none!important;background:var(--wbg2)!important;border-radius:14px!important;clip-path:none!important;padding:3px;gap:2px;box-shadow:none!important}
+html body.west .seg button{border-radius:11px!important;background:transparent!important;color:var(--muted)!important;clip-path:none!important;border:0!important;border-image:none!important}
+html body.west .seg button.on{background:var(--accent)!important;color:var(--bg)!important;box-shadow:var(--wsh-s)!important}
+html body.west .opt{border:0!important;border-image:none!important;clip-path:none!important;border-radius:14px!important;background:var(--wbg2)!important;color:var(--fg)!important;box-shadow:none!important}
+html body.west .opt.on{box-shadow:0 0 0 2px var(--accent),var(--wsh-s)!important}
+html body.west .opt img{border-radius:10px!important}
+html body.west .btn{border:0!important;border-image:none!important;clip-path:none!important;-webkit-mask:none!important;mask:none!important;border-radius:12px!important;font-family:inherit!important;box-shadow:var(--wsh-s)!important}
+html body.west .btn:not(.ghost):not(.red){background:var(--accent)!important;color:var(--bg)!important}
+html body.west .btn.ghost{background:var(--wbg2)!important;color:var(--fg)!important;box-shadow:none!important}
+html body.west .btn.ghost.on{background:var(--accent)!important;color:var(--bg)!important}
+html body.west :is(.dir input,.fld input,.vsel,select,#skUrl,.acbox input,input[type=text],input[type=url]){background:var(--wbg2)!important;color:var(--fg)!important;border:0!important;border-image:none!important;border-radius:10px!important;clip-path:none!important;box-shadow:none!important}
+html body.west #searchbar input{background:transparent!important}
+html body.west input[type=range]{accent-color:var(--accent)}
+html body.west :is(.act .b){border-image:none!important;clip-path:none!important}
+html body.west .alt.on{box-shadow:inset 3px 0 0 var(--accent)!important;background:var(--wbg2)!important}
+/* diamond separators for lists */
+html body.west{--dvc:rgba(122,90,40,.5)}html body.west.dark{--dvc:color-mix(in srgb,var(--accent) 45%,transparent)}
+html body.west :is(#suggest .sug,.step,.list .it,.alt){border:0!important;border-image:none!important;position:relative}
+html body.west :is(#suggest .sug,.step,.list .it)+:is(.sug,.step,.it)::after{content:'';position:absolute;left:18%;right:18%;top:-5px;height:10px;background:var(--dvc);pointer-events:none;
+  -webkit-mask:var(--dv) center/100% 10px no-repeat;mask:var(--dv) center/100% 10px no-repeat}
+html body.west :is(#suggest .sug,.step){color:var(--fg)!important}
+html body.west :is(#toast){font-family:var(--f093)}
