@@ -63,3 +63,14 @@ The catalog is served next to the web app on GitHub Pages, so it arrives through
 - **In the app:** Menu → 皮肤与语音包. The screen has install, update, use and remove, plus 从文件安装 for a local `.rgpack` or `.json` file.
 - **Android:** open or share a `.rgpack`, `.zip` or `.json` file with RoadGlow. The file goes through the same validation and hash checks.
 - **The older `roadglow-skin/1` format** (0.9.2) is still accepted.
+
+## 0.9.6 additions (used by 分久必合 / Three Kingdoms)
+- `strings` (top level, file or object): Chinese UI wording overrides, applied only when the UI language is Chinese.
+  `{"zh": {"t": {<i18n key>: "…"}, "L": {"<original Chinese string>": "…"}, "dir": {"left": "左折", …, "cont": "前行"}, "units": "classical"}}`.
+  Values are plain text (only `<p>` is kept); `units:"classical"` shows distances in 步/里 and durations in 刻/时辰.
+- `skin.puck`: `{ "light": "horse_light.png", "dark": "horse_dark.png" }` replaces the "me" marker (64 css px, rotates with heading).
+- `skin.fx: ["scroll"]`: sets `<html class="fx-scroll">`; the engine (src/scrollfx.js) then measures a window once when it opens
+  (`--rh`) and adds `.rg-unroll` / `.rg-rollup` so pack CSS can animate open and close (transform/opacity/clip-path only).
+  `prefers-reduced-motion` disables it.
+- `html[data-lang=zh|en]` is available to pack CSS. Background-pattern images from a pack sprite now load.
+- Packs with these fields should set `"minAppVersion": "0.9.6"`.

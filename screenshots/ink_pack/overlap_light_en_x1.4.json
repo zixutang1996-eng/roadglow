@@ -1,0 +1,23 @@
+{
+ "map": [],
+ "drawer": [],
+ "drawer_bottom": [],
+ "settings": [],
+ "search": [],
+ "skinswitch": [],
+ "place": [
+  {
+   "kind": "icon\u00d7text",
+   "icon": "svg in #addrRow",
+   "text": "10080 Jasper Ave NW, Edm"
+  },
+  {
+   "kind": "icon\u00d7text",
+   "icon": "svg in #addrRow",
+   "text": "10080 Jasper Ave NW, Edm"
+  }
+ ],
+ "packs": [],
+ "update": [],
+ "nav": []
+}

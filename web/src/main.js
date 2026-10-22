@@ -1187,7 +1187,7 @@ tools.offline = async () => {
 function offlineSearch(v) { const x = v.toLowerCase(), c = map.getCenter(); return store.get('offlineIdx', []).filter(o => (o.name + ' ' + o.n2).toLowerCase().includes(x)).map(o => ({ name: o.name, address: L('离线 · ', 'offline · ') + (o.cls || ''), lat: o.lat, lng: o.lng, category: o.cls, dist: haversine(c, o) })).sort((a, b) => a.dist - b.dist).slice(0, 12); }
 
 AC.loadIndex(`${base}${BJ ? 'pois_bj' : 'pois_yeg'}.geojson${AV}`);
-window._app = { AC, ios, applySizes, setMe, updScale, sunTimes, offlineSearch, semanticSearch, semMatch, S, openSideQuests, showQuest, questData, tools, showPlace, openDirections, startNav, pick, openDrawer, closeDrawer, runSearch, setStyle, nominatimSearch };
+window._app = { installPackBytes: (u8, sha) => PK.install(u8, 'test', { expectSha: sha, appVer: APPVER }), AC, ios, applySizes, setMe, updScale, sunTimes, offlineSearch, semanticSearch, semMatch, S, openSideQuests, showQuest, questData, tools, showPlace, openDirections, startNav, pick, openDrawer, closeDrawer, runSearch, setStyle, nominatimSearch };
 renderDrawer(); // re-render once all menu sections (lists, tools) are defined
 // v0.9.5 compass bar (Northland / Tactical navigation): one static strip, only its transform changes on rotate.
 { const cb = document.querySelector('#cbar .cbt'); if (cb && window._map) {

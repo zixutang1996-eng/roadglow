@@ -1,0 +1,64 @@
+{
+ "west_light": {
+  "first_render_ms": 1438,
+  "map_idle_ms": 2928,
+  "drawer_open": {
+   "frames": 29,
+   "fps": 46.7,
+   "dropped": 4,
+   "worst": 66.7
+  },
+  "drawer_open_ms": 28,
+  "drawer_close": {
+   "frames": 38,
+   "fps": 60,
+   "dropped": 0,
+   "worst": 16.8
+  },
+  "tap_layers_ms": 68.5,
+  "tap_chip_ms": 131.8,
+  "pan": {
+   "frames": 74,
+   "fps": 49.2,
+   "dropped": 7,
+   "worst": 66.7
+  },
+  "zoom": {
+   "frames": 92,
+   "fps": 60,
+   "dropped": 0,
+   "worst": 16.8
+  }
+ },
+ "west_dark": {
+  "first_render_ms": 1532,
+  "map_idle_ms": 2846,
+  "drawer_open": {
+   "frames": 29,
+   "fps": 46.7,
+   "dropped": 4,
+   "worst": 66.7
+  },
+  "drawer_open_ms": 29,
+  "drawer_close": {
+   "frames": 37,
+   "fps": 60,
+   "dropped": 0,
+   "worst": 16.8
+  },
+  "tap_layers_ms": 65.3,
+  "tap_chip_ms": 113.9,
+  "pan": {
+   "frames": 74,
+   "fps": 48.7,
+   "dropped": 5,
+   "worst": 116.7
+  },
+  "zoom": {
+   "frames": 92,
+   "fps": 60,
+   "dropped": 0,
+   "worst": 16.8
+  }
+ }
+}

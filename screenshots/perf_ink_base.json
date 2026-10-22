@@ -1,0 +1,33 @@
+{
+ "west_light": {
+  "first_render_ms": 2530,
+  "map_idle_ms": 4402,
+  "drawer_open": {
+   "frames": 32,
+   "fps": 51.7,
+   "dropped": 4,
+   "worst": 50
+  },
+  "drawer_open_ms": 28,
+  "drawer_close": {
+   "frames": 35,
+   "fps": 56.7,
+   "dropped": 1,
+   "worst": 49.9
+  },
+  "tap_layers_ms": 44.3,
+  "tap_chip_ms": 29.5,
+  "pan": {
+   "frames": 72,
+   "fps": 47.9,
+   "dropped": 5,
+   "worst": 116.6
+  },
+  "zoom": {
+   "frames": 92,
+   "fps": 60,
+   "dropped": 0,
+   "worst": 16.8
+  }
+ }
+}
