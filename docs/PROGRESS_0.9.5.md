@@ -10,6 +10,13 @@
   NO map stitching per user). body gets class `sk-<theme>` (main.js applyBodyClass). Y1 colours patched in
   web/public/styles/west_light.json + tools/genstyles.py + navcard MAPBASE0. Shots: screenshots/v095/frontier/.
 
+- Item 3 new skins (mostly done, needs audit polish): THEMES/FAM in main.js (body class `west sk-<id>`), map styles from
+  `web/tools/gennewskins.mjs` (+ newskin_pal.mjs) → public/styles/{space,nord,tac}_{light,dark}.json (tac has hidden `bld3d`
+  extrusion toggled in nav.js with body.navon). UI in v095.css section 3 (tokens, shapes, close ✕, dividers, emblems
+  public/orn/{emblem_space,emblem_nord,operator_tac}.svg, #skinfx overlay, #cbar compass bar). Fonts public/fonts/*-var/500..woff2
+  (OFL, LICENSES-v095.txt), lazy via loadSkinFonts(). Puck per skin in puckSvg(). previews/*.png cropped from mockups.
+  Shots: web/tools/shots095.py <skin_mode,...> <map,drawer,search,layers,place,nav> → screenshots/v095/<skin>/.
+
 ## Next (not started)
 - 2 pack system: extend `web/src/skins.js` (existing roadglow-skin/1, IndexedDB) → roadglow-pack/2 with type skin|voice,
   minAppVersion, sha256, css theme, zip (fflate), catalog `public/packs/index.json`, screen 皮肤与语音包, share intent.

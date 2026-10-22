@@ -13,12 +13,12 @@ export const NC_PRESETS = {
   paper:     { bg: '#f6f3ea', fg: '#1b1f24', zh: '白纸', en: 'Paper' },
 };
 // each mode's own panel colour ("auto") and its opposite ("swap")
-const OWN0 = { west_light: '#ece0c2', west_dark: '#1c1f23', neon_light: '#f6f1e8', neon_dark: '#141824' };
-const MAPBASE0 = { west_light: '#eedcb2', west_dark: '#1c222a', neon_light: '#e9e4da', neon_dark: '#14161f' };
+const OWN0 = { west_light: '#ece0c2', west_dark: '#1c1f23', neon_light: '#f6f1e8', neon_dark: '#141824', space_light: '#f7f6f2', space_dark: '#0b0c0f', nord_light: '#151617', nord_dark: '#151617', tac_dark: '#0d0f0b', tac_light: '#e9e7da' };
+const MAPBASE0 = { west_light: '#eedcb2', west_dark: '#1c222a', neon_light: '#e9e4da', neon_dark: '#14161f', space_light: '#eceae4', space_dark: '#0a0c10', nord_light: '#d9d7cf', nord_dark: '#24272a', tac_dark: '#11140f', tac_light: '#c4c1ab' };
 const OWN = { ...OWN0 }, MAPBASE = { ...MAPBASE0 };
 /** v0.9.3: the active night palette overrides the panel + map base colours. */
 export function ncOwn(key, bg, mapBase) { OWN[key] = bg || OWN0[key]; MAPBASE[key] = mapBase || MAPBASE0[key]; }
-const OPP = { west_light: 'west_dark', west_dark: 'west_light', neon_light: 'neon_dark', neon_dark: 'neon_light' };
+const OPP = { west_light: 'west_dark', west_dark: 'west_light', neon_light: 'neon_dark', neon_dark: 'neon_light', space_light: 'space_dark', space_dark: 'space_light', nord_light: 'nord_dark', nord_dark: 'nord_light', tac_light: 'tac_dark', tac_dark: 'tac_light' };
 
 export const ncGet = () => { try { return { ...NC_DEF, ...(JSON.parse(localStorage.getItem(K)) || {}) }; } catch { return { ...NC_DEF }; } };
 export const ncSet = v => localStorage.setItem(K, JSON.stringify({ ...ncGet(), ...v }));

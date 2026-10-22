@@ -16,6 +16,7 @@ export function startNavigation({ map, S, setMe, makePuck, reroute, drawRoutes, 
   const sim = new URLSearchParams(location.search).has('sim') || !navigator.geolocation;
   const puck = makePuck(S.me || { lat: route.geometry.coordinates[0][1], lng: route.geometry.coordinates[0][0] });
   puck.getElement().classList.add('nav');
+  document.body.classList.add('navon'); const b3 = v => { try { if (map.getLayer('bld3d')) map.setLayoutProperty('bld3d', 'visibility', v); } catch {} }; b3('visible'); const onSd = () => document.body.classList.contains('navon') && b3('visible'); map.on('style.load', onSd);
 
   const banner = $('#navBanner'); banner.classList.remove('hidden'); banner.classList.add('objective');
   // original quest-objective destination marker
@@ -116,7 +117,7 @@ export function startNavigation({ map, S, setMe, makePuck, reroute, drawRoutes, 
   sayEv('step', { st: route.steps[0] });
 
   function end() {
-    st.active = false; clearInterval(simTimer); if (watchId != null) navigator.geolocation.clearWatch(watchId); st.lock?.release?.();
+    st.active = false; document.body.classList.remove('navon'); b3('none'); map.off('style.load', onSd); clearInterval(simTimer); if (watchId != null) navigator.geolocation.clearWatch(watchId); st.lock?.release?.();
     for (const ev of ['dragstart', 'rotatestart', 'pitchstart', 'zoomstart']) map.off(ev, userMove);
     banner.classList.add('hidden'); banner.classList.remove('objective'); destMarker.remove(); foot.remove(); rc.remove(); puck.getElement().classList.remove('nav'); puck.setRotation(0);
     map.easeTo({ pitch: 0, bearing: 0, padding: { top: 0, bottom: 0, left: 0, right: 0 }, duration: 600 });
