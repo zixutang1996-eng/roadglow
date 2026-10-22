@@ -1,0 +1,61 @@
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:461px;height:1024px;overflow:hidden;font-family:'Noto Serif CJK SC',serif}
+#paper,#map,#ui{position:absolute;inset:0}
+#paper{background:var(--paperimg) repeat;background-size:256px}
+#map canvas{mix-blend-mode:multiply}
+.C #map canvas{mix-blend-mode:screen}
+#ui{pointer-events:none}
+body{--ink:#2f2b27;--ink2:#6d655b;--red:#b23a2c;--panel:#f3ecdb;--pt:#2b2723;--sh:0 6px 18px rgba(60,45,25,.18),0 1px 3px rgba(60,45,25,.15)}
+.B{--ink:#1b1815;--ink2:#5a5047;--red:#a8291f;--panel:#ece0c4;--pt:#1b1815}
+.C{--ink:#d9cfbb;--ink2:#9a9080;--red:#d2563b;--panel:#262320;--pt:#e2d8c4;--sh:0 8px 22px rgba(0,0,0,.5),0 1px 3px rgba(0,0,0,.4)}
+.status{position:absolute;top:0;left:0;right:0;height:34px;display:flex;justify-content:space-between;padding:9px 22px;font:600 14px 'Noto Sans CJK SC';color:var(--pt)}
+.panel{position:absolute;background:var(--panel) var(--paperimg);background-size:256px;color:var(--pt);box-shadow:var(--sh);border-radius:14px}
+.B .panel{border-radius:6px}
+.brd{position:absolute;inset:-5px;pointer-events:none;overflow:visible}
+.brd path{fill:none;stroke:var(--ink);filter:url(#rough)}
+.search{top:46px;left:14px;right:14px;height:56px;display:flex;align-items:center;gap:12px;padding:0 16px;font-size:16px}
+.search .ph{flex:1;color:var(--ink2)}
+.ic{width:24px;height:24px;stroke:var(--ink);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.seal{display:inline-flex;align-items:center;justify-content:center;background:var(--red);color:#f6ead6;font-family:'Ma Shan Zheng';border-radius:4px;line-height:1;filter:url(#rough2)}
+.chips{position:absolute;top:114px;left:14px;right:0;display:flex;gap:9px}
+.chip{background:var(--panel) var(--paperimg);background-size:256px;box-shadow:var(--sh);border-radius:18px;height:36px;padding:0 14px 0 8px;display:flex;align-items:center;gap:7px;font-size:14px;color:var(--pt);position:relative;white-space:nowrap}
+.B .chip{border-radius:4px}
+.dot{width:24px;height:24px;border-radius:50%;background:var(--ink);display:flex;align-items:center;justify-content:center}
+.dot svg{width:14px;height:14px;stroke:var(--panel);fill:none;stroke-width:2}
+.fab{position:absolute;width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:var(--sh)}
+.fab.ink{background:var(--panel) var(--paperimg);background-size:256px}
+.fab.red{background:var(--red)} .fab.red .ic{stroke:#f6ead6}
+.fab .wash{position:absolute;inset:0}
+.mtn{position:absolute;background-repeat:no-repeat;background-size:contain;pointer-events:none}
+.me{position:absolute;width:22px;height:22px;margin:-11px;border-radius:50%;background:var(--red);border:3px solid var(--panel);box-shadow:0 0 0 7px rgba(178,58,44,.18)}
+.scale{position:absolute;left:18px;bottom:30px;font-size:11px;color:var(--ink2)}
+.scrim{position:absolute;inset:0;background:rgba(40,30,20,.28)}
+.C .scrim{background:rgba(0,0,0,.45)}
+.drop{top:108px;left:14px;right:14px;padding:6px 0 10px;overflow:hidden}
+.sec{font-family:'Ma Shan Zheng';font-size:20px;padding:10px 20px 4px;display:flex;align-items:center;gap:10px}
+.row{display:flex;align-items:center;gap:14px;padding:11px 20px;position:relative}
+.row .t{font-size:16px}.row .s{font-size:12px;color:var(--ink2);margin-top:2px}
+.row .grow{flex:1}
+.stroke{height:10px;margin:0 18px;display:block;width:calc(100% - 36px)}
+.heart{width:20px;height:20px;fill:var(--red)}
+.drawer{top:20px;bottom:20px;left:12px;width:322px;padding:22px 0;overflow:hidden}
+.brand{font-family:'Ma Shan Zheng';font-size:40px;padding:0 24px;display:flex;align-items:center;gap:12px}
+.bsub{padding:2px 26px 10px;font-size:12px;color:var(--ink2);letter-spacing:.3em}
+.mi{display:flex;align-items:center;gap:16px;padding:12px 26px;font-size:16px}
+.banner{top:44px;left:12px;right:12px;height:118px;display:flex;align-items:center;gap:16px;padding:0 20px}
+.banner .dist{font-size:34px;font-weight:700;font-family:'Noto Serif CJK SC'}
+.banner .road{font-family:'Ma Shan Zheng';font-size:28px;line-height:1.1}
+.turn{width:62px;height:62px;stroke:var(--pt);fill:none;stroke-width:4.5;stroke-linecap:round;stroke-linejoin:round}
+.navcard{left:12px;right:12px;bottom:18px;height:112px;display:flex;align-items:center;padding:0 22px;gap:14px}
+.eta{font-size:30px;font-weight:700;color:var(--red)} .etas{font-size:14px;color:var(--ink2)}
+.end{margin-left:auto;background:var(--red);color:#f6ead6;font-family:'Ma Shan Zheng';font-size:24px;padding:10px 20px;border-radius:26px;filter:url(#rough2)}
+.cart{position:absolute;width:76px;height:96px;margin:-62px 0 0 -38px}
+.place{left:12px;right:12px;bottom:18px;height:430px;padding:0}
+.scroll{left:30px;right:30px;bottom:40px;top:150px;padding:0}
+.rod{position:absolute;left:-14px;right:-14px;height:16px;border-radius:8px;background:linear-gradient(#5a3b26,#2c1b10 60%,#4a2f1c);box-shadow:0 3px 6px rgba(0,0,0,.35)}
+.rod:before,.rod:after{content:'';position:absolute;top:-3px;width:16px;height:22px;border-radius:5px;background:#1d130c}
+.rod:before{left:-6px}.rod:after{right:-6px}
+.vt{font-family:'Ma Shan Zheng';writing-mode:vertical-rl;font-size:56px;line-height:1}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:22px;font-size:15px;border:1.5px solid var(--ink2)}
+.btn.p{background:var(--red);color:#f6ead6;border-color:var(--red)}
+.B .btn{border-radius:4px}

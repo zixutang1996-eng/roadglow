@@ -110,25 +110,5 @@ for mode,ink,halo in (('light',(22,19,16),(246,238,218)),('dark',(232,224,206),(
     ol=ho.filter(ImageFilter.MaxFilter(5)); ol2=Image.new('RGBA',ol.size,halo+(0,)); ol2.putalpha(ol.getchannel('A').point(lambda v:int(v*.9)))
     x=(S-ho.width)//2; y=(S-ho.height)//2; can.alpha_composite(ol2,(x,y)); can.alpha_composite(ho,(x,y))
     save(can,f'horse_{mode}.png')
-# ---------------- map sprite: ink-blob POI icons + paper pattern ----------------
-src=json.load(open('../../../public/sprites/west_light@2x.json')); sp=Image.open('../../../public/sprites/west_light@2x.png').convert('RGBA')
-for mode,blobf,glyph in (('light','mock/dots_A.png',(246,236,214)),('dark','mock/dots_C.png',(30,27,24))):
-    blob=Image.open(blobf).convert('RGBA'); blob=blob.resize((60,60),Image.LANCZOS); red=Image.open(blobf.replace('dots_','dotr_')).convert('RGBA').resize((60,60),Image.LANCZOS)
-    names=list(src); cells=[]; J={}
-    for i,n in enumerate(names):
-        r=src[n]; ic=sp.crop((r['x'],r['y'],r['x']+r['width'],r['y']+r['height']))
-        a2=np.asarray(ic,np.float32); lum=a2[...,:3].mean(2); al2=a2[...,3]/255
-        # the Frontier icons are dark glyphs on a light disc: keep only the dark glyph strokes
-        gm=np.clip((150-lum)/90,0,1)*al2
-        g=Image.fromarray((gm*255).astype('uint8')).resize((34,34),Image.LANCZOS)
-        cell=(red if n in ('hospital','quest') else blob).copy()
-        gl=Image.new('RGBA',(34,34),glyph+(0,)); gl.putalpha(g); cell.alpha_composite(gl,(13,13)); cells.append((n,cell))
-    pap=Image.open(f'paper_{"A" if mode=="light" else "C"}.png').convert('RGB').resize((256,256))
-    if mode=='light': pap=Image.fromarray(np.clip(np.asarray(pap,np.float32)*np.array([1.0,.975,.92])+np.array([4,2,0]),0,255).astype('uint8'))  # a touch warmer than mockup A
-    Wd=10*64; Hd=64*((len(cells)+9)//10)+256
-    sheet=Image.new('RGBA',(Wd,Hd),(0,0,0,0))
-    for i,(n,c) in enumerate(cells):
-        x,y=(i%10)*64,(i//10)*64; sheet.alpha_composite(c,(x+2,y+2)); J[n]=dict(x=x+2,y=y+2,width=60,height=60,pixelRatio=2)
-    py=64*((len(cells)+9)//10); sheet.paste(pap.convert('RGBA'),(0,py)); J['paper']=dict(x=0,y=py,width=256,height=256,pixelRatio=2)
-    save(sheet,f'icons_{mode}.png'); json.dump(J,open(f'{OUT}/icons_{mode}.json','w'))
+# map sprite moved to genicons.py (v1.1: target ink dots + white glyphs)
 print('ok')

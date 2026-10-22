@@ -43,19 +43,19 @@ function inkStyle(mode) {
 sgFiles['light.json'] = inkStyle('light'); sgFiles['dark.json'] = inkStyle('dark');
 sgFiles['theme.css'] = fs.readFileSync(`${SG}/theme.css`, 'utf8'); sgFiles['strings.json'] = fs.readFileSync(`${SG}/strings.json`, 'utf8');
 sgFiles['LICENSE-assets.txt'] = 'Artwork in this pack (scroll, ink blobs, rider, horse, paper) was generated for the user of RoadGlow and is used with permission. Original homage to Chinese ink-wash painting; contains no game names, logos or seals.\nFonts: see fonts/OFL-*.txt (SIL Open Font License 1.1).\n';
-const sg = { format: 'roadglow-pack/1', type: 'skin', id: 'sanguo', name: { zh: '分久必合', en: 'Three Kingdoms' }, version: '1.0.0', minAppVersion: '0.9.6', author: 'RoadGlow', license: 'Personal use; fonts OFL-1.1',
-  description: { zh: '水墨三国：卷轴窗口、墨迹按钮、古文诗意文字、骏马为“我”', en: 'Ink-wash Three Kingdoms: hanging-scroll windows, ink-blob buttons, a horse as “me”' },
+const sg = { format: 'roadglow-pack/1', type: 'skin', id: 'sanguo', name: { zh: '分久必合', en: 'Three Kingdoms' }, version: '1.1.0', minAppVersion: '0.9.7', author: 'RoadGlow', license: 'Personal use; fonts OFL-1.1',
+  description: { zh: '水墨三国：卷轴窗口、墨迹按钮、古文诗意文字、墨箭为“我”', en: 'Ink-wash Three Kingdoms: hanging-scroll windows, ink-blob buttons, an ink arrowhead as “me”' },
   strings: 'strings.json',
-  skin: { base: 'west', css: 'theme.css', fx: ['scroll'], puck: { light: 'horse_light.png', dark: 'horse_dark.png' },
+  skin: { base: 'west', css: 'theme.css', fx: ['scroll', 'inkui'], puck: { light: 'puck_light.png', dark: 'puck_dark.png' },
     modes: { light: { style: 'light.json', sprite: 'icons_light' }, dark: { style: 'dark.json', sprite: 'icons_dark' } },
     tokens: { light: { bg: '#efe6d2', fg: '#221e1a', muted: '#5e5446', accent: '#ac3024', chip: '#efe6d2', line: '#b9ab90', route: '#2b2724', themeColor: '#efe6d2', navCard: { bg: '#efe6d2', fg: '#221e1a', mapBase: '#e6dcc6', swapBg: '#221e1a' } },
       dark: { bg: '#1c1a18', fg: '#ddd3bf', muted: '#9a9080', accent: '#d0583f', chip: '#24211e', line: '#4a453e', route: '#e0d6c2', themeColor: '#1c1a18', navCard: { bg: '#1c1a18', fg: '#ddd3bf', mapBase: '#26231f', swapBg: '#ddd3bf' } } } } };
-const sgZ = rgpack(sg, sgFiles); fs.writeFileSync(`${D}/sanguo-1.0.0.rgpack`, sgZ); console.log('sanguo pack', (sgZ.length / 1048576).toFixed(2), 'MB');
+const sgZ = rgpack(sg, sgFiles); fs.writeFileSync(`${D}/sanguo-1.1.0.rgpack`, sgZ); console.log('sanguo pack', (sgZ.length / 1048576).toFixed(2), 'MB');
 const bi = (id, zh, en) => ({ type: 'skin', id: 'builtin-' + id, base: id, builtin: true, name: { zh, en }, version: APP });
 const idx = { format: 'roadglow-catalog/1', updated: new Date().toISOString().slice(0, 10), packs: [
   bi('neon', '霓虹都市', 'Neon City'), bi('west', '荒野墨图', 'Frontier Ink'), bi('space', '深空', 'Deep Space'), bi('nord', '北境', 'Northland'), bi('tac', '战术', 'Tactical'),
   { type: 'skin', id: 'blueprint', name: bp.name, description: bp.description, version: bp.version, minAppVersion: bp.minAppVersion, url: `blueprint-1.1.0.rgpack`, sha256: sha(bpZ), size: bpZ.length },
-  { type: 'skin', id: 'sanguo', name: sg.name, description: sg.description, version: sg.version, minAppVersion: sg.minAppVersion, url: `sanguo-1.0.0.rgpack`, sha256: sha(sgZ), size: sgZ.length },
+  { type: 'skin', id: 'sanguo', name: sg.name, description: sg.description, version: sg.version, minAppVersion: sg.minAppVersion, url: `sanguo-1.1.0.rgpack`, sha256: sha(sgZ), size: sgZ.length },
   { type: 'voice', id: 'calm', name: calm.name, description: calm.description, version: calm.version, minAppVersion: calm.minAppVersion, url: `calm-1.0.0.rgpack`, sha256: sha(calmZ), size: calmZ.length },
 ] };
 fs.writeFileSync(`${D}/index.json`, JSON.stringify(idx, null, 1)); console.log('packs ok', idx.packs.length);

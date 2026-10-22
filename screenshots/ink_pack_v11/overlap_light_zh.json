@@ -1,0 +1,18 @@
+{
+ "map": [],
+ "drawer": [],
+ "drawer_bottom": [],
+ "settings": [],
+ "search": [
+  {
+   "kind": "icon\u00d7text",
+   "icon": "div.i in #suggest",
+   "text": "\u8336\u5bee"
+  }
+ ],
+ "skinswitch": [],
+ "place": [],
+ "packs": [],
+ "update": [],
+ "nav": []
+}

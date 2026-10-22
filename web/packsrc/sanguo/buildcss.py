@@ -2,7 +2,7 @@
 import re,os
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 s=open('theme.src.css').read(); B='body.pk-sanguo.west.sk-west'; N=':not(#_a):not(#_b)'  # id-level specificity beats the 0.9.5 Frontier stitching rules
-s=s.replace('html.fx-scroll $P',f'html.fx-scroll{N} {B}')
+s=re.sub(r'html((?:[.\[][^\s{,]*)+) \$P',lambda m:f'html{m.group(1)}{N} {B}',s)
 for l in ('en','zh'): s=s.replace(f'html[data-lang={l}] $P',f'html[data-lang={l}]{N} {B}')
 s=s.replace('$P',f'html{N} {B}')
 s=re.sub(r'url\("data:image/svg\+xml,([^"]*)"\)',lambda m:'url("data:image/svg+xml,'+m.group(1).replace("'","%27")+'")',s)
