@@ -5,7 +5,7 @@
 // State machine per window: idle → opening → idle, idle → closing → idle; a reversal mid-way starts the opposite animation
 // at the mirrored progress (negative delay), so rapid toggles never jump, flicker or leave a window stuck.
 // Animated properties are transform / opacity / clip-path only (via the registered --rgcut length).
-const TARGETS = ['#panel', '#suggest', '#layersPop', '#toast'];
+const TARGETS = ['#panel', '#suggest', '#toast'];
 const DUR = { open: 320, close: 280 };
 const enabled = () => document.documentElement.classList.contains('fx-scroll') && !matchMedia('(prefers-reduced-motion: reduce)').matches;
 const NAMES = { open: /^(rg-unroll|rg-tin)$/, close: /^(rg-rollup|rg-tin)$/ };

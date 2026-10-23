@@ -305,7 +305,17 @@ html.fx-inkui $P .ikb:active{transform:scale(.97)}
 html.fx-inkui $P .ikb.wide{width:calc(100% - 6px);margin-top:14px}
 /* ---------- skin switcher (target: 300 wide, rows 70px, seal on the active one) ---------- */
 html.fx-inkui $P #layersPop.inkl{width:300px!important;padding:14px 16px 16px!important}
-html.fx-inkui $P #layersPop.inkl>:not(.ikl-h,.ikrule,.ikl-list,.ikb,.ikl-sat){display:none!important}
+html.fx-inkui $P #layersPop.inkl.sheet .lyt b{font:400 calc(28px * var(--ts,1))/1.2 var(--f-head);color:var(--ink)}
+html[data-lang=en] $P #layersPop.inkl.sheet .lyt b{font:700 calc(21px * var(--ts,1))/1.2 var(--f-body)}
+html.fx-inkui $P #layersPop.inkl.sheet .lyt .popx{width:52px!important;height:54px!important;border:0!important;border-image:none!important;background:var(--r-x) center/100% 100% no-repeat!important}
+html.fx-inkui $P #layersPop.inkl.sheet .lyt .popx::before{background:var(--ink)!important}
+html.fx-inkui $P #layersPop.inkl.sheet .lyo{border:0!important;border-radius:0;box-shadow:none;background:none!important;color:var(--ink)!important}
+html.fx-inkui $P #layersPop.inkl.sheet .lyo .lyi{width:48px;height:48px;background:url(dot0_light.webp) center/100% 100% no-repeat;color:#f4ecdb}
+html.fx-inkui $P.dark #layersPop.inkl.sheet .lyo .lyi{background-image:url(dot0_dark.webp);color:#1c1a18}
+html.fx-inkui $P #layersPop.inkl.sheet .lyo.on .lyi{background-image:url(dotr.webp);color:#f6ead6}
+html.fx-inkui $P #layersPop.inkl.sheet .lyo b{font:400 calc(22px * var(--ts,1))/1.2 var(--f-head)}
+html[data-lang=en] $P #layersPop.inkl.sheet .lyo b{font:700 calc(15px * var(--ts,1))/1.2 var(--f-body)}
+html.fx-inkui $P #layersPop.inkl.sheet .shbar{background:var(--ink2)}
 html.fx-inkui $P .ikl-h{display:flex;align-items:center;justify-content:space-between;padding:8px 0 6px 8px;font:400 calc(28px * var(--ts,1))/1.2 var(--f-head)}
 html[data-lang=en] $P .ikl-h{font:700 calc(21px * var(--ts,1))/1.2 var(--f-body)}
 html.fx-inkui $P #layersPop .ikl-h .popx{width:60px!important;height:62px!important;border:0!important;border-image:none!important;background:var(--r-x) center/100% 100% no-repeat!important}

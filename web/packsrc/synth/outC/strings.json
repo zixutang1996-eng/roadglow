@@ -1,0 +1,44 @@
+{
+ "zh": {
+  "t": {
+   "search": "今晚开去哪儿兜风？",
+   "saved": "我的目的地",
+   "recents": "刚刚路过",
+   "settings": "车库设置",
+   "restaurant": "夜宵",
+   "cafe": "咖啡",
+   "fuel": "加油站",
+   "park": "海滨公园",
+   "directions": "规划路线",
+   "start": "出发",
+   "nav_end": "停车收工"
+  },
+  "L": {
+   "@drawerSub": "落日公路 · 一路开往海边",
+   "@skinsTitle": "今晚开哪台？",
+   "@skinsSub": "换一身漆，路还是那条路",
+   "地图皮肤": "地图风格"
+  }
+ },
+ "en": {
+  "t": {
+   "search": "Where are we cruising?",
+   "saved": "Destinations",
+   "recents": "Rear-view",
+   "settings": "Garage settings",
+   "restaurant": "Late eats",
+   "cafe": "Coffee",
+   "fuel": "Gas",
+   "park": "Beach parks",
+   "directions": "Route",
+   "start": "Floor it",
+   "nav_end": "Pull over"
+  },
+  "L": {
+   "@drawerSub": "Sunset highway to the coast",
+   "@skinsTitle": "Choose your ride",
+   "@skinsSub": "New paint job, same open road",
+   "地图皮肤": "Map look"
+  }
+ }
+}

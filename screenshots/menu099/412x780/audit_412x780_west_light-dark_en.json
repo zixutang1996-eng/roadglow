@@ -1,0 +1,54 @@
+{
+ "west_light_en": {
+  "drawer": {
+   "overlap": [],
+   "clip": []
+  },
+  "drawer_bottom": {
+   "overlap": [],
+   "clip": []
+  },
+  "layers": {
+   "overlap": [],
+   "clip": []
+  },
+  "layers_full": {
+   "overlap": [],
+   "clip": []
+  },
+  "mapskins": {
+   "overlap": [],
+   "clip": []
+  },
+  "place": {
+   "overlap": [],
+   "clip": []
+  }
+ },
+ "west_dark_en": {
+  "drawer": {
+   "overlap": [],
+   "clip": []
+  },
+  "drawer_bottom": {
+   "overlap": [],
+   "clip": []
+  },
+  "layers": {
+   "overlap": [],
+   "clip": []
+  },
+  "layers_full": {
+   "overlap": [],
+   "clip": []
+  },
+  "mapskins": {
+   "overlap": [],
+   "clip": []
+  },
+  "place": {
+   "overlap": [],
+   "clip": []
+  }
+ }
+}

@@ -1,0 +1,58 @@
+{
+ "dark_zh": {
+  "map": [],
+  "drawer": [],
+  "skins": [],
+  "search": [],
+  "place": [],
+  "nav": [
+   {
+    "kind": "text×text",
+    "a": "500 米",
+    "b": "直行，进入McDougall Hill Road"
+   }
+  ]
+ },
+ "dark_en": {
+  "map": [],
+  "drawer": [],
+  "skins": [],
+  "search": [],
+  "place": [],
+  "nav": [
+   {
+    "kind": "text×text",
+    "a": "500 m",
+    "b": "Continue straight onto M"
+   }
+  ]
+ },
+ "light_zh": {
+  "map": [],
+  "drawer": [],
+  "skins": [],
+  "search": [],
+  "place": [],
+  "nav": [
+   {
+    "kind": "text×text",
+    "a": "500 米",
+    "b": "直行，进入McDougall Hill Road"
+   }
+  ]
+ },
+ "light_en": {
+  "map": [],
+  "drawer": [],
+  "skins": [],
+  "search": [],
+  "place": [],
+  "nav": [
+   {
+    "kind": "text×text",
+    "a": "500 m",
+    "b": "Continue straight onto M"
+   }
+  ]
+ }
+}
