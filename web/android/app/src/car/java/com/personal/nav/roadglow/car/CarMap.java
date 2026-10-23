@@ -40,7 +40,7 @@ import org.maplibre.geojson.Point;
  * extra layers on top. Pan / zoom come from the host's SurfaceCallback gestures and the map action strip.
  */
 final class CarMap implements SurfaceCallback, CarState.Listener {
-    static final String DEFAULT_STYLE = "asset://public/styles/neon_dark.json";
+    static final String DEFAULT_STYLE = "asset://public/car_default.json";
     private final CarContext ctx; private final Handler ui = new Handler(Looper.getMainLooper());
     private VirtualDisplay vd; private Presentation pres; private MapView mv; private MapLibreMap map;
     private String loadedStyle = null; private Rect visible = null, stable = null; private int w, h;

@@ -39,7 +39,7 @@ android {
         shandong { java.srcDirs = ['src/beijing/java'] }
         shaanxi { java.srcDirs = ['src/beijing/java'] }
         standard { java.srcDirs += ['src/car/java'] }
-        aaos { java.srcDirs = ['src/beijing/java', 'src/car/java'] }
+        aaos { java.srcDirs = ['src/beijing/java', 'src/car/java', 'src/aaos/java'] }
     }
     buildTypes {
         release {

@@ -21,6 +21,7 @@ function nativeStyle(map) {
   return JSON.stringify(st);
 }
 export function initCar({ map, S, isDark, lang, onDest, onStop }) {
+  window.__rgCarStyle = () => nativeStyle(map); // also used by tools/car/extract_styles.cjs
   if (!ON) return;
   const push = () => { try {
     const ink = document.documentElement.classList.contains('fx-inkui');

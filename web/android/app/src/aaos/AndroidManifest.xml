@@ -25,5 +25,6 @@
             </intent-filter>
             <meta-data android:name="distractionOptimized" android:value="true" />
         </activity>
+        <receiver android:name=".car.CarDemoReceiver" android:exported="true" />
     </application>
 </manifest>
