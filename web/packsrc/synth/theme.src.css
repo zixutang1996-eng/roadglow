@@ -1,0 +1,57 @@
+/* shared Synth rules (mockup v4: synth.css v3 line-slice) mapped onto the real RoadGlow DOM */
+$P{--slice:linear-gradient(#000 0 72%,transparent 72% 76%,#000 76% 84%,transparent 84% 89%,#000 89% 94%,transparent 94% 100%);font-family:var(--body);--head-f:var(--head)}
+$P #searchbar,$P #panel,$P #layersPop,$P #suggest,$P .listpick,$P .card{background:var(--pbg);border:var(--pbd);border-radius:var(--prad);box-shadow:var(--psh);color:var(--tx);clip-path:none}
+$P #searchbar{border-radius:var(--prad)} $P #q{color:var(--tx);font-family:var(--body)} $P #q::placeholder{color:var(--tx2);opacity:1}
+$P #searchbar .ic,$P #searchbar svg{color:var(--ic);stroke:var(--ic)}
+/* chips: v3 inactive = back2 + n1 border + double offset shadow; active = slice */
+$P #chips .chip{background:var(--back2);color:var(--ctx);border:1.5px solid var(--n1);border-radius:8px;box-shadow:3px 3px 0 0 var(--back),3px 3px 0 1.5px var(--n2);height:36px;font-family:var(--body);margin-bottom:5px}
+$P #chips{padding-bottom:6px}
+$P .chip.on,$P .seg button.on,$P .btn.primary,$P .act.primary .b,$P #locBtn,$P #endBtn{position:relative;isolation:isolate;background:var(--back)!important;border:2px solid var(--back)!important;box-shadow:0 0 0 1.5px var(--n1),3px 3px 0 1.5px var(--n2)!important;color:var(--sltx)!important;font-weight:700;overflow:hidden;text-shadow:0 0 3px var(--slsh),0 0 2px var(--slsh)}
+$P .chip.on::before,$P .seg button.on::before,$P .btn.primary::before,$P .act.primary .b::before,$P #locBtn::before,$P #endBtn::before{content:'';position:absolute;inset:0;z-index:-1;background:var(--sg);-webkit-mask:var(--slice);mask:var(--slice)}
+$P #endBtn{--sg:var(--sgr);color:#fff!important;text-shadow:0 0 3px #000,0 1px 2px #000}
+$P #locBtn svg,$P .act.primary .b svg{color:var(--sltx);stroke:var(--sltx)}
+/* quick buttons */
+$P .ctl,$P .zoomgrp{background:var(--back2);border:1.5px solid var(--n1);border-radius:10px;box-shadow:3px 3px 0 0 var(--back),3px 3px 0 1.5px var(--n2);color:var(--ic)}
+$P .zoomgrp .ctl{box-shadow:none;border:0}
+$P #compassBtn #needle{width:30px;height:30px;background:var(--cmp) center/30px 30px no-repeat;color:transparent;filter:none} $P #compassBtn #needle>*{opacity:0}
+/* place card */
+$P #panel{border-radius:var(--srad);--ts2:1} $P #panelTitle,$P .pc h2{font-family:var(--head);color:var(--tx);letter-spacing:var(--hls)}
+$P .act{color:var(--tx);font-family:var(--body)} $P .act .b{border-radius:var(--brad);background:var(--b2bg);border:var(--b2bd);color:var(--b2tx)}
+$P .acts,$P #panel:not(.collapsed) #panelHead .ph{border-color:var(--line)}
+$P .btn{border-radius:var(--brad);font-family:var(--body)}
+$P .btn:not(.primary){background:var(--back2);color:var(--tx);border:1.5px solid var(--n1);box-shadow:3px 3px 0 0 var(--back),3px 3px 0 1.5px var(--n2)}
+$P .btn.ghost{background:var(--back2)}
+$P .seg button{font-family:var(--body)}
+/* drawer: art header + title + footer art */
+$P #drawer{background:var(--dbg);border-right:var(--dbd);color:var(--tx);clip-path:none;box-shadow:none}
+$P #drawer .dh{flex-wrap:wrap;padding:218px 12px 8px 22px;background:var(--art) top center/100% auto no-repeat;border-bottom:0;position:relative;align-items:flex-end}
+$P #drawer .dh>span{flex:1;min-width:0;white-space:nowrap}
+$P #drawer .dh .xbtn{position:absolute;top:10px;right:10px;background:var(--back);color:#fff;border-radius:8px;border:1.5px solid var(--n1)}
+$P #drawer .dh .dsub{order:3;flex-basis:100%;font-style:normal;font-size:calc(13px * var(--ts,1));color:var(--tx2);font-family:var(--body);padding:4px 0 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+$P #drawer .dh::after{content:'';order:4;flex-basis:100%;height:var(--divh);background:var(--div);margin:6px 10px 0 0}
+$P .dsh{color:var(--tx);font-family:var(--body)} $P .dsh .i,$P .di .i{width:36px;height:36px;display:grid;place-items:center;border-radius:var(--mbr);background:var(--mbx);color:var(--ic);flex:none}
+$P .dsec.open>.dsh{background:var(--mon);color:var(--monx)}
+$P .dsh b,$P .di b{font-family:var(--body);font-weight:400}
+$P .orn{height:150px;background:var(--foot) bottom center/318px 150px no-repeat;border:0;margin-top:8px} $P .orn>*{display:none}
+$P .updver{color:var(--tx2)}
+$P .pksub{font-size:calc(14px * var(--ts,1));color:var(--tx2);padding:0 16px 8px;font-family:var(--body)}
+/* nav */
+$P #navBanner{background:var(--pbg);border:var(--pbd);border-radius:var(--prad);box-shadow:var(--psh);color:var(--tx);font-family:var(--body)}
+$P #navBanner .d,$P #navBanner b{font-family:var(--head)}
+$P #navFoot{background:var(--pbg);color:var(--tx);border-radius:var(--srad);box-shadow:var(--psh)}
+$P #scrim{background:var(--scrim)}
+$P #suggest .sug{border-color:var(--line2);color:var(--tx)}
+$P #scale .sbar{background:var(--acc2);box-shadow:0 0 6px var(--acc2)} $P #scale span{font-family:'RG Synth Wide',sans-serif;color:var(--tx2)}
+/* neutralise neon base hairline/plate pseudo-elements */
+$P :is(#searchbar,.chip,#areaPill,#controls,#navBanner,#navFoot,#toast)::after{content:none}
+$P :is(#searchbar,#areaPill,#controls,#navBanner,#navFoot,#toast)::before,$P #chips .chip:not(.on)::before,$P #drawerW::before{content:none;display:none}
+$P :is(#panel,#suggest,#layersPop,#drawer,#searchbar,.chip,#navBanner,#navFoot,.btn,.seg,.seg button,.xbig,.xbtn,.popx,#panelX,#navX,.ctl){clip-path:none;-webkit-mask:none;mask:none}
+$P #controls{width:auto;background:none;box-shadow:none} $P #controls .ctl{width:46px;height:46px;margin-bottom:8px;color:var(--ic)}
+$P #drawer .dsec+.dsec::before{background:var(--div);opacity:.6}
+$P .act.primary{--ic2:var(--sltx)} $P #locBtn{--ic2:var(--sltx)}
+$P :is(.xbig,.xbtn,.popx,#panelX,#navX){background:var(--back2);border:1.5px solid var(--n1);border-radius:8px;color:var(--ic)}
+$P .seg{border:1.5px solid var(--n1);background:var(--back2);border-radius:8px}
+$P .seg button{color:var(--tx2);background:transparent}
+$P .opt{border:1.5px solid var(--n1);background:var(--back2);color:var(--tx);border-radius:var(--brad)}
+$P .opt.on{border-color:var(--acc);box-shadow:3px 3px 0 0 var(--back),3px 3px 0 1.5px var(--n2)}
+$P #navBanner .objk{display:none}

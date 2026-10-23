@@ -1,0 +1,5 @@
+/* C: hand-lettered cursive heads (.cur #ff3fa4) */
+$P #drawer .dh>span{font-family:'RG Synth Cursive',cursive;font-size:46px;line-height:1.25;color:#ff3fa4;text-shadow:0 0 1px #ff3fa4;padding-right:8px}
+$P #panelTitle,$P .pc h2{font-family:'RG Synth Cursive','Noto Sans CJK SC',cursive;color:#ff3fa4;text-shadow:0 0 1px #ff3fa4;letter-spacing:0}
+html[data-lang=en]:not(#_a):not(#_b) body.pk-synthc #panelTitle{font-size:calc(30px * var(--ts,1))}
+$P #navBanner .dd{line-height:1.15;font-family:'RG Synth Wide',sans-serif}

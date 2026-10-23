@@ -1,0 +1,28 @@
+/* v0.9.9 Layers bottom sheet (昼 / 夜 / 卫星). Position + motion only; colours/borders come from each skin's #layersPop rules. */
+.floatw:has(> #layersPop.sheet){filter:none!important}
+html:not(#_s):not(#_t):not(#_u) body #layersPop.sheet{position:fixed!important;left:max(8px,calc(50% - 240px))!important;right:max(8px,calc(50% - 240px))!important;top:auto!important;bottom:0!important;width:auto!important;max-width:none!important;
+  max-height:min(46vh,340px);overflow-y:auto!important;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;
+  padding:0 16px calc(16px + var(--sab,0px))!important;transform:translate3d(0,0,0);transition:transform .26s cubic-bezier(.2,.8,.2,1),max-height 0s;will-change:transform;contain:layout paint;z-index:6}
+html:not(#_s):not(#_t):not(#_u) body #layersPop.sheet.full{max-height:min(82vh,640px)}
+html:not(#_s):not(#_t):not(#_u) body #layersPop.sheet.shin,html:not(#_s):not(#_t):not(#_u) body #layersPop.sheet.shout{transform:translate3d(0,105%,0)}
+html:not(#_s):not(#_t):not(#_u) body #layersPop.sheet.shdrag{transition:none}
+html:not(#_s):not(#_t):not(#_u) body #layersPop.sheet.rg-unroll,html:not(#_s):not(#_t):not(#_u) body #layersPop.sheet.rg-rollup{animation:none!important}
+#layersPop.sheet .shg{position:sticky;top:0;display:flex;justify-content:center;padding:9px 0 4px;cursor:grab;touch-action:none;z-index:2}
+#layersPop.sheet .shbar{display:block;width:44px;height:5px;border-radius:3px;background:currentColor;opacity:.45}
+#layersPop.sheet .lyt{display:flex;align-items:center;justify-content:space-between;gap:8px;touch-action:none;margin:0 0 10px}
+#layersPop.sheet .lyt b{font-size:calc(18px * var(--ts,1));line-height:1.25}
+#layersPop.sheet .lyt .popx{position:relative!important;inset:auto!important;flex:none}
+#layersPop.sheet .ly3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+#layersPop.sheet .lyo{display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 4px 10px;min-height:92px;border-radius:12px;border:2px solid var(--line,rgba(127,127,127,.4));background:transparent;color:inherit;font:inherit;min-width:0}
+#layersPop.sheet .lyo.on{border-color:var(--accent,currentColor);box-shadow:inset 0 0 0 1px var(--accent,currentColor)}
+#layersPop.sheet .lyo b{font-size:calc(17px * var(--ts,1));line-height:1.2;overflow-wrap:anywhere;text-align:center}
+#layersPop.sheet .lyo small{font-size:calc(11.5px * var(--ts,1));opacity:.75;line-height:1.2;text-align:center;overflow-wrap:anywhere}
+#layersPop.sheet .lyi{display:grid;place-items:center;width:34px;height:34px}
+#layersPop.sheet .lyic{width:28px;height:28px}
+#layersPop.sheet .lyh{margin:14px 0 6px;font-size:calc(13.5px * var(--ts,1));opacity:.8}
+#layersPop.sheet .lys{margin-top:6px;font-size:calc(12px * var(--ts,1));opacity:.75;line-height:1.35}
+#layersPop.sheet .lymore{margin-top:12px}
+#layersPop.sheet .lyauto{background:none;border:0;color:inherit;text-decoration:underline;font:inherit;padding:4px 0}
+@media (prefers-reduced-motion:reduce){html:not(#_s):not(#_t):not(#_u) body #layersPop.sheet{transition:none}}
+/* scroll audit: every overlay that can outgrow the screen scrolls with momentum and contains overscroll */
+#panel,#drawer,#suggest,.card.listpick,.card.pickbar,#panelBody{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}

@@ -27,15 +27,15 @@ export const setLang = l => { if (l) localStorage.setItem('lang', l); else local
 // v0.9.6: skin packs may override Chinese UI strings (poetic wording). OV.t: i18n keys; OV.L: inline L('中文', 'en') strings.
 export const OV = { t: {}, L: {}, dir: {} };
 const clean = o => Object.fromEntries(Object.entries(o && typeof o === 'object' ? o : {}).filter(([k, v]) => typeof k === 'string' && typeof v === 'string' && k.length <= 200 && v.length <= 300).slice(0, 2000).map(([k, v]) => [k, v.replace(/<\/?p>/g, m => m === '<p>' ? '\u0001' : '\u0002').replace(/[<>&"'`]/g, '').replace(/\u0001/g, '<p>').replace(/\u0002/g, '</p>')]));
-export function setOverrides(s) { const z = lang === 'zh' && s && s.zh ? s.zh : {}; OV.t = clean(z.t); OV.L = clean(z.L); OV.dir = clean(z.dir); OV.units = z.units === 'classical' ? 'classical' : ''; }
-export const tz = (k, def) => (lang === 'zh' && OV.t[k]) || def;
+export function setOverrides(s) { const z = s && s[lang] && typeof s[lang] === 'object' ? s[lang] : {}; OV.t = clean(z.t); OV.L = clean(z.L); OV.dir = clean(z.dir); OV.units = z.units === 'classical' ? 'classical' : ''; }
+export const tz = (k, def) => OV.t[k] || def;
 // classical Chinese numerals / units (skin option "units":"classical"): 1 步 ≈ 1.5 m, 1 里 = 500 m, 1 刻 = 15 min, 1 时辰 = 2 h
 const CN = '〇一二三四五六七八九';
 export function cnNum(n) { n = Math.round(n); if (n < 10) return CN[n]; if (n < 20) return '十' + (n % 10 ? CN[n % 10] : ''); if (n < 100) return CN[Math.floor(n / 10)] + '十' + (n % 10 ? CN[n % 10] : '');
   if (n < 1000) { const h = Math.floor(n / 100), r = n % 100; return CN[h] + '百' + (r ? (r < 10 ? '零' + CN[r] : (r < 20 ? '一' : '') + cnNum(r)) : ''); }
   if (n < 10000) { const k = Math.floor(n / 1000), r = n % 1000; return CN[k] + '千' + (r ? (r < 100 ? '零' : '') + cnNum(r) : ''); } return String(n); }
 const classical = () => lang === 'zh' && OV.units === 'classical';
-export const t = k => (lang === 'zh' && OV.t[k]) || (D[lang][k] ?? k);
+export const t = k => OV.t[k] || (D[lang][k] ?? k);
 export const fmtDist = m => classical() ? (m < 750 ? `${cnNum(Math.max(10, Math.round(m / 1.5 / (m < 150 ? 10 : 50)) * (m < 150 ? 10 : 50)))}步` : (h => (h >> 1 ? (h >> 1 === 2 ? '两' : cnNum(h >> 1)) + '里' + (h & 1 ? '半' : '') : '半里'))(Math.round(m / 250))) : m >= 1000 ? `${(m / 1000).toFixed(1)} ${t('km')}` : `${Math.round(m / 10) * 10} ${t('m')}`;
 export const fmtDur = s => { if (classical()) { const m = s / 60; return m < 10 ? '片刻' : m < 105 ? `${cnNum(Math.max(1, Math.round(m / 15)))}刻钟` : (h => `${h >> 1 === 2 ? '两' : cnNum(h >> 1)}${h & 1 ? '个半时辰' : '个时辰'}`)(Math.round(m / 60)); } const m = Math.round(s / 60); return m >= 60 ? `${Math.floor(m / 60)} ${t('h')} ${m % 60} ${t('min')}` : `${m} ${t('min')}`; };
 

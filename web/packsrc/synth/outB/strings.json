@@ -1,0 +1,45 @@
+{
+ "zh": {
+  "t": {
+   "search": "今晚去哪儿发光？",
+   "saved": "我的心头好",
+   "recents": "最近足迹",
+   "settings": "设置",
+   "restaurant": "美食",
+   "cafe": "咖啡",
+   "fuel": "加油",
+   "park": "公园",
+   "directions": "路线",
+   "start": "出发",
+   "nav_end": "结束导航"
+  },
+  "L": {
+   "@drawerSub": "铬光霓虹 · 闪耀整夜",
+   "@skinsTitle": "换个造型",
+   "@skinsSub": "点一下，整张地图立刻换装",
+   "地图皮肤": "地图风格",
+   "检查更新": "检查更新"
+  }
+ },
+ "en": {
+  "t": {
+   "search": "Where to, hotshot?",
+   "saved": "Faves",
+   "recents": "Rewind",
+   "settings": "Settings",
+   "restaurant": "Eats",
+   "cafe": "Coffee",
+   "fuel": "Gas",
+   "park": "Parks",
+   "directions": "Route",
+   "start": "Hit it",
+   "nav_end": "End ride"
+  },
+  "L": {
+   "@drawerSub": "Chrome & neon, all night long",
+   "@skinsTitle": "Pick your look",
+   "@skinsSub": "One tap and the whole map gets a makeover",
+   "地图皮肤": "Map look"
+  }
+ }
+}
