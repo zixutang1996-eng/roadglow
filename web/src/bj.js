@@ -85,3 +85,31 @@ export async function bjWalk(from, to) {
   steps.push({ type: 'arrive', mode: 'walking', modifier: '', name: '', distance: 0, loc: { lng: to.lng, lat: to.lat } });
   return [{ geometry: { type: 'LineString', coordinates: coords }, distance: total, duration: total / 1.25, steps, offline: true }];
 }
+
+// v0.9.7 province editions: z13–14 tiles are packed per z10 parent (tiles/b/{x}_{y}.bin) — an APK zip can hold at most 65,535 entries.
+// .bin = uint32 n, then n × (uint8 z, uint8 dx, uint8 dy, uint8 0, uint32 off, uint32 len), then data (offsets from data start).
+export const TILE_BUNDLES = EDITION === 'shandong' || EDITION === 'shaanxi';
+const BUN = new Map();
+function bundle(bx, by) {
+  const k = `${bx}_${by}`; let p = BUN.get(k);
+  if (!p) {
+    p = fetch(`${base}tiles/b/${k}.bin`).then(r => r.ok ? r.arrayBuffer() : null).then(buf => {
+      if (!buf) return null; const dv = new DataView(buf), n = dv.getUint32(0, true), idx = new Map(), d0 = 4 + n * 12;
+      for (let i = 0; i < n; i++) { const o = 4 + i * 12; idx.set(`${dv.getUint8(o)}/${dv.getUint8(o + 1)}/${dv.getUint8(o + 2)}`, [d0 + dv.getUint32(o + 4, true), dv.getUint32(o + 8, true)]); }
+      return { buf, idx };
+    }).catch(() => null);
+    BUN.set(k, p); if (BUN.size > 24) BUN.delete(BUN.keys().next().value);
+  }
+  return p;
+}
+export function registerTileProtocol(maplibregl) {
+  maplibregl.addProtocol('rgt', async (params) => {
+    const [z, x, y] = params.url.slice(6).split('/').map(Number);
+    if (z >= 13) {
+      const s = z - 10, b = await bundle(x >> s, y >> s), e = b?.idx.get(`${z}/${x & ((1 << s) - 1)}/${y & ((1 << s) - 1)}`);
+      return { data: e ? b.buf.slice(e[0], e[0] + e[1]) : new ArrayBuffer(0) };
+    }
+    const r = await fetch(`${base}tiles/${z}/${x}/${y}.pbf`);
+    return { data: r.ok ? await r.arrayBuffer() : new ArrayBuffer(0) };
+  });
+}
