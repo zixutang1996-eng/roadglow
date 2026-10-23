@@ -21,3 +21,9 @@ Release pages: `v0.9.7-shandong`, `v0.9.7-shaanxi` (not marked latest). Both URL
 
 Tested: web build in headless Chrome with all foreign hosts blocked (map at z8–16 in several cities, search, place
 card, walking route, no page errors) — `web/tools/beijing/test_province.cjs`. See the emulator note in PROGRESS_CAR.md.
+
+## 0.9.8 update (2026-10-22) — POI icon fix
+Bug: 0.9.7 province maps showed almost no place icons offline. The province builds pack z13–14 tiles into bundles read via MapLibre's `rgt://` protocol, but the tile-POI decoder (tilepoi.js) used plain `fetch()`, which can't read `rgt://`, so every tile POI was silently dropped (only ~3–4k prebuilt "important" POIs remained). Sprites/glyphs were already local. Fix: shared `rgtTile()` in bj.js. Beijing edition (unbundled tiles) unaffected.
+- Shandong: https://github.com/zixutang1996-eng/roadglow/releases/download/v0.9.8-shandong/RoadGlow-Shandong-0.9.8.apk (158,342,481 B, sha256 7b69d2ce…d4d6)
+- Shaanxi: https://github.com/zixutang1996-eng/roadglow/releases/download/v0.9.8-shaanxi/RoadGlow-Shaanxi-0.9.8.apk (162,551,855 B, sha256 7278a9e6…fa69)
+Same packages/key, versionCode 9080 (> 9070) → installs over 0.9.7. Test: tools/beijing/test_icons.cjs (all foreign hosts hanging or aborted, 8 skins × light/dark). Screenshots: screenshots/shandong/icons_before, icons_after; screenshots/shaanxi/icons_after.
