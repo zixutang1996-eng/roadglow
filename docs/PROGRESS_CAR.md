@@ -6,3 +6,8 @@
 - [x] Builds: standard release 0.9.8 (9080), aaos debug (emulator test flavour)
 - [ ] Emulator test + screenshots (screenshots/car/)
 - [ ] Publish 0.9.8 as latest, merge to main
+
+## Checkpoint 2026-10-22 20:55 (America/Regina)
+- AAOS emulator (aaos34, -accel off/TCG) boot-loops: CarServiceHelper did not connect -> system_server restarts. KVM hangs. No emulator test possible on this box.
+- wip/car merged to main (e8940f1); release v0.9.8 published as latest (RoadGlow.apk, 32,340,990 B, HTTP 200).
+- Remaining: browser-rendered car-layout preview screenshots (clearly labelled mock), docs.
