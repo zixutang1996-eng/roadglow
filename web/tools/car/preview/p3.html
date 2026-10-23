@@ -1,0 +1,76 @@
+<html><head><meta charset="utf-8"><link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet"><script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<style>body{margin:0;overflow:hidden}#wrap{position:relative}#m{position:absolute;left:0;top:0}#cv{position:absolute;left:0;top:0;pointer-events:none}
+#ph{position:absolute;top:0;bottom:0;right:0;background:repeating-linear-gradient(45deg,#2a2c30,#2a2c30 14px,#24262a 14px,#24262a 28px);color:#9aa0a6;font:600 22px sans-serif;display:flex;align-items:center;justify-content:center;text-align:center}
+.w{position:absolute;left:50%;transform:translateX(-50%);bottom:4px;font:11px sans-serif;background:#000a;color:#fff;padding:2px 8px;border-radius:3px;white-space:nowrap}</style></head><body><div id=wrap><div id=m></div><div id=ph hidden></div><canvas id=cv></canvas><div class=w id=lbl></div></div><script>
+// v0.9.11 car preview MOCK. Map: exported car style (carex/<skin>) in browser MapLibre GL JS with the camera padding from CarLayout.
+// Panel: drawn on a canvas with the same geometry (layouts.json from the real CarLayout.java) and the same drawing steps as PanelView.java,
+// using the exported panel spec (panels.json from src/car.js carPanelSpec) and the bundled car TTF fonts. Host buttons are neutral placeholders.
+const q=new URLSearchParams(location.search),sk=q.get('sk'),mode=q.get('mode'),dark=mode=='dark',nav=q.get('nav')=='1',lay=q.get('lay');
+const O=location.origin;
+(async()=>{
+const [L,P,fidx,t,meta]=await Promise.all([fetch('layouts.json').then(r=>r.json()),fetch('panels.json').then(r=>r.json()),fetch('/cf/index.json').then(r=>r.json()),fetch(`/carex/${sk}/${mode}.json`).then(r=>r.text()),fetch(`/carex/${sk}/meta.json`).then(r=>r.json())]);
+const l=L[`${lay}_${nav?1:0}`],s=P[sk][mode],W=l.w,H=l.h,D=l.density;
+for(const e of ['wrap','m'])Object.assign(document.getElementById(e).style,{width:W+'px',height:H+'px'});
+const cv=document.getElementById('cv');cv.width=W;cv.height=H;
+if(l.vis[2]<W){const ph=document.getElementById('ph');ph.hidden=false;ph.style.width=(W-l.vis[2])+'px';ph.innerHTML='host media / messages<br>(placeholder)';}
+// fonts exactly as PanelSkin resolves them: family (lowercase) → bundled carfonts/*.ttf, else sans bold
+const fam=async f=>{const k=String(f||'').toLowerCase();if(!fidx[k])return 'sans-serif';const ff=new FontFace('cf_'+fidx[k].replace('.ttf',''),`url(/cf/${fidx[k]})`);await ff.load();document.fonts.add(ff);return ff.family;};
+const HF=await fam(s.head),BF=await fam(s.body);
+const st=JSON.parse(t.split('{CAR}/').join(`${O}/carex/${sk}/`).split('{WEB}/').join(`${O}/pub/`));
+const me=[116.397,39.909],route=[[116.392,39.9045],[116.397,39.909],[116.397,39.915],[116.408,39.9152]];
+const m=new maplibregl.Map({container:'m',style:st,center:me,zoom:nav?16:15,bearing:0,pitch:nav?40:0,attributionControl:false,preserveDrawingBuffer:true,pixelRatio:1});
+m.setPadding({left:l.padL,top:l.padT,right:l.padR,bottom:l.padB});
+let miss=new Set();m.on('styleimagemissing',e=>miss.add(e.id));
+m.on('load',()=>{m.jumpTo({center:me,padding:{left:l.padL,top:l.padT,right:l.padR,bottom:l.padB}});
+ if(nav){m.addSource('r',{type:'geojson',data:{type:'LineString',coordinates:route}});m.addLayer({id:'rc',type:'line',source:'r',paint:{'line-color':dark?'#05070c':'#fff','line-width':14}});m.addLayer({id:'r',type:'line',source:'r',paint:{'line-color':(dark?meta.routeDark:meta.route)||s.accent,'line-width':9}});}
+ setTimeout(()=>{draw();window.miss=[...miss];window.done=1},6000)});
+const zh=sk=='sanguo',ink=sk=='sanguo';
+function draw(){const c=cv.getContext('2d');c.clearRect(0,0,W,H);
+ // "me" marker where the camera puts it (meX/meY from CarLayout)
+ c.fillStyle='#fff';c.beginPath();c.arc(l.meX,l.meY,13,0,7);c.fill();c.fillStyle=s.accent;c.beginPath();c.arc(l.meX,l.meY,9,0,7);c.fill();
+ // host chrome placeholders (drawn by Android Auto, not by RoadGlow): action strip top-right of the visible area, map buttons bottom-right
+ const hx=l.vis[2]-16-56*D/2*1.0, btn=(x,y,g)=>{c.fillStyle=dark?'#202124ee':'#ffffffee';c.beginPath();c.arc(x,y,24*D/2*1.4,0,7);c.fill();c.fillStyle=s.accent;c.font=`bold ${22*D/2*1.4}px sans-serif`;c.textAlign='center';c.textBaseline='middle';c.fillText(g,x,y);};
+ const r0=24*D/2*1.4; ['⌕', nav?'■':'⚙'].forEach((g,i)=>btn(l.vis[2]-16-r0-(i*(2*r0+10)),16+r0,g)); ['+','−','◎'].forEach((g,i)=>btn(l.vis[2]-16-r0,H-16-r0-i*(2*r0+10),g));
+ c.textAlign='left';c.textBaseline='alphabetic';
+ if(!nav||!l.panel)return; panel(c);}
+function A(h,a){const n=h.length>7?h.slice(0,7):h;return n+Math.round(a*255).toString(16).padStart(2,'0');}
+function rr(c,x,y,w,h,r){c.beginPath();c.roundRect(x,y,w,h,r);}
+async function nineImg(){return new Promise(r=>{const i=new Image();i.onload=()=>r(i);i.src=s.frame;});}
+let frameImg=null;
+function panel(c){const d=D*l.scale,rad=s.radius*d,pl=l.pl,pt=l.pt,pr=l.pr,pb=l.pb;let inset=0;
+ if(s.frame&&frameImg){const fw=Math.max(8,s.fw*d),o=(s.outset||0)*d*0.5;nine(c,frameImg,s.slice,pl-o,pt-o,pr+o,pb+o,fw);inset=Math.max(0,fw*0.45-o);}
+ else{ if(s.shadow){ if(!s.sx&&!s.sy){c.lineWidth=6*d;c.strokeStyle=A(s.shadow,0.5*(parseInt((s.shadow.slice(7)||'ff'),16)/255));rr(c,pl,pt,pr-pl,pb-pt,rad);c.stroke();}
+   else{c.fillStyle=s.shadow;rr(c,pl+s.sx*d,pt+s.sy*d,pr-pl,pb-pt,rad);c.fill();}}
+  const g=c.createLinearGradient(0,pt,0,pb);g.addColorStop(0,s.bg);g.addColorStop(1,s.bg2||s.bg);c.fillStyle=g;rr(c,pl,pt,pr-pl,pb-pt,rad);c.fill();
+  if(s.border&&s.bw>0){c.lineWidth=s.bw*d;c.strokeStyle=s.border;const h=s.bw*d/2;rr(c,pl+h,pt+h,pr-pl-2*h,pb-pt-2*h,rad);c.stroke();} inset=s.bw*d;}
+ const x0=pl+l.pad+inset,y0=pt+l.pad+inset*0.5,right=pr-l.pad-inset,bottom=pb-l.pad*0.6-inset*0.5;
+ arrow(c,x0,y0,l.arrow,s.accent);
+ const xt=x0+l.arrow+l.gap,tw=Math.max(10,right-xt);
+ c.fillStyle=s.fg;c.font=`${l.dist}px "${HF}"`;const mt=c.measureText('0');const asc=mt.fontBoundingBoxAscent||l.dist*0.9,desc=mt.fontBoundingBoxDescent||l.dist*0.25;
+ const dy=y0+asc*0.92;c.fillText(ell(c,zh?'300 米':'300 m',tw),xt,dy);
+ let ty=dy+desc+l.gap*0.4;c.font=`${l.street}px "${BF}"`;
+ const street=ink?'右折，入长安街，过天安门':(sk=='neon'?'Turn right onto Chang\'an Avenue East':'Turn right onto Chang\'an Avenue East toward Wangfujing');
+ const lines=wrap(c,street,tw,2);const lh=l.street*1.17;lines.forEach((t2,i)=>c.fillText(t2,xt,ty+l.street*0.95+i*lh));ty+=lines.length*lh;
+ const rowTop=Math.max(y0+l.arrow,ty)+l.gap;
+ const lanes=[['0','left'],['1','straight'],['1','right']];const lw=Math.min(l.lane*0.9,(right-x0)/lanes.length);let lx=x0;
+ for(const ln of lanes){lane(c,lx+lw/2,rowTop+l.lane/2,Math.min(lw,l.lane)*0.8,ln[1],ln[0]=='1'?s.accent:A(s.muted,0.55));lx+=lw;}
+ const infoTop=rowTop+l.lane+l.gap*0.5;c.fillStyle=A(s.accent,0.45);c.fillRect(x0,infoTop-l.gap*0.5-Math.max(1,d),right-x0,Math.max(1,d));
+ c.font=`${l.info}px "${BF}"`;c.fillStyle=s.muted;const ia=c.measureText('0').fontBoundingBoxAscent||l.info*0.9;
+ c.fillText(ell(c,zh?'到达 21:14  ·  12 分钟  ·  4.8 公里':'ETA 21:14  ·  12 min  ·  4.8 km',right-x0),x0,Math.min(infoTop+ia,bottom));
+ window.overflow=(infoTop+ia>bottom+0.5)||(Math.max(y0+l.arrow,ty)>pb);}
+function ell(c,t,w){if(c.measureText(t).width<=w)return t;while(t.length>1&&c.measureText(t+'…').width>w)t=t.slice(0,-1);return t+'…';}
+function wrap(c,t,w,max){const cjk=/[\u3000-\u9fff]/.test(t),parts=cjk?[...t]:t.split(' '),sp=cjk?'':' ',out=[];let cur='';
+ for(const p of parts){const n=cur?cur+sp+p:p;if(c.measureText(n).width<=w)cur=n;else{out.push(cur);cur=p;if(out.length==max)break;}}
+ if(out.length<max&&cur)out.push(cur);else if(out.length==max&&cur&&out.join(sp).length<t.length)out[max-1]=ell(c,out[max-1]+sp+cur,w);return out.slice(0,max);}
+function nine(c,b,sl,L0,T0,R0,B0,bw){const Wd=b.width,Hd=b.height,[t,r,bt,lf]=sl;const bwT=Math.min(bw,(B0-T0)/2),bwL=Math.min(bw,(R0-L0)/2);
+ const xs=[0,lf,Wd-r,Wd],ys=[0,t,Hd-bt,Hd],X=[L0,L0+bwL,R0-bwL,R0],Y=[T0,T0+bwT,B0-bwT,B0];
+ for(let i=0;i<3;i++)for(let j=0;j<3;j++){const sw=xs[j+1]-xs[j],sh=ys[i+1]-ys[i],dw=X[j+1]-X[j],dh=Y[i+1]-Y[i];if(sw>0&&sh>0&&dw>0&&dh>0)c.drawImage(b,xs[j],ys[i],sw,sh,X[j],Y[i],dw,dh);}}
+function arrow(c,x,y,sz,col){ // right-turn arrow (approximation of Icons.arrow("right"))
+ c.save();c.translate(x,y);c.strokeStyle=col;c.lineWidth=sz*0.13;c.lineCap='round';c.lineJoin='round';c.beginPath();c.moveTo(sz*0.32,sz*0.92);c.lineTo(sz*0.32,sz*0.45);c.quadraticCurveTo(sz*0.32,sz*0.32,sz*0.45,sz*0.32);c.lineTo(sz*0.8,sz*0.32);c.stroke();
+ c.fillStyle=col;c.beginPath();c.moveTo(sz*0.94,sz*0.32);c.lineTo(sz*0.7,sz*0.1);c.lineTo(sz*0.7,sz*0.54);c.closePath();c.fill();c.restore();}
+function lane(c,cx,cy,sz,ind,col){const a={left:-90,'slight left':-45,right:90,'slight right':45,uturn:180}[ind]||0;c.save();c.translate(cx,cy);c.strokeStyle=col;c.lineWidth=Math.max(2,sz*0.13);c.lineCap='round';
+ c.beginPath();c.moveTo(0,sz/2);c.lineTo(0,0);c.stroke();c.rotate(a*Math.PI/180);c.beginPath();c.moveTo(0,0);c.lineTo(0,-sz/2);c.moveTo(-sz*0.22,-sz*0.28);c.lineTo(0,-sz/2);c.lineTo(sz*0.22,-sz*0.28);c.stroke();c.restore();}
+if(s.frame)frameImg=await nineImg();
+document.getElementById('lbl').textContent=`MOCKUP (browser render, not Android Auto) · ${sk} ${mode} · ${lay} ${W}x${H}${l.vis[2]<W?' visible '+l.vis[2]+'px':''} · layout=${['WIDE','SPLIT','NARROW'][l.kind]} from CarLayout.java · panel spec from carPanelSpec · © OpenStreetMap`;
+})();
+</script></body></html>

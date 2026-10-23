@@ -32,3 +32,10 @@
 - Tests: `node --test web/tools/car/test_export.mjs` (6 pass), JVM `CarSkinStoreTest` (2 pass). Previews: `screenshots/car/v0910/` (MOCK).
 - Not tested: real Android Auto/DHU (emulator: no KVM permission on the box), on-device file writes.
 - 0.9.10 / versionCode 9100.
+
+## 0.9.11 — skinned car panel + split/narrow layouts (2026-10-23)
+- Nav card / floating map actions use per-skin CarColor + CarIcon tints; skinned turn-by-turn panel drawn on the map Surface (pack `modes.<m>.carPanel`, phone toggle falls back to standard card).
+- Layouts: full-width, split (Coolwalk ~2/3) and narrow via CarLayout; route ahead kept clear of the panel.
+- Fixes: CarSkinStore crash on API 24–25 (Files.readAllBytes), MapLibre touched off UI thread in setPins, Photon UTF-8 split decoding, cssVars data-URL truncation (sanguo frame), permission/notification prompts, offline/timeout message in search.
+- Tested: 20 JVM unit tests, 27 node tests, lint 0 errors (standard variant), 48 mockup PNGs (screenshots/car/v0911, mockups not real AA).
+- NOT tested: DHU (fails to start on box), real car, Robolectric, aaos lint. Known gap: no native route preview (pick → start on phone).

@@ -116,10 +116,11 @@ async function osrmOnline(from, to, mode) {
   const r = await fetch(u, { signal: withTimeout(15000) });
   const j = await r.json();
   if (j.code !== 'Ok') throw new Error('OSRM ' + j.code);
+  const laneStr = ls => Array.isArray(ls) && ls.length > 1 && ls.length <= 12 ? ls.map(l => (l.valid ? '*' : '') + (l.indications || ['none']).join('|')).join(',') : ''; // v0.9.11 lane hint for the car panel
   return j.routes.map(rt => ({
     geometry: rt.geometry, distance: rt.distance, duration: rt.duration,
     steps: rt.legs.flatMap(l => l.steps.map(s => ({ type: s.maneuver.type, mode: s.mode, modifier: s.maneuver.modifier || '', name: s.name, distance: s.distance,
-      exit: s.maneuver.exit, loc: { lng: s.maneuver.location[0], lat: s.maneuver.location[1] } }))),
+      exit: s.maneuver.exit, lanes: laneStr(s.intersections?.[0]?.lanes), loc: { lng: s.maneuver.location[0], lat: s.maneuver.location[1] } }))),
   }));
 }
 

@@ -32,6 +32,9 @@ final class Icons {
         c.drawPath(a, p); return b;
     }
     static CarIcon maneuver(String turn) { return new CarIcon.Builder(IconCompat.createWithBitmap(arrow(turn, 0xffffffff))).build(); }
+    /** v0.9.11: tinted with the skin accent (CarColor light/dark pair → the host picks per car day/night) */
+    static CarIcon maneuver(String turn, androidx.car.app.model.CarColor tint) { return new CarIcon.Builder(IconCompat.createWithBitmap(arrow(turn, 0xffffffff))).setTint(tint).build(); }
+    static CarIcon icon(String g, androidx.car.app.model.CarColor tint) { return new CarIcon.Builder(IconCompat.createWithBitmap(glyph(g))).setTint(tint).build(); }
 
     static Bitmap glyph(String g) {
         Bitmap b = Bitmap.createBitmap(96, 96, Bitmap.Config.ARGB_8888); Canvas c = new Canvas(b); Paint p = stroke(0xffffffff, 9);

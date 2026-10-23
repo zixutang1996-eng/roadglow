@@ -24,12 +24,15 @@ import java.util.List;
 
 /** Search results on the map (PlaceListNavigationTemplate); tapping a row hands the destination to the phone, which routes and navigates. */
 final class PlaceListScreen extends Screen {
-    private final String q; private List<SearchScreen.Place> res = null; private String err = null;
+    private final String q; private volatile List<SearchScreen.Place> res = null; private volatile String err = null;
     PlaceListScreen(@NonNull CarContext c, String q) {
         super(c); this.q = q;
-        SearchScreen.IO.execute(() -> { try { res = SearchScreen.photon(q); } catch (Exception e) { err = e.getMessage(); res = new ArrayList<>(); }
-            List<double[]> pins = new ArrayList<>(); for (SearchScreen.Place p : res) pins.add(new double[]{p.lng, p.lat}); CarMap.get(c).setPins(pins);
-            c.getMainExecutor().execute(this::invalidate); });
+        SearchScreen.IO.execute(() -> { List<SearchScreen.Place> got; String e2 = null;
+            try { got = SearchScreen.photon(q); } catch (Exception e) { e2 = CarText.offline(); got = new ArrayList<>(); } // offline / timeout (8 s) / HTTP error
+            List<double[]> pins = new ArrayList<>(); for (SearchScreen.Place p : got) pins.add(new double[]{p.lng, p.lat});
+            final List<SearchScreen.Place> fin = got; final String fe = e2;
+            androidx.core.content.ContextCompat.getMainExecutor(c).execute(() -> { if (getLifecycle().getCurrentState() == androidx.lifecycle.Lifecycle.State.DESTROYED) return;
+                res = fin; err = fe; CarMap.get(c).setPins(pins); invalidate(); }); });
     }
     static List<SearchScreen.Place> DEMO = null; // test hook for offline screenshots
     @NonNull @Override public Template onGetTemplate() {
@@ -38,11 +41,11 @@ final class PlaceListScreen extends Screen {
             .setActionStrip(new ActionStrip.Builder().addAction(new Action.Builder().setTitle(com.personal.nav.roadglow.car.CarText.search()).setOnClickListener(() -> getScreenManager().pop()).build()).build());
         List<SearchScreen.Place> r = DEMO != null ? DEMO : res;
         if (r == null) return b.setLoading(true).build();
-        ItemList.Builder il = new ItemList.Builder().setNoItemsMessage(com.personal.nav.roadglow.car.CarText.noResults());
+        ItemList.Builder il = new ItemList.Builder().setNoItemsMessage(err != null ? err : com.personal.nav.roadglow.car.CarText.noResults());
         int i = 0;
         for (SearchScreen.Place p : r) {
             if (i++ >= 6) break;
-            Row.Builder row = new Row.Builder().setTitle(p.name).setBrowsable(false)
+            Row.Builder row = new Row.Builder().setTitle(p.name == null || p.name.trim().isEmpty() ? q : p.name).setBrowsable(false)
                 .setMetadata(new Metadata.Builder().setPlace(new Place.Builder(CarLocation.create(p.lat, p.lng)).setMarker(new PlaceMarker.Builder().setLabel(String.valueOf(i)).build()).build()).build())
                 .setOnClickListener(() -> go(p));
             if (p.dist >= 0) { SpannableString s = new SpannableString("  " + (p.addr.isEmpty() ? "" : "· " + p.addr)); s.setSpan(DistanceSpan.create(NavScreen.dist(p.dist)), 0, 1, Spanned.SPAN_INCLUSIVE_INCLUSIVE); row.addText(s); }
@@ -53,7 +56,13 @@ final class PlaceListScreen extends Screen {
     }
     private void go(SearchScreen.Place p) {
         if (CarState.sink != null) { CarState.sink.dest(p.name, p.lat, p.lng); CarToast.makeText(getCarContext(), com.personal.nav.roadglow.car.CarText.sent(), CarToast.LENGTH_LONG).show(); }
-        else { CarState.pendingDest = "{\"name\":" + org.json.JSONObject.quote(p.name) + ",\"lat\":" + p.lat + ",\"lng\":" + p.lng + "}"; CarToast.makeText(getCarContext(), com.personal.nav.roadglow.car.CarText.waitingPhone(), CarToast.LENGTH_LONG).show(); }
+        else { CarState.pendingDest = "{\"name\":" + org.json.JSONObject.quote(p.name) + ",\"lat\":" + p.lat + ",\"lng\":" + p.lng + "}"; CarToast.makeText(getCarContext(), com.personal.nav.roadglow.car.CarText.waitingPhone(), CarToast.LENGTH_LONG).show();
+            openPhoneApp(); }
         CarMap.get(getCarContext()).setPins(new ArrayList<>()); getScreenManager().popToRoot();
+    }
+    /** v0.9.11: phone UI not running → try to start it so it can take the pending destination (Android may block background starts; then the message stays) */
+    private void openPhoneApp() {
+        try { android.content.Context a = getCarContext().getApplicationContext(); android.content.Intent i = a.getPackageManager().getLaunchIntentForPackage(a.getPackageName());
+            if (i != null) { i.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK); a.startActivity(i); } } catch (Exception ignored) {}
     }
 }

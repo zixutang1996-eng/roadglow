@@ -86,3 +86,22 @@ fonts only) used only on the car screen, e.g. bigger labels or fewer POIs for a 
 "modes": { "light": { "style": "light.json", "sprite": "icons_light", "car": "car_light.json" } }
 ```
 Invalid `car` styles are dropped at install with a warning (the map style is used). Route line colour = `tokens.<mode>.route`.
+
+### Car nav panel (app 0.9.11+)
+During navigation the car shows a skinned turn-by-turn panel drawn on the map (arrow, distance, street, lanes, ETA).
+It is derived automatically from the pack's `theme.css` (nav banner vars `--pbg`, `--tx`/`--ink`, `--tx2`/`--ink2`,
+`--acc`/`--red`, `--prad`, `--pbd`, `--psh`, `--paper`, fonts `--head`/`--f-head`, `--body`/`--f-body`, and the nine-slice
+`--blob-card` + its `border-image` slice/width/outset). Optional override per mode:
+```json
+"modes": { "dark": { "style": "dark.json", "carPanel": {
+  "bg": "#121a3e", "bg2": "#0b1030", "fg": "#ffffff", "muted": "#9aa4c8", "accent": "#3ab8c8",
+  "border": "#2a8a9a", "bw": 1.5, "radius": 8, "shadow": "#00000066", "sx": 0, "sy": 4,
+  "head": "RG Synth Script", "body": "RG Synth Round",
+  "frame": "panel_dark.png", "slice": [60, 60, 60, 60], "fw": 30, "outset": 0,
+  "font": "fonts/panel.ttf" } } }
+```
+All keys optional. Colours `#rgb`/`#rrggbb`/`#rrggbbaa`; numbers are clamped (bw 0–6, radius 0–40, sx/sy ±12, fw 4–80,
+outset 0–60, slice 1–400). `frame` = png/webp in the pack (nine-slice), `frame: null` removes a derived frame. `font` =
+ttf/otf in the pack (woff2 does not load on Android); without it the family name is looked up in the app's bundled car
+fonts, else sans bold. Text contrast fg/bg should be ≥ 4.5:1. The phone setting "Car nav card: Skinned / Standard card"
+switches back to the Android Auto standard card.

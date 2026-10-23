@@ -30,7 +30,8 @@ final class NavScreen extends Screen implements CarState.Listener {
         super(c); cm = CarMap.get(c);
         NavigationManager nm = c.getCarService(NavigationManager.class);
         nm.setNavigationManagerCallback(new NavigationManagerCallback() {
-            @Override public void onStopNavigation() { navStarted = false; invalidate(); }
+            // host ended navigation (e.g. another nav app started): end it on the phone too so both stay in sync
+            @Override public void onStopNavigation() { navStarted = false; CarState.stopFromCar(); invalidate(); }
             @Override public void onAutoDriveEnabled() {}
         });
         getLifecycle().addObserver(new DefaultLifecycleObserver() {
@@ -42,7 +43,7 @@ final class NavScreen extends Screen implements CarState.Listener {
     @Override public void onCarState(String what) {
         if ("pos".equals(what)) return;
         long now = System.currentTimeMillis(); if ("nav".equals(what) && now - last < 900 && CarState.navActive == navStarted) return; last = now;
-        getCarContext().getMainExecutor().execute(this::invalidate);
+        androidx.core.content.ContextCompat.getMainExecutor(getCarContext()).execute(this::invalidate);
     }
     static int maneuverType(String t) {
         switch (t) {
@@ -57,30 +58,49 @@ final class NavScreen extends Screen implements CarState.Listener {
 
     @NonNull @Override public Template onGetTemplate() {
         NavigationManager nm = getCarContext().getCarService(NavigationManager.class);
-        if (CarState.navActive && !navStarted) { try { nm.navigationStarted(); navStarted = true; } catch (Exception ignored) {} }
-        if (!CarState.navActive && navStarted) { try { nm.navigationEnded(); } catch (Exception ignored) {} navStarted = false; }
-        Action search = new Action.Builder().setTitle(CarText.search()).setIcon(Icons.icon("search")).setOnClickListener(() -> getScreenManager().push(new SearchScreen(getCarContext()))).build();
+        int tr = CarState.navTransition(CarState.navActive, navStarted);
+        if (tr > 0) { try { nm.navigationStarted(); navStarted = true; } catch (Exception ignored) {} }
+        if (tr < 0) { try { nm.navigationEnded(); } catch (Exception ignored) {} navStarted = false; }
+        int[] sc = cm.skinColors(); // v0.9.11: {bgLight, bgDark, accentLight, accentDark} of the phone skin
+        CarColor tint = CarColor.createCustom(sc[2], sc[3]);
+        Action search = new Action.Builder().setTitle(CarText.search()).setIcon(Icons.icon("search", tint)).setOnClickListener(() -> getScreenManager().push(new SearchScreen(getCarContext()))).build();
         ActionStrip.Builder as = new ActionStrip.Builder().addAction(search);
-        if (CarState.navActive) as.addAction(new Action.Builder().setTitle(CarText.stop()).setOnClickListener(() -> { if (CarState.sink != null) CarState.sink.dest("__stop__", 0, 0); CarToast.makeText(getCarContext(), CarText.stop(), CarToast.LENGTH_SHORT).show(); }).build());
+        if (CarState.navActive) as.addAction(new Action.Builder().setTitle(CarText.stop()).setOnClickListener(() -> { CarState.stopFromCar(); CarToast.makeText(getCarContext(), CarText.stop(), CarToast.LENGTH_SHORT).show(); }).build());
+        boolean loc = has(android.Manifest.permission.ACCESS_FINE_LOCATION) || has(android.Manifest.permission.ACCESS_COARSE_LOCATION);
+        if (!loc) as.addAction(new Action.Builder().setTitle(CarText.allow()).setOnClickListener(this::askPermissions).build());
         ActionStrip mapStrip = new ActionStrip.Builder()
-            .addAction(new Action.Builder().setIcon(Icons.icon("plus")).setOnClickListener(() -> cm.zoom(1)).build())
-            .addAction(new Action.Builder().setIcon(Icons.icon("minus")).setOnClickListener(() -> cm.zoom(-1)).build())
-            .addAction(new Action.Builder().setIcon(Icons.icon("recenter")).setOnClickListener(cm::recenter).build())
+            .addAction(new Action.Builder().setIcon(Icons.icon("plus", tint)).setOnClickListener(() -> cm.zoom(1)).build())
+            .addAction(new Action.Builder().setIcon(Icons.icon("minus", tint)).setOnClickListener(() -> cm.zoom(-1)).build())
+            .addAction(new Action.Builder().setIcon(Icons.icon("recenter", tint)).setOnClickListener(cm::recenter).build())
             .addAction(Action.PAN).build();
         NavigationTemplate.Builder b = new NavigationTemplate.Builder().setActionStrip(as.build()).setMapActionStrip(mapStrip)
             .setPanModeListener(on -> { if (on) cm.follow = false; })
-            .setBackgroundColor(CarState.ink ? CarColor.createCustom(0xfff1e7d0, 0xff16130f) : CarColor.createCustom(0xff12324a, 0xff0b1622));
-        if (CarState.navActive) {
+            .setBackgroundColor(CarColor.createCustom(sc[0], sc[1]));
+        if (!loc) {
+            b.setNavigationInfo(new MessageInfo.Builder(CarText.needLocation()).setText(CarText.needLocationText()).build());
+        } else if (CarState.navActive && cm.panelActive()) {
+            // skinned panel on the map surface shows maneuver / distance / street / ETA → no RoutingInfo / travel-estimate card
+        } else if (CarState.navActive) {
             String cue = CarState.cue.isEmpty() ? CarText.idle() : CarState.cue;
-            Step.Builder sb = new Step.Builder(cue).setManeuver(new Maneuver.Builder(maneuverType(CarState.turn)).setIcon(Icons.maneuver(CarState.turn)).build());
+            Step.Builder sb = new Step.Builder(cue).setManeuver(new Maneuver.Builder(maneuverType(CarState.turn)).setIcon(Icons.maneuver(CarState.turn, tint)).build());
             if (!CarState.road.isEmpty()) sb.setRoad(CarState.road);
             b.setNavigationInfo(new RoutingInfo.Builder().setCurrentStep(sb.build(), dist(CarState.stepDist)).build());
             long arrive = System.currentTimeMillis() + (long) (CarState.etaSec * 1000);
             b.setDestinationTravelEstimate(new TravelEstimate.Builder(dist(CarState.remDist), DateTimeWithZone.create(arrive, TimeZone.getDefault()))
                 .setRemainingTimeSeconds(Math.max(0, (long) CarState.etaSec)).build());
-        } else if (CarState.styleJson == null) {
+        } else if (CarState.sink == null) { // phone UI not running in this process: car can browse/search, the phone does routing
             b.setNavigationInfo(new MessageInfo.Builder(CarText.idle()).setText(CarText.waitingPhone()).build());
+        } else if (android.os.Build.VERSION.SDK_INT >= 33 && !has(android.Manifest.permission.POST_NOTIFICATIONS)) {
+            b.setNavigationInfo(new MessageInfo.Builder(CarText.idle()).setText(CarText.needNotif()).build());
         }
         return b.build();
+    }
+    private boolean has(String p) { return androidx.core.content.ContextCompat.checkSelfPermission(getCarContext(), p) == android.content.pm.PackageManager.PERMISSION_GRANTED; }
+    /** asks on the phone (the host shows "continue on your phone"); location is needed for the "me" marker and navigation */
+    private void askPermissions() {
+        java.util.List<String> ps = new java.util.ArrayList<>(java.util.Arrays.asList(android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_COARSE_LOCATION));
+        if (android.os.Build.VERSION.SDK_INT >= 33) ps.add(android.Manifest.permission.POST_NOTIFICATIONS);
+        try { getCarContext().requestPermissions(ps, (granted, rejected) -> invalidate()); }
+        catch (Exception e) { CarToast.makeText(getCarContext(), CarText.needLocationText(), CarToast.LENGTH_LONG).show(); }
     }
 }

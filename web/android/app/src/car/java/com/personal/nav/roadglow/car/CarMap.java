@@ -7,7 +7,10 @@ import android.hardware.display.DisplayManager;
 import android.hardware.display.VirtualDisplay;
 import android.os.Handler;
 import android.os.Looper;
+import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
+import com.personal.nav.roadglow.CarLayout;
 import androidx.annotation.NonNull;
 import androidx.car.app.AppManager;
 import androidx.car.app.CarContext;
@@ -44,15 +47,20 @@ final class CarMap implements SurfaceCallback, CarState.Listener {
     static final String DEFAULT_STYLE = "asset://public/car_default.json";
     private final CarContext ctx; private final Handler ui = new Handler(Looper.getMainLooper());
     private VirtualDisplay vd; private Presentation pres; private MapView mv; private MapLibreMap map;
-    private String loadedStyle = null; private Rect visible = null, stable = null; private int w, h;
+    private String loadedStyle = null; private Rect visible = null, stable = null; private int w, h, dpi = 160;
+    private PanelView panel; private PanelSkin skin = null; private CarLayout lay = null; private boolean skinDark = false;
     boolean follow = true; private List<double[]> pins = new ArrayList<>();
-    private static CarMap I; static CarMap get(CarContext c) { if (I == null || I.ctx != c) I = new CarMap(c); return I; }
+    private static CarMap I;
+    static synchronized CarMap get(CarContext c) { if (I == null || I.ctx != c) { if (I != null) I.dispose(); I = new CarMap(c); } return I; }
+    /** old session's instance: stop listening and drop its surface (a new CarContext means a new session) */
+    private void dispose() { CarState.unlisten(this); ui.post(this::release); }
     private CarMap(CarContext c) { ctx = c; MapLibre.getInstance(c.getApplicationContext()); CarState.listen(this); restoreMeta(); }
     /** car started without the phone UI in this process: take skin id / ink / mode / route colours from the last export */
     private void restoreMeta() {
         if (CarState.fromWeb) return; org.json.JSONObject m = CarSkinStore.meta(ctx); if (m == null) return;
         CarState.skin = m.optString("id", CarState.skin); CarState.ink = m.optBoolean("ink", false); CarState.zh = m.optBoolean("zh", false);
         CarState.mode = m.optString("mode", "auto"); CarState.routeLight = m.optString("route", null); CarState.routeDark = m.optString("routeDark", null);
+        CarState.panelOn = m.optBoolean("panelOn", true);
     }
     void restyle() { ui.post(this::applyStyle); }
     /** effective night mode: phone setting, or the car's own day/night when the phone is on auto */
@@ -63,39 +71,76 @@ final class CarMap implements SurfaceCallback, CarState.Listener {
     void register() { ctx.getCarService(AppManager.class).setSurfaceCallback(this); }
 
     @Override public void onSurfaceAvailable(@NonNull SurfaceContainer sc) {
-        if (sc.getSurface() == null) return;
-        w = sc.getWidth(); h = sc.getHeight();
-        DisplayManager dm = ctx.getSystemService(DisplayManager.class);
+        if (sc.getSurface() == null || sc.getWidth() <= 0 || sc.getHeight() <= 0) return;
+        w = sc.getWidth(); h = sc.getHeight(); dpi = sc.getDpi() > 0 ? sc.getDpi() : 160;
+        if (vd != null && pres != null && mv != null) { // v0.9.11: size / surface change (layout switch) → keep the map, resize the display
+            try { vd.setSurface(sc.getSurface()); vd.resize(w, h, dpi); View root = (View) mv.getParent(); if (root != null) { root.setLayoutParams(new ViewGroup.LayoutParams(w, h)); root.requestLayout(); } relayout(); return; }
+            catch (Exception e) { release(); }
+        }
+        DisplayManager dm = ctx.getSystemService(DisplayManager.class); if (dm == null) return;
         vd = dm.createVirtualDisplay("RoadGlowCar", w, h, sc.getDpi(), sc.getSurface(), DisplayManager.VIRTUAL_DISPLAY_FLAG_OWN_CONTENT_ONLY);
+        if (vd == null) return;
         pres = new Presentation(ctx, vd.getDisplay());
         MapLibreMapOptions o = MapLibreMapOptions.createFromAttributes(ctx).textureMode(false).attributionEnabled(true).logoEnabled(false).compassEnabled(false);
         mv = new MapView(pres.getContext(), o);
-        pres.setContentView(mv, new ViewGroup.LayoutParams(w, h));
-        pres.show(); mv.onCreate(null); mv.onStart(); mv.onResume();
-        mv.getMapAsync(m -> { map = m; m.getUiSettings().setAttributionMargins(16, 0, 0, 16); applyStyle(); });
+        FrameLayout root = new FrameLayout(pres.getContext()); panel = new PanelView(pres.getContext());
+        root.addView(mv, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        root.addView(panel, new FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        pres.setContentView(root, new ViewGroup.LayoutParams(w, h));
+        try { pres.show(); } catch (Exception e) { release(); return; }
+        mv.onCreate(null); mv.onStart(); mv.onResume();
+        relayout();
+        mv.getMapAsync(m -> { if (mv == null) return; map = m; m.getUiSettings().setAttributionMargins(16, 0, 0, 16); applyStyle(); });
     }
-    @Override public void onVisibleAreaChanged(@NonNull Rect r) { visible = r; padCamera(); }
-    @Override public void onStableAreaChanged(@NonNull Rect r) { stable = r; }
-    @Override public void onSurfaceDestroyed(@NonNull SurfaceContainer sc) {
+    @Override public void onVisibleAreaChanged(@NonNull Rect r) { visible = new Rect(r); relayout(); }
+    @Override public void onStableAreaChanged(@NonNull Rect r) { stable = new Rect(r); relayout(); }
+    @Override public void onSurfaceDestroyed(@NonNull SurfaceContainer sc) { release(); }
+    /** frees the MapLibre view, the Presentation and the VirtualDisplay (surface gone: disconnect, screen off, session end) */
+    private void release() {
         try { if (mv != null) { mv.onPause(); mv.onStop(); mv.onDestroy(); } } catch (Exception ignored) {}
         try { if (pres != null) pres.dismiss(); } catch (Exception ignored) {}
-        if (vd != null) vd.release(); vd = null; pres = null; mv = null; map = null; loadedStyle = null;
+        try { if (vd != null) vd.release(); } catch (Exception ignored) {}
+        vd = null; pres = null; mv = null; map = null; panel = null; loadedStyle = null;
+    }
+    private int[] colors = null; private int colorsRev = -1;
+    /** v0.9.11 template colours from the exported panel specs: {bgLight, bgDark, accentLight, accentDark} */
+    int[] skinColors() {
+        if (colors != null && colorsRev == CarState.skinRev) return colors;
+        PanelSkin l = PanelSkin.from(ctx, CarSkinStore.panel(ctx, false), false), d = PanelSkin.from(ctx, CarSkinStore.panel(ctx, true), true);
+        colors = new int[]{l.bg, d.bg, l.accent, d.accent}; colorsRev = CarState.skinRev; return colors;
+    }
+    /** whether the skinned panel replaces the template's routing card (NavScreen asks) */
+    boolean panelActive() { return CarState.panelOn && panel != null; }
+    private static int[] arr(Rect r) { return r == null ? null : new int[]{r.left, r.top, r.right, r.bottom}; }
+    /** v0.9.11: layout for the current surface / visible area → panel rect + text sizes + camera padding */
+    private void relayout() {
+        if (w <= 0 || h <= 0) return;
+        lay = CarLayout.compute(w, h, arr(visible), arr(stable), dpi / 160f, CarState.navActive, panelActive(), CarLayout.lanes(CarState.lanes).length > 1);
+        if (panel != null) { boolean dk = dark(); if (skin == null || skinDark != dk) { skin = PanelSkin.from(ctx, CarSkinStore.panel(ctx, dk), dk); skinDark = dk; } panel.set(lay, skin); }
+        padCamera();
     }
     @Override public void onScroll(float dx, float dy) { if (map == null) return; follow = false; map.scrollBy(-dx, -dy, 0); }
     @Override public void onScale(float fx, float fy, float s) { if (map == null) return; map.moveCamera(CameraUpdateFactory.zoomBy(Math.log(s) / Math.log(2))); }
     @Override public void onFling(float vx, float vy) {}
 
-    void zoom(double d) { if (map != null) map.animateCamera(CameraUpdateFactory.zoomBy(d), 300); }
-    void recenter() { follow = true; camera(500); }
-    void setPins(List<double[]> p) { pins = p; ui.post(this::drawOverlays); if (!p.isEmpty() && map != null) { follow = false; map.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(p.get(0)[1], p.get(0)[0]), 13), 500); } }
+    void zoom(double d) { ui.post(() -> { if (map != null) map.animateCamera(CameraUpdateFactory.zoomBy(d), 300); }); }
+    void recenter() { follow = true; ui.post(() -> camera(500)); }
+    /** may be called from the search IO thread → all map work is posted to the UI thread (MapLibre is single-threaded) */
+    void setPins(List<double[]> p) { final List<double[]> c = p == null ? new ArrayList<>() : new ArrayList<>(p); ui.post(() -> { pins = c; drawOverlays();
+        if (!c.isEmpty() && map != null) { follow = false; map.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(c.get(0)[1], c.get(0)[0]), 13), 500); } }); }
 
-    @Override public void onCarState(String what) { ui.post(() -> { if ("style".equals(what)) applyStyle(); else { drawOverlays(); if (follow) camera(800); } }); }
+    private boolean lastNav = false; private String lastLanes = "";
+    @Override public void onCarState(String what) { ui.post(() -> {
+        if ("style".equals(what)) { skin = null; relayout(); applyStyle(); return; }
+        if (CarState.navActive != lastNav || !lastLanes.equals(CarState.lanes)) { lastNav = CarState.navActive; lastLanes = CarState.lanes; relayout(); }
+        if (panel != null && "nav".equals(what)) panel.invalidate();
+        drawOverlays(); if (follow) camera(800); }); }
 
-    private void padCamera() { if (map == null || visible == null) return; map.setPadding(visible.left, visible.top + (CarState.navActive ? (visible.height() / 3) : 0), w - visible.right, h - visible.bottom); }
+    private void padCamera() { if (map == null || lay == null) return; map.setPadding(lay.padL, lay.padT, lay.padR, lay.padB); }
 
     private void applyStyle() {
         if (map == null) return;
-        final boolean dk = dark();
+        final boolean dk = dark(); if (skin == null || skinDark != dk) { skin = null; relayout(); }
         // 1) exported skin files (v0.9.10)  2) legacy in-memory style pushed by an older web bundle  3) built-in default
         String js = CarSkinStore.load(ctx, dk); String src = "file";
         if (js == null && CarState.styleJson != null && CarSkinStore.valid(CarState.styleJson)) { js = CarState.styleJson; src = "mem"; }

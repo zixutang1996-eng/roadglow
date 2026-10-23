@@ -7,8 +7,8 @@ android {
         applicationId "com.personal.nav.roadglow"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 9100
-        versionName "0.9.10"
+        versionCode 9110
+        versionName "0.9.11"
         ndk { abiFilters "arm64-v8a" }
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
@@ -38,8 +38,8 @@ android {
     sourceSets {
         shandong { java.srcDirs = ['src/beijing/java'] }
         shaanxi { java.srcDirs = ['src/beijing/java'] }
-        standard { java.srcDirs += ['src/car/java'] }
-        aaos { java.srcDirs = ['src/beijing/java', 'src/car/java', 'src/aaos/java'] }
+        standard { java.srcDirs += ['src/car/java']; assets.srcDirs += ['src/car/assets'] }
+        aaos { java.srcDirs = ['src/beijing/java', 'src/car/java', 'src/aaos/java']; assets.srcDirs += ['src/car/assets'] }
     }
     buildTypes {
         release {

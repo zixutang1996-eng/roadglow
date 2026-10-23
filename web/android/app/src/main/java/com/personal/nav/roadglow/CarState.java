@@ -25,6 +25,9 @@ public final class CarState {
     public static volatile String cue = "", road = "", turn = "straight", destName = "", distText = "", remText = "", etaText = "";
     public static volatile double stepDist = 0, remDist = 0, etaSec = 0;
     public static volatile double[] route = null;      // flat [lng,lat,lng,lat,...]
+    // v0.9.11: lane hint of the next maneuver ("*left,straight,*straight|right"), skinned panel on/off (phone setting)
+    public static volatile String lanes = "";
+    public static volatile boolean panelOn = true;
 
     public interface Listener { void onCarState(String what); }
     private static final List<Listener> L = new ArrayList<>();
@@ -36,4 +39,19 @@ public final class CarState {
     public interface DestSink { void dest(String name, double lat, double lng); }
     public static volatile DestSink sink = null;
     public static volatile String pendingDest = null; // JSON, delivered when the WebView attaches
+
+    /**
+     * v0.9.11 "End" on the car (or the host stopping navigation): tell the phone if its WebView is attached, and end
+     * the car-side state right away so the car never stays stuck in navigation when the phone UI is gone.
+     * @return true if the phone was told
+     */
+    public static boolean stopFromCar() {
+        DestSink s = sink; boolean told = false;
+        if (s != null) { try { s.dest("__stop__", 0, 0); told = true; } catch (Exception ignored) {} }
+        pendingDest = null;
+        if (navActive) { navActive = false; route = null; cue = ""; road = ""; lanes = ""; stepDist = remDist = etaSec = 0; emit("nav"); }
+        return told;
+    }
+    /** host NavigationManager bookkeeping: +1 → navigationStarted(), -1 → navigationEnded(), 0 → nothing */
+    public static int navTransition(boolean active, boolean hostStarted) { return active && !hostStarted ? 1 : !active && hostStarted ? -1 : 0; }
 }

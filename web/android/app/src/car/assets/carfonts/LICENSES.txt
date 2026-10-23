@@ -1,0 +1,1 @@
+All fonts here are SIL Open Font License 1.1 (converted woff2 → ttf, unmodified glyphs): Rajdhani, IM Fell English, Alegreya, Space Grotesk, Cinzel, Barlow Condensed (see public/fonts/LICENSES-*.txt); Ma Shan Zheng (sanguo pack); synth fonts = Kaushan Script, Righteous, Orbitron (synthb pack fonts/OFL-*.txt).

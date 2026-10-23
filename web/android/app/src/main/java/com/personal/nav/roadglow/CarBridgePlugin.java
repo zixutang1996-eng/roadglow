@@ -41,6 +41,7 @@ public class CarBridgePlugin extends Plugin {
                 CarState.skin = d.optString("id", CarState.skin); CarState.ink = d.optBoolean("ink", CarState.ink); CarState.zh = d.optBoolean("zh", CarState.zh);
                 CarState.mode = d.optString("mode", CarState.mode); CarState.dark = d.optBoolean("dark", CarState.dark);
                 CarState.routeLight = d.optString("route", null); CarState.routeDark = d.optString("routeDark", null);
+                if (d.has("panelOn")) CarState.panelOn = d.optBoolean("panelOn", true);
                 CarState.fromWeb = true; CarState.skinRev++; CarState.emit("style");
                 c.resolve(new JSObject().put("ok", true));
             } else c.reject("invalid car style");
@@ -58,7 +59,7 @@ public class CarBridgePlugin extends Plugin {
         CarState.navActive = Boolean.TRUE.equals(c.getBoolean("active", false));
         CarState.cue = c.getString("cue", ""); CarState.road = c.getString("road", ""); CarState.turn = c.getString("turn", "straight");
         CarState.destName = c.getString("dest", ""); CarState.distText = c.getString("distText", ""); CarState.remText = c.getString("remText", "");
-        CarState.etaText = c.getString("etaText", "");
+        CarState.etaText = c.getString("etaText", ""); CarState.lanes = c.getString("lanes", "");
         CarState.stepDist = c.getDouble("stepDist", 0.0); CarState.remDist = c.getDouble("remDist", 0.0); CarState.etaSec = c.getDouble("eta", 0.0);
         if (c.hasOption("lat")) { CarState.lat = c.getDouble("lat"); CarState.lng = c.getDouble("lng"); CarState.bearing = c.getDouble("bearing", CarState.bearing); }
         try {

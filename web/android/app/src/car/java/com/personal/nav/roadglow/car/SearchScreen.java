@@ -36,10 +36,14 @@ final class SearchScreen extends Screen {
         StringBuilder u = new StringBuilder("https://photon.komoot.io/api/?limit=6&q=").append(URLEncoder.encode(q, "UTF-8"));
         if (!Double.isNaN(CarState.lat)) u.append("&lat=").append(CarState.lat).append("&lon=").append(CarState.lng);
         if (!CarText.zh()) u.append("&lang=en");
-        HttpURLConnection c = (HttpURLConnection) new URL(u.toString()).openConnection(); c.setConnectTimeout(8000); c.setReadTimeout(8000);
-        c.setRequestProperty("User-Agent", "RoadGlow-car/0.9.8 (personal)");
-        StringBuilder sb = new StringBuilder(); try (InputStream is = c.getInputStream()) { byte[] b = new byte[8192]; int n; while ((n = is.read(b)) > 0) sb.append(new String(b, 0, n, "UTF-8")); }
-        JSONArray fs = new JSONObject(sb.toString()).getJSONArray("features"); List<Place> out = new ArrayList<>();
+        HttpURLConnection c = (HttpURLConnection) new URL(u.toString()).openConnection(); String body;
+        try { c.setConnectTimeout(8000); c.setReadTimeout(8000);
+            c.setRequestProperty("User-Agent", "RoadGlow-car/0.9.11 (personal)");
+            // bytes first, decode once: a multi-byte UTF-8 char (CJK names) may straddle two reads
+            java.io.ByteArrayOutputStream bo = new java.io.ByteArrayOutputStream(); try (InputStream is = c.getInputStream()) { byte[] b = new byte[8192]; int n; while ((n = is.read(b)) > 0) bo.write(b, 0, n); }
+            body = bo.toString("UTF-8");
+        } finally { c.disconnect(); }
+        JSONArray fs = new JSONObject(body).getJSONArray("features"); List<Place> out = new ArrayList<>();
         for (int i = 0; i < fs.length(); i++) {
             JSONObject f = fs.getJSONObject(i), p = f.getJSONObject("properties"); JSONArray co = f.getJSONObject("geometry").getJSONArray("coordinates");
             Place pl = new Place(); pl.lng = co.getDouble(0); pl.lat = co.getDouble(1); pl.name = p.optString("name", p.optString("street", q));

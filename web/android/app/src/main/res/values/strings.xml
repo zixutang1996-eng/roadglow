@@ -2,8 +2,8 @@
 <resources>
     <string name="app_name">RoadGlow</string>
     <string name="title_activity_main">RoadGlow</string>
-    <string name="package_name">com.personal.nav.roadglow</string>
-    <string name="custom_url_scheme">com.personal.nav.roadglow</string>
+    <string name="package_name" translatable="false">com.personal.nav.roadglow</string>
+    <string name="custom_url_scheme" translatable="false">com.personal.nav.roadglow</string>
     <string name="capacitor_background_geolocation_notification_channel_name">Navigation location</string>
-    <string name="capacitor_background_geolocation_notification_icon">drawable/ic_stat_nav</string>
+    <string name="capacitor_background_geolocation_notification_icon" translatable="false">drawable/ic_stat_nav</string>
 </resources>

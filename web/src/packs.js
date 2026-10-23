@@ -10,7 +10,7 @@ const hex = b => [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')
 export const sha256 = async u8 => hex(await crypto.subtle.digest('SHA-256', u8));
 const cmpVer = (a, b) => { const x = String(a).split('.').map(Number), y = String(b).split('.').map(Number); for (let i = 0; i < 3; i++) { if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) - (y[i] || 0); } return 0; };
 export { cmpVer };
-const MIME = { png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', webp: 'image/webp', svg: 'image/svg+xml', mp3: 'audio/mpeg', ogg: 'audio/ogg', m4a: 'audio/mp4', wav: 'audio/wav', woff2: 'font/woff2' };
+const MIME = { png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', webp: 'image/webp', svg: 'image/svg+xml', mp3: 'audio/mpeg', ogg: 'audio/ogg', m4a: 'audio/mp4', wav: 'audio/wav', woff2: 'font/woff2', ttf: 'font/ttf', otf: 'font/otf' };
 const u8ToDataURL = (u8, ext) => new Promise(r => { const f = new FileReader(); f.onload = () => r(f.result); f.readAsDataURL(new Blob([u8], { type: MIME[ext] || 'application/octet-stream' })); });
 
 /** CSS sanitiser: only scoped, local CSS. Strips @import, remote url(), javascript:, expression(), behaviour bindings. */
@@ -60,6 +60,7 @@ export async function readPack(u8, { expectSha, appVer } = {}) {
     for (const m of ['light', 'dark']) { const md = p.skin.modes[m]; if (!md) continue;
       if (typeof md.style === 'string') md.style = JSON.parse(txt(md.style));
       if (typeof md.car === 'string') md.car = JSON.parse(txt(md.car)); // v0.9.10 optional car-screen style
+      if (md.carPanel && typeof md.carPanel === 'object') for (const k of ['frame', 'font']) if (typeof md.carPanel[k] === 'string' && assets[md.carPanel[k]]) md.carPanel[k] = assets[md.carPanel[k]]; // v0.9.11 car panel art
       if (typeof md.sprite === 'string') md.sprite = { json: JSON.parse(txt(md.sprite + '.json')), png: assets[md.sprite + '.png'] };
       if (typeof md.css === 'string' && files[md.css]) md.css = txt(md.css); }
     if (typeof p.skin.css === 'string' && files[p.skin.css]) p.skin.css = txt(p.skin.css);
@@ -74,7 +75,7 @@ export async function readPack(u8, { expectSha, appVer } = {}) {
 /** Convert a skin pack to the runtime shape used by skins.js (roadglow-skin/1) and store it there. */
 async function storeSkin(p, src, sha) {
   const k = p.skin, legacy = { format: SK.FORMAT, id: p.id, name: p.name, version: p.version, author: p.author || '—', license: p.license || '—', base: k.base,
-    modes: Object.fromEntries(['light', 'dark'].filter(m => k.modes[m]).map(m => [m, { style: k.modes[m].style, ...(k.modes[m].sprite ? { sprite: k.modes[m].sprite } : {}), ...(k.modes[m].car ? { car: k.modes[m].car } : {}) }])),
+    modes: Object.fromEntries(['light', 'dark'].filter(m => k.modes[m]).map(m => [m, { style: k.modes[m].style, ...(k.modes[m].sprite ? { sprite: k.modes[m].sprite } : {}), ...(k.modes[m].car ? { car: k.modes[m].car } : {}), ...(k.modes[m].carPanel && typeof k.modes[m].carPanel === 'object' ? { carPanel: k.modes[m].carPanel } : {}) }])),
     tokens: k.tokens || {}, strings: p.strings || null, fx: Array.isArray(k.fx) ? k.fx.filter(x => typeof x === 'string').slice(0, 8) : [], puck: k.puck ? Object.fromEntries(['light', 'dark'].filter(m => typeof k.puck[m] === 'string' && /^data:image\/(png|webp);base64,/.test(k.puck[m])).map(m => [m, k.puck[m]])) : null, css: k.css || '', cssModes: { light: k.modes.light?.css || '', dark: k.modes.dark?.css || '' }, pack2: true, sha256: sha, minAppVersion: p.minAppVersion };
   for (const m of Object.keys(legacy.modes)) if (!legacy.modes[m].style) { const r = await fetch(`${new URL(import.meta.env.BASE_URL, location.href).href}styles/${k.base}_${m}.json`); legacy.modes[m].style = await r.json(); }
   return SK.installObject(legacy, src);
