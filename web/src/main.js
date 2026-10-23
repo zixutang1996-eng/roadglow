@@ -1,5 +1,5 @@
 import { NATIVE } from './native.js';
-import { BJ, BJ_CENTER, BJ_ZOOM, BJ_BOUNDS } from './bj.js';
+import { BJ, BJ_CENTER, BJ_ZOOM, BJ_BOUNDS, TILE_BUNDLES, registerTileProtocol } from './bj.js';
 import * as maplibregl from 'maplibre-gl';
 import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 import 'maplibre-gl/dist/maplibre-gl.css';
@@ -22,6 +22,7 @@ let placeExtras = null; const tools = {}; let drawerExtra = () => ({ lists: '', 
 document.documentElement.dataset.lang = lang; const ZH = lang === 'zh', L = (zh, en) => ZH ? (OV.L[zh] || zh) : en;
 
 maplibregl.setWorkerUrl(workerUrl);
+if (TILE_BUNDLES) registerTileProtocol(maplibregl);
 const $ = s => document.querySelector(s);
 const APPVER = import.meta.env.VITE_APPVER || '';
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -48,7 +49,7 @@ const isDark = () => S.mode === 'dark' || (S.mode === 'auto' && matchMedia('(pre
 const styleKey = () => `${S.theme}_${isDark() ? 'dark' : 'light'}`;
 const base = new URL(import.meta.env.BASE_URL, location.href).href;
 
-const BJ_TILES = () => `${new URL(import.meta.env.BASE_URL, location.href).href}tiles/{z}/{x}/{y}.pbf`;
+const BJ_TILES = () => TILE_BUNDLES ? 'rgt://{z}/{x}/{y}' : `${new URL(import.meta.env.BASE_URL, location.href).href}tiles/{z}/{x}/{y}.pbf`;
 let _tj; const tileJSON = () => BJ ? Promise.resolve({ tiles: [BJ_TILES()], maxzoom: 14 }) : _tj ||= fetch('https://tiles.openfreemap.org/planet').then(r => r.json()).catch(e => { _tj = null; throw e; });
 async function loadStyle() {
   let st, pk = null;

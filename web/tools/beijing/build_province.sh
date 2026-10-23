@@ -8,7 +8,7 @@ OUT=dist-$ED
 node tools/gensprites.mjs && node tools/genskins.mjs && node tools/gennewskins.mjs && node tools/genpacks.mjs
 VITE_EDITION=$ED npx vite build --outDir $OUT --emptyOutDir
 rm -rf $OUT/addr $OUT/pois_yeg.geojson $OUT/important_yeg.geojson $OUT/sidequests_ca.json $OUT/sw.js
-cp -r "$PDATA/$ED/tiles" $OUT/tiles
+cp -r "$PDATA/$ED/tiles" $OUT/tiles && python3 tools/beijing/bundle_tiles.py $OUT/tiles
 cp "$PDATA/$ED"/out/{pois_bj.geojson,bj_imp.geojson,bj_rev.json,bj_walk.json} $OUT/
 [ "${NOAPK:-}" ] && exit 0
 npx cap copy android >/dev/null
