@@ -1,0 +1,15 @@
+<html><head><meta charset="utf-8"><link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet"><script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<style>body{margin:0;font-family:sans-serif}#m{width:1024px;height:600px}.c{position:absolute;left:16px;top:16px;width:330px;border-radius:14px;padding:14px;font-size:20px}.a{position:absolute;right:16px;top:16px;display:flex;flex-direction:column;gap:8px}.a div{width:52px;height:52px;border-radius:26px;display:flex;align-items:center;justify-content:center;font-size:26px}.t{position:absolute;left:16px;bottom:16px;border-radius:12px;padding:10px 16px;font-size:18px}.w{position:absolute;right:8px;bottom:4px;font-size:11px;opacity:.7}</style></head><body><div id=m></div><div id=ui></div><script>
+const q=new URLSearchParams(location.search),dark=q.get('dark')=='1',ink=q.get('ink')=='1',nav=q.get('nav')=='1';
+const bg=dark?'#202124':'#fff',fg=dark?'#fff':'#202124';
+fetch(q.get("s")).then(r=>r.text()).then(t=>JSON.parse(t.split("asset://public/").join(location.origin+"/pub/"))).then(st=>{for(const k in st.sources){const s=st.sources[k];if(s.url&&s.url.startsWith('asset'))delete st.sources[k]}
+st.layers=st.layers.filter(l=>!l.source||st.sources[l.source]);
+const m=new maplibregl.Map({container:'m',style:st,center:[117.02,36.66],zoom:14.5,bearing:nav?30:0,pitch:nav?45:0,attributionControl:false,preserveDrawingBuffer:true});
+m.on('load',()=>{if(nav){m.addSource('r',{type:'geojson',data:{type:'LineString',coordinates:[[117.005,36.65],[117.02,36.66],[117.035,36.668]]}});m.addLayer({id:'r',type:'line',source:'r',paint:{'line-color':'#1a73e8','line-width':8}})}
+setTimeout(()=>window.done=1,4000)})});
+let h='';const C=`style="background:${bg};color:${fg};box-shadow:0 2px 8px #0006"`;
+if(nav)h+=`<div class=c ${C}><div style="font-size:34px">${ink?'↱ 右转':'↱ 300 m'}</div><div>${ink?'行三百步，右折入泺源大街':'Turn right onto Luoyuan St'}</div></div><div class=t ${C}>${ink?'余程五里 · 约一刻':'4.8 km · 12 min · ETA 21:14'}</div>`;
+else h+=`<div class=t ${C}>${ink?'寻地':'🔍 Search'}</div>`;
+h+=`<div class=a>${['＋','－','◎'].map(x=>`<div ${C}>${x}</div>`).join('')}</div><div class=w style="color:${fg}">© OpenStreetMap · PREVIEW MOCK</div>`;
+document.getElementById('ui').innerHTML=h;
+</script></body></html>
