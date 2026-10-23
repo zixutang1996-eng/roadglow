@@ -61,6 +61,7 @@ export function startNavigation({ map, S, setMe, makePuck, reroute, drawRoutes, 
       padding: { top: h * 0.42, bottom: 90, left: 0, right: 0 }, duration, easing: x => x });
   }
 
+  let carRoute = null;
   function onPos(p) {
     if (!st.active) return; st.gpsLostSaid = 0;
     if (lastPos && haversine(lastPos, p) > 1.5) { const brg = p.heading ?? bearingOf(lastPos, p); smBearing = (smBearing + angDiff(smBearing, brg) * 0.35 + 360) % 360; }
@@ -90,6 +91,8 @@ export function startNavigation({ map, S, setMe, makePuck, reroute, drawRoutes, 
       <div class="objsub">${lang === 'zh' ? `${tz('nav_go', '前往')} ${esc(dn)} · ${tz('nav_rem', '还剩')} ${fmtDist(rem)} · ${at} ${tz('nav_at', '到达')}` : `Go to ${esc(dn)} · ${fmtDist(rem)} left · arrive ${at}`}</div>`;
     footEta.innerHTML = `<b>${tz('eta_fmt', '{d}').replace('{d}', fmtDur(eta))}</b><div style="font-size:13px;color:var(--muted)">${fmtDist(rem)} · ${at}</div>`; hdgBtn.textContent = headingUp ? '⬆' : 'N';
     }
+    const newR = carRoute !== route; carRoute = route;
+    window.__rgCar?.nav({ active: true, step: s, cue: instruction(s), toNext, rem, eta, dest: dn, p, bearing: smBearing, route: newR ? route.geometry.coordinates : null, force: newR });
     if (s.type === 'arrive' && toNext < 25) { sayEv('arrive'); return end(); }
     for (const th of [800, 200, 40]) {
       const k = step + '@' + th;
@@ -142,6 +145,7 @@ export function startNavigation({ map, S, setMe, makePuck, reroute, drawRoutes, 
     for (const ev of ['dragstart', 'rotatestart', 'pitchstart', 'zoomstart']) map.off(ev, userMove);
     banner.classList.add('hidden'); banner.classList.remove('objective'); destMarker.remove(); foot.remove(); then.remove(); spd.remove(); rc.remove(); puck.getElement().classList.remove('nav'); puck.setRotation(0);
     map.easeTo({ pitch: 0, bearing: 0, padding: { top: 0, bottom: 0, left: 0, right: 0 }, duration: 600 });
+    window.__rgCar?.nav({ active: false, force: true, route: [] });
     onEnd();
   }
   st.end = end; st.toggleHeading = toggleHeading; st.checkBetter = () => lastPos && checkBetter(lastPos); st.inject = p => onPos(p); st.gpsLost = () => sayEv('gpslost'); st.route = () => route; st._force = () => { lastSwitch = 0; };

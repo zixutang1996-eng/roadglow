@@ -46,6 +46,7 @@ public class MainActivity extends BridgeActivity {
         } catch (Exception ignored) {}
         registerPlugin(ApkUpdaterPlugin.class);
         registerPlugin(LocationEnablerPlugin.class);
+        registerPlugin(CarBridgePlugin.class);
         super.onCreate(savedInstanceState);
         handlePack(getIntent());
     }
