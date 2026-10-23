@@ -22,7 +22,7 @@ const D = {
     nominatim:'Search more with Nominatim', coords:'Coordinates', nearby:'Nearby', more:'More',
     about_text:'Personal navigation app. Map data © OpenStreetMap contributors (ODbL); vector tiles OpenFreeMap / OpenMapTiles; search Photon (komoot), Nominatim; details Overpass; routing FOSSGIS OSRM; photos Wikimedia Commons; side quests Wikidata (CC0); transit Transitous (MOTIS); weather Open-Meteo (CC BY 4.0); icons Maki (CC0); fonts Rajdhani, IM FELL English (OFL). Edmonton address points: Contains information licensed under the Open Government Licence – City of Edmonton (Open Data "Parcel Addresses"; no postal codes).' },
 };
-export let lang = (localStorage.getItem('lang') || ((import.meta.env||{}).VITE_EDITION === 'beijing' ? 'zh' : navigator.language || 'en')).toLowerCase().startsWith('zh') ? 'zh' : 'en';
+export let lang = (localStorage.getItem('lang') || (['beijing', 'shandong', 'shaanxi'].includes((import.meta.env||{}).VITE_EDITION) ? 'zh' : navigator.language || 'en')).toLowerCase().startsWith('zh') ? 'zh' : 'en';
 export const setLang = l => { if (l) localStorage.setItem('lang', l); else localStorage.removeItem('lang'); location.reload(); };
 // v0.9.6: skin packs may override Chinese UI strings (poetic wording). OV.t: i18n keys; OV.L: inline L('中文', 'en') strings.
 export const OV = { t: {}, L: {}, dir: {} };

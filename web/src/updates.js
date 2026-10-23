@@ -71,7 +71,7 @@ export async function openUpdater({ openPanel, L, $, native, bj, webVer }) {
   const head = `<div class="upd"><div class="updv"><div><div class="updk">${L('当前版本', 'Installed')}</div><b>v${esc(cur)}</b></div><div><div class="updk">${L('网页内容', 'Web content')}</div><b>${esc(webVer || '–')}</b></div></div><div id="updBody"></div></div>`;
   openPanel(head, L('检查更新', 'Check for updates'), 'upd');
   const body = $('#updBody'), set = h => { if ($('#updBody')) $('#updBody').innerHTML = h; };
-  if (bj) return set(`<div class="updn">${L('北京版不联网检查更新：GitHub 在中国大陆通常无法访问。有新版本时，家人会把安装包直接发给您，点开安装即可（数据保留）。', 'The Beijing edition does not check online: GitHub is usually unreachable in mainland China. New versions are sent to you as an APK file; tap it to install (your data is kept).')}</div>`);
+  if (bj) return set(`<div class="updn">${L('离线版不联网检查更新：GitHub 在中国大陆通常无法访问。有新版本时，家人会把安装包直接发给您，点开安装即可（数据保留）。', 'The offline edition does not check online: GitHub is usually unreachable in mainland China. New versions are sent to you as an APK file; tap it to install (your data is kept).')}</div>`);
   set(`<div class="updn"><span class="updspin"></span>${L('正在检查…', 'Checking…')}</div>`);
   let r;
   try { const res = await fetch(`https://api.github.com/repos/${REPO}/releases/latest`, { headers: { Accept: 'application/vnd.github+json' }, cache: 'no-store' }); if (!res.ok) throw new Error('HTTP ' + res.status); r = await res.json(); }

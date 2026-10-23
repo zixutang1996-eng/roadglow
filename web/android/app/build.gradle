@@ -7,8 +7,8 @@ android {
         applicationId "com.personal.nav.roadglow"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 9050
-        versionName "0.9.5"
+        versionCode 9070
+        versionName "0.9.7"
         ndk { abiFilters "arm64-v8a" }
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
@@ -29,6 +29,13 @@ android {
         standard { dimension "edition" }
         // RoadGlow 北京: offline Beijing edition, installs next to the normal app
         beijing { dimension "edition"; applicationIdSuffix ".beijing"; versionNameSuffix "-beijing" }
+        // v0.9.7 province editions (offline Shandong / Shaanxi maps), same offline engine as Beijing
+        shandong { dimension "edition"; applicationIdSuffix ".shandong"; versionNameSuffix "-shandong" }
+        shaanxi { dimension "edition"; applicationIdSuffix ".shaanxi"; versionNameSuffix "-shaanxi" }
+    }
+    sourceSets {
+        shandong { java.srcDirs = ['src/beijing/java'] }
+        shaanxi { java.srcDirs = ['src/beijing/java'] }
     }
     buildTypes {
         release {

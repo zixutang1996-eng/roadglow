@@ -1,6 +1,7 @@
 // Free, fair-use services. No API keys. See ROADMAP.md for limits.
 import { lang } from './i18n.js';
-import { BJ, bjWalk, bjReverse, inWalkArea } from './bj.js';
+import { BJ, bjWalk, bjReverse, inWalkArea, EDITION } from './bj.js';
+const WALK_AREA = { beijing: '朝阳、东城、西城区', shandong: '济南市中心城区', shaanxi: '西安市中心城区' };
 
 const withTimeout = (ms) => { const c = new AbortController(); setTimeout(() => c.abort(), ms); return c.signal; };
 
@@ -19,7 +20,7 @@ export async function photon(q, center, limit = 8, zoom = 12, signal, bbox) {
   return (await r.json()).features.map(fromPhoton);
 }
 export async function photonReverse(ll) {
-  if (BJ) { const r = await bjReverse(ll); return { name: r.street || '已选位置', address: [r.district, '北京市'].filter(Boolean).join('，'), lat: ll.lat, lng: ll.lng }; }
+  if (BJ) { const r = await bjReverse(ll); return { name: r.street || '已选位置', address: [r.district, r.city, r.city === r.prov ? '' : r.prov].filter(Boolean).join('，'), lat: ll.lat, lng: ll.lng }; }
   const r = await fetch(`https://photon.komoot.io/reverse?lat=${ll.lat}&lon=${ll.lng}&limit=1`, { signal: withTimeout(8000) });
   const f = (await r.json()).features[0];
   return f ? fromPhoton(f) : null;
@@ -101,7 +102,7 @@ export async function nearbyCategory(filter, bounds) {
 
 export async function osrm(from, to, mode) {
   if (BJ) { // offline walking graph; online engines only as a quick (≤4 s) try for driving/cycling
-    const walk = () => bjWalk(from, to).catch(e => { throw new Error(e.message === 'outside' ? '离线步行路线只覆盖朝阳、东城、西城区（起点或终点超出范围）' : '离线地图中找不到可步行的路线'); });
+    const walk = () => bjWalk(from, to).catch(e => { throw new Error(e.message === 'outside' ? `离线步行路线只覆盖${WALK_AREA[EDITION] || ''}（起点或终点超出范围）` : '离线地图中找不到可步行的路线'); });
     if (mode === 'walk') return walk();
     try { return await osrmOnline(from, to, mode); } catch {}
     if (inWalkArea(from) && inWalkArea(to)) { const r = await walk(); r[0].note = '在线路线服务无法连接，已显示离线步行路线'; return r; }
@@ -204,7 +205,7 @@ export async function photosFor(tags, ll) {
 // Reverse geocode (Nominatim, queued 1 req/s, cached in memory + localStorage)
 const revCache = new Map(Object.entries(JSON.parse(localStorage.getItem('revCache') || '{}')));
 export async function reverseAddr(ll) {
-  if (BJ) { const r = await bjReverse(ll); return { 'addr:street': r.street, 'addr:city': r.district || '北京市', '_n:state': '北京市', '_n:cc': 'cn', '_n:country': '中国' }; }
+  if (BJ) { const r = await bjReverse(ll); return { 'addr:street': r.street, 'addr:city': r.city || r.district || r.prov, '_n:state': r.prov, '_n:cc': 'cn', '_n:country': '中国' }; }
   const k = ll.lat.toFixed(5) + ',' + ll.lng.toFixed(5); if (revCache.has(k)) return revCache.get(k);
   await nomQueue();
   const x = await (await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${ll.lat}&lon=${ll.lng}&format=jsonv2&addressdetails=1&zoom=18&accept-language=${lang === 'zh' ? 'zh,en' : 'en'}`, { signal: withTimeout(8000) })).json();

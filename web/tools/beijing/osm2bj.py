@@ -8,7 +8,8 @@ from shapely import wkb as swkb
 from shapely.geometry import Point
 from shapely.strtree import STRtree
 SRC, OUT = sys.argv[1], sys.argv[2]
-WB = (116.25, 39.80, 116.66, 40.10)  # walking graph bbox: Chaoyang + Dongcheng/Xicheng
+import os
+WB = tuple(map(float, os.environ['WB'].split(','))) if os.environ.get('WB') else (116.25, 39.80, 116.66, 40.10)  # walking graph bbox (default: central Beijing)
 FOOT = {'footway','path','pedestrian','residential','living_street','service','tertiary','tertiary_link','secondary','secondary_link','primary','primary_link','unclassified','steps','track','cycleway','road'}
 CJK = re.compile(r'[\u3400-\u9fff]')
 def cls_of(t):
@@ -38,7 +39,7 @@ def py(s):
         i = s.find(w)
         if i >= 0 and len(p) == len(s): p[i:i + len(w)] = r
     return ' '.join(p), ''.join(p), ''.join(x[0] for x in p if x)
-pois, streets, districts, wnodes, wways = [], [], [], {}, []
+pois, streets, districts, wnodes, wways, cities = [], [], [], {}, [], []
 class H(osmium.SimpleHandler):
     def poi(self, o, ll, kind):
         t = {k.k: k.v for k in o.tags}; n = t.get('name:zh-Hans') or t.get('name:zh') or t.get('name')
@@ -76,8 +77,11 @@ class H(osmium.SimpleHandler):
         if t.get('boundary') == 'administrative' and t.get('admin_level') in ('6',) and t.get('name'):
             try: districts.append((t.get('name'), swkb.loads(osmium.geom.WKBFactory().create_multipolygon(a), hex=True)))
             except Exception: pass
+        if t.get('boundary') == 'administrative' and t.get('admin_level') == '5' and t.get('name'):
+            try: cities.append((t.get('name'), swkb.loads(osmium.geom.WKBFactory().create_multipolygon(a), hex=True)))
+            except Exception: pass
 h = H(); h.apply_file(SRC, locations=True)
-print('pois', len(pois), 'streets', len(streets), 'districts', [d[0] for d in districts], 'walk ways', len(wways))
+print('pois', len(pois), 'streets', len(streets), 'districts', len(districts), 'cities', [c[0] for c in cities], 'walk ways', len(wways))
 tree = STRtree([d[1] for d in districts])
 def dist_of(ll):
     for i in tree.query(Point(ll)):
@@ -103,7 +107,8 @@ def thin(v):
     return [[n] + [c for p in pts[::max(1, len(pts) // 3)][:3] for c in p] for n, pts in by.items()]
 grid = {k: thin(v) for k, v in grid.items()}
 dpoly = [[n, [[[round(c[0], 4), round(c[1], 4)] for c in p.exterior.simplify(0.0008).coords] for p in (g.geoms if hasattr(g, 'geoms') else [g])]] for n, g in districts]
-json.dump({'cell': 0.005, 'streets': grid, 'districts': dpoly}, open(f'{OUT}/bj_rev.json', 'w'), ensure_ascii=False, separators=(',', ':'))
+cpoly = [[n, [[[round(c[0], 3), round(c[1], 3)] for c in p.exterior.simplify(0.003).coords] for p in (g.geoms if hasattr(g, 'geoms') else [g])]] for n, g in cities]
+json.dump({'cell': 0.005, 'streets': grid, 'districts': dpoly, 'cities': cpoly}, open(f'{OUT}/bj_rev.json', 'w'), ensure_ascii=False, separators=(',', ':'))
 # pedestrian graph: keep junction + end nodes, edges carry their full geometry
 use = defaultdict(int)
 for ids, _, _ in wways:

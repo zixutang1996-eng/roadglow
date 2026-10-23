@@ -54,5 +54,7 @@ web/dist/
 
 # Beijing edition build outputs / large offline data (rebuild with web/tools/beijing/)
 web/dist-bj/
+web/dist-shandong/
+web/dist-shaanxi/
 web/android/app/src/main/assets/public/
 *.osm.pbf

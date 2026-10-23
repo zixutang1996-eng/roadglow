@@ -1,8 +1,14 @@
 // RoadGlow 北京 (Beijing edition): fully offline map, search, reverse geocoding and walking routes.
 // Built with VITE_EDITION=beijing (see tools/beijing/build.sh). In the normal edition BJ is false and nothing here runs.
-export const BJ = import.meta.env.VITE_EDITION === 'beijing';
-export const BJ_CENTER = [116.4864, 39.9215], BJ_ZOOM = 13.5; // 朝阳区
-export const BJ_BOUNDS = [115.42, 39.44, 117.51, 41.06];
+// v0.9.7: the same offline engine also builds province editions (VITE_EDITION=shandong|shaanxi, see tools/beijing/build_province.sh)
+const ED = {
+  beijing: { center: [116.4864, 39.9215], zoom: 13.5, bounds: [115.42, 39.44, 117.51, 41.06], city: '北京市', prov: '北京市', walk: [116.25, 39.80, 116.66, 40.10] },
+  shandong: { center: [117.0204, 36.6683], zoom: 12.5, bounds: [114.80, 34.37, 123.57, 38.45], city: '', prov: '山东省', walk: [116.85, 36.58, 117.20, 36.75] }, // 济南
+  shaanxi: { center: [108.9480, 34.2635], zoom: 12.5, bounds: [105.47, 31.69, 111.25, 39.59], city: '', prov: '陕西省', walk: [108.82, 34.17, 109.10, 34.36] }, // 西安
+}[import.meta.env.VITE_EDITION];
+export const BJ = !!ED, EDITION = import.meta.env.VITE_EDITION || '';
+export const BJ_CENTER = ED?.center, BJ_ZOOM = ED?.zoom;
+export const BJ_BOUNDS = ED?.bounds, BJ_PROV = ED?.prov || '';
 const base = new URL(import.meta.env.BASE_URL, location.href).href;
 
 // ---- network policy: foreign services are assumed unreachable from mainland China.
@@ -30,8 +36,9 @@ export async function bjReverse(ll) {
   let best = null, bd = 400;
   for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) for (const s of R.streets[`${cx + dx}_${cy + dy}`] || []) for (let i = 1; i < s.length; i += 2) { const d = m(p, [s[i], s[i + 1]]); if (d < bd) { bd = d; best = s[0]; } }
   let dist = ''; for (const [n, polys] of R.districts) if (polys.some(r => inRing(p, r))) { dist = n; break; }
-  if (!dist && p[0] > 116.33 && p[0] < 116.40 && p[1] > 39.86 && p[1] < 39.97) dist = '西城区';
-  return { street: best || '', district: dist, city: '北京市' };
+  if (EDITION === 'beijing' && !dist && p[0] > 116.33 && p[0] < 116.40 && p[1] > 39.86 && p[1] < 39.97) dist = '西城区';
+  let city = ED.city; if (!city) for (const [n, polys] of R.cities || []) if (polys.some(r => inRing(p, r))) { city = n; break; }
+  return { street: best || '', district: dist, city, prov: ED.prov };
 }
 
 // ---- walking router: A* on a pedestrian graph of central Beijing (Chaoyang, Dongcheng, Xicheng)
@@ -50,7 +57,7 @@ function nearest(g, p) {
 }
 const edgeGeo = (g, ei, from) => { const e = g.edges[ei], a = g.nodes[e[0]], pts = [a, ...e[4].map(d => [a[0] + d[0] / 1e6, a[1] + d[1] / 1e6]), g.nodes[e[1]]]; return from === e[0] ? pts : pts.reverse(); };
 const brg = (a, b) => { const y = Math.sin((b[0] - a[0]) * Math.PI / 180) * Math.cos(b[1] * Math.PI / 180), x = Math.cos(a[1] * Math.PI / 180) * Math.sin(b[1] * Math.PI / 180) - Math.sin(a[1] * Math.PI / 180) * Math.cos(b[1] * Math.PI / 180) * Math.cos((b[0] - a[0]) * Math.PI / 180); return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360; };
-export const inWalkArea = ll => ll.lng >= 116.25 && ll.lng <= 116.66 && ll.lat >= 39.80 && ll.lat <= 40.10;
+export const inWalkArea = ll => ll.lng >= ED.walk[0] && ll.lng <= ED.walk[2] && ll.lat >= ED.walk[1] && ll.lat <= ED.walk[3];
 /** returns routes in the same shape as services.osrm() */
 export async function bjWalk(from, to) {
   const g = await graph(), [s, ds] = nearest(g, [from.lng, from.lat]), [t, dt] = nearest(g, [to.lng, to.lat]);
