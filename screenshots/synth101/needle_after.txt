@@ -1,0 +1,81 @@
+synthb dark zh 0 dx=+0.00 dy=+0.50
+synthb dark zh 90 dx=+0.50 dy=+0.00
+synthb dark zh 180 dx=+0.00 dy=-0.50
+synthb dark zh 270 dx=-0.50 dy=+0.00
+synthb dark zh 45 dx=+2.33 dy=+2.33
+synthb dark zh 225 dx=-2.33 dy=-2.33
+synthb dark zh 135 dx=+2.33 dy=-2.33
+synthb dark zh 315 dx=-2.33 dy=+2.33
+synthb dark zh pivot 45/225 dx=+0.00 dy=+0.00
+synthb dark zh pivot 135/315 dx=+0.00 dy=+0.00
+synthb dark en 0 dx=+0.00 dy=+0.50
+synthb dark en 90 dx=+0.50 dy=+0.00
+synthb dark en 180 dx=+0.00 dy=-0.50
+synthb dark en 270 dx=-0.50 dy=+0.00
+synthb dark en 45 dx=+2.33 dy=+2.33
+synthb dark en 225 dx=-2.33 dy=-2.33
+synthb dark en 135 dx=+2.33 dy=-2.33
+synthb dark en 315 dx=-2.33 dy=+2.33
+synthb dark en pivot 45/225 dx=+0.00 dy=+0.00
+synthb dark en pivot 135/315 dx=+0.00 dy=+0.00
+synthb light zh 0 dx=+0.00 dy=-0.50
+synthb light zh 90 dx=-0.50 dy=+0.00
+synthb light zh 180 dx=+0.00 dy=+0.50
+synthb light zh 270 dx=+0.50 dy=+0.00
+synthb light zh 45 dx=+2.33 dy=+2.33
+synthb light zh 225 dx=-2.33 dy=-2.33
+synthb light zh 135 dx=+2.33 dy=-2.33
+synthb light zh 315 dx=-2.33 dy=+2.33
+synthb light zh pivot 45/225 dx=+0.00 dy=+0.00
+synthb light zh pivot 135/315 dx=+0.00 dy=+0.00
+synthb light en 0 dx=+0.00 dy=-0.50
+synthb light en 90 dx=-0.50 dy=+0.00
+synthb light en 180 dx=+0.00 dy=+0.50
+synthb light en 270 dx=+0.50 dy=+0.00
+synthb light en 45 dx=+2.33 dy=+2.33
+synthb light en 225 dx=-2.33 dy=-2.33
+synthb light en 135 dx=+2.33 dy=-2.33
+synthb light en 315 dx=-2.33 dy=+2.33
+synthb light en pivot 45/225 dx=+0.00 dy=+0.00
+synthb light en pivot 135/315 dx=+0.00 dy=+0.00
+synthc dark zh 0 dx=+0.00 dy=+0.00
+synthc dark zh 90 dx=+0.00 dy=+0.00
+synthc dark zh 180 dx=+0.00 dy=+0.00
+synthc dark zh 270 dx=+0.00 dy=+0.00
+synthc dark zh 45 dx=+0.00 dy=+0.00
+synthc dark zh 225 dx=+0.00 dy=+0.00
+synthc dark zh 135 dx=+0.00 dy=+0.00
+synthc dark zh 315 dx=+0.00 dy=+0.00
+synthc dark zh pivot 45/225 dx=+0.00 dy=+0.00
+synthc dark zh pivot 135/315 dx=+0.00 dy=+0.00
+synthc dark en 0 dx=+0.00 dy=+0.00
+synthc dark en 90 dx=+0.00 dy=+0.00
+synthc dark en 180 dx=+0.00 dy=+0.00
+synthc dark en 270 dx=+0.00 dy=+0.00
+synthc dark en 45 dx=+0.00 dy=+0.00
+synthc dark en 225 dx=+0.00 dy=+0.00
+synthc dark en 135 dx=+0.00 dy=+0.00
+synthc dark en 315 dx=+0.00 dy=+0.00
+synthc dark en pivot 45/225 dx=+0.00 dy=+0.00
+synthc dark en pivot 135/315 dx=+0.00 dy=+0.00
+synthc light zh 0 dx=+0.00 dy=+0.00
+synthc light zh 90 dx=+0.00 dy=+0.00
+synthc light zh 180 dx=+0.00 dy=+0.00
+synthc light zh 270 dx=+0.00 dy=+0.00
+synthc light zh 45 dx=-0.17 dy=+0.00
+synthc light zh 225 dx=+0.17 dy=+0.00
+synthc light zh 135 dx=+0.00 dy=+0.17
+synthc light zh 315 dx=+0.00 dy=-0.17
+synthc light zh pivot 45/225 dx=+0.00 dy=+0.00
+synthc light zh pivot 135/315 dx=+0.00 dy=+0.00
+synthc light en 0 dx=+0.00 dy=+0.00
+synthc light en 90 dx=+0.00 dy=+0.00
+synthc light en 180 dx=+0.00 dy=+0.00
+synthc light en 270 dx=+0.00 dy=+0.00
+synthc light en 45 dx=-0.17 dy=+0.00
+synthc light en 225 dx=+0.17 dy=+0.00
+synthc light en 135 dx=+0.00 dy=+0.17
+synthc light en 315 dx=+0.00 dy=-0.17
+synthc light en pivot 45/225 dx=+0.00 dy=+0.00
+synthc light en pivot 135/315 dx=+0.00 dy=+0.00
+WORST 0.5 PASS

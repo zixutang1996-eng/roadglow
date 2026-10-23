@@ -1,4 +1,5 @@
 # Generates theme.css for the synthb (Chrome & Neon Poster) and synthc (Night Drive) packs from the
+import subprocess,os as _o;subprocess.run(["python3",_o.path.join(_o.path.dirname(_o.path.abspath(__file__)),"centre_compass.py")],check=True)
 # mockup-v4 variables baked by bake.py (outB/outC/vars_*.json). Scoped with id-level specificity.
 import json,os,sys
 os.chdir(os.path.dirname(os.path.abspath(__file__)))

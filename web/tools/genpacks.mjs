@@ -84,8 +84,8 @@ function synthPack(d, id, ver, name, description) {
   const z = rgpack(pack, files); fs.writeFileSync(`${D}/${id}-${ver}.rgpack`, z); console.log(id, 'pack', (z.length / 1048576).toFixed(2), 'MB');
   return { type: 'skin', id, name, description, version: ver, minAppVersion: pack.minAppVersion, url: `${id}-${ver}.rgpack`, sha256: sha(z), size: z.length };
 }
-const synB = synthPack('B', 'synthb', '1.0.0', { zh: '铬光霓虹', en: 'Chrome Neon' }, { zh: '80 年代海报风：铬光字、线切霓虹按钮、落日棕榈', en: '80s poster: chrome lettering, line-slice neon buttons, sunset palms' });
-const synC = synthPack('C', 'synthc', '1.0.0', { zh: '夜驰海岸', en: 'Night Drive' }, { zh: '落日公路：橙色地平线、手写霓虹字、跑车作为“我”', en: 'Sunset highway: orange horizon, neon script, a sports car as “me”' });
+const synB = synthPack('B', 'synthb', '1.0.1', { zh: '铬光霓虹', en: 'Chrome Neon' }, { zh: '80 年代海报风：铬光字、线切霓虹按钮、落日棕榈', en: '80s poster: chrome lettering, line-slice neon buttons, sunset palms' });
+const synC = synthPack('C', 'synthc', '1.0.1', { zh: '夜驰海岸', en: 'Night Drive' }, { zh: '落日公路：橙色地平线、手写霓虹字、跑车作为“我”', en: 'Sunset highway: orange horizon, neon script, a sports car as “me”' });
 const bi = (id, zh, en) => ({ type: 'skin', id: 'builtin-' + id, base: id, builtin: true, name: { zh, en }, version: APP });
 const idx = { format: 'roadglow-catalog/1', updated: new Date().toISOString().slice(0, 10), packs: [
   bi('neon', '霓虹都市', 'Neon City'), bi('west', '荒野墨图', 'Frontier Ink'), bi('space', '深空', 'Deep Space'), bi('nord', '北境', 'Northland'), bi('tac', '战术', 'Tactical'),

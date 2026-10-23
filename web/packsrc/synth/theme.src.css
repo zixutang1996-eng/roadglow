@@ -13,7 +13,7 @@ $P #locBtn svg,$P .act.primary .b svg{color:var(--sltx);stroke:var(--sltx)}
 /* quick buttons */
 $P .ctl,$P .zoomgrp{background:var(--back2);border:1.5px solid var(--n1);border-radius:10px;box-shadow:3px 3px 0 0 var(--back),3px 3px 0 1.5px var(--n2);color:var(--ic)}
 $P .zoomgrp .ctl{box-shadow:none;border:0}
-$P #compassBtn #needle{width:30px;height:30px;background:var(--cmp) center/30px 30px no-repeat;color:transparent;filter:none} $P #compassBtn #needle>*{opacity:0}
+$P #compassBtn{display:flex;align-items:center;justify-content:center;padding:0;line-height:0} $P #compassBtn #needle{display:block;flex:none;margin:0;vertical-align:top;transform-origin:50% 50%;width:30px;height:30px;background:var(--cmp) center/30px 30px no-repeat;color:transparent;filter:none} $P #compassBtn #needle>*{opacity:0}
 /* place card */
 $P #panel{border-radius:var(--srad);--ts2:1} $P #panelTitle,$P .pc h2{font-family:var(--head);color:var(--tx);letter-spacing:var(--hls)}
 $P .act{color:var(--tx);font-family:var(--body)} $P .act .b{border-radius:var(--brad);background:var(--b2bg);border:var(--b2bd);color:var(--b2tx)}

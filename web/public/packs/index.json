@@ -102,11 +102,11 @@
     "zh": "80 年代海报风：铬光字、线切霓虹按钮、落日棕榈",
     "en": "80s poster: chrome lettering, line-slice neon buttons, sunset palms"
    },
-   "version": "1.0.0",
+   "version": "1.0.1",
    "minAppVersion": "0.9.9",
-   "url": "synthb-1.0.0.rgpack",
-   "sha256": "55fcd25169cbae703a4cd1cbb74c6c35cc90b925f6a4ef987b914077822e916b",
-   "size": 345288
+   "url": "synthb-1.0.1.rgpack",
+   "sha256": "e371bc30092b3f0daa6136ce754e9a9d52c41bfaddfc0dd65dc2e47b97449b69",
+   "size": 345366
   },
   {
    "type": "skin",
@@ -119,11 +119,11 @@
     "zh": "落日公路：橙色地平线、手写霓虹字、跑车作为“我”",
     "en": "Sunset highway: orange horizon, neon script, a sports car as “me”"
    },
-   "version": "1.0.0",
+   "version": "1.0.1",
    "minAppVersion": "0.9.9",
-   "url": "synthc-1.0.0.rgpack",
-   "sha256": "b56f3f9b6953901745dbe1159254fcf020a55a1bc9406e33b0ffc346684b1e21",
-   "size": 355207
+   "url": "synthc-1.0.1.rgpack",
+   "sha256": "eed7b6b329e0b85de884f1dedbb443e548954545b4067460d6b8a15d34963155",
+   "size": 355281
   },
   {
    "type": "voice",
