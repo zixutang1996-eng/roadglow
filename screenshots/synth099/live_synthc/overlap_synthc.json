@@ -1,0 +1,16 @@
+{
+ "dark_zh": {
+  "map": [],
+  "drawer": [],
+  "skins": [],
+  "search": [
+   {
+    "kind": "icon×text",
+    "icon": "div.i in #suggest",
+    "text": "夜宵"
+   }
+  ],
+  "place": [],
+  "nav": []
+ }
+}
