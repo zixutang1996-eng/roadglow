@@ -68,7 +68,7 @@ final class CarMap implements SurfaceCallback, CarState.Listener {
         try { if (pres != null) pres.dismiss(); } catch (Exception ignored) {}
         if (vd != null) vd.release(); vd = null; pres = null; mv = null; map = null; loadedStyle = null;
     }
-    @Override public void onScroll(float dx, float dy) { if (map == null) return; follow = false; map.moveCamera(CameraUpdateFactory.scrollBy(dx, dy)); }
+    @Override public void onScroll(float dx, float dy) { if (map == null) return; follow = false; map.scrollBy(-dx, -dy, 0); }
     @Override public void onScale(float fx, float fy, float s) { if (map == null) return; map.moveCamera(CameraUpdateFactory.zoomBy(Math.log(s) / Math.log(2))); }
     @Override public void onFling(float vx, float vy) {}
 

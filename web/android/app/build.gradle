@@ -7,8 +7,8 @@ android {
         applicationId "com.personal.nav.roadglow"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 9070
-        versionName "0.9.7"
+        versionCode 9080
+        versionName "0.9.8"
         ndk { abiFilters "arm64-v8a" }
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {

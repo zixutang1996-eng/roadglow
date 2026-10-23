@@ -138,7 +138,7 @@ if (NEED_LOC) setTimeout(async () => {
     go(g.lng, g.lat, 10.5);
   } catch {} // 4. stay on the neutral world view
 }, 0);
-initScrollFx(); window._map = map; map.once('load', () => { window.__rgMapReady = 1; window.__rgHideSplash?.(); window.__rgT = performance.now(); }); map.once('load', loadWestFonts); map.once('load', loadSkinFonts); map.once('idle', () => setTimeout(() => (window.requestIdleCallback || setTimeout)(warmDrawer, { timeout: 3000 }), 1500)); if (NATIVE && !BJ) map.once('load', () => setTimeout(() => import('./updates.js').then(m => m.initUpdates({ toast, L, store, openUpd: () => tools.update() })).catch(e => console.warn(e)), 4000)); SK.hookMissingImages(map); refreshSkins(); window._skins = { ...SK, refresh: refreshSkins, use: async id => { S.skin = id; store.set('skin', id); await setStyle(); } }; window._sug = () => sugItems.map(r => ({ dbg: [r.ts, r.sc, Math.round(r.dist), r.src].join('/'), name: r.name, address: r.address, lat: r.lat, lng: r.lng, sem: !!r.sem, src: r.src, cls: r.cls || r.category }));
+initScrollFx(); window._map = map; map.once('load', () => { window.__rgMapReady = 1; window.__rgHideSplash?.(); window.__rgT = performance.now(); }); map.once('load', loadWestFonts); map.once('load', loadSkinFonts); map.once('idle', () => setTimeout(() => (window.requestIdleCallback || setTimeout)(warmDrawer, { timeout: 3000 }), 1500)); if (NATIVE && !BJ) map.once('load', () => setTimeout(() => import('./updates.js').then(m => m.initUpdates({ toast, L, store, openUpd: () => tools.update() })).catch(e => console.warn(e)), 4000)); SK.hookMissingImages(map); refreshSkins(); import('./car.js').then(m => m.initCar({ map, S, isDark, lang, onDest: d => { S.travel = 'drive'; openDirections(d, true); }, onStop: () => S.nav?.end?.() })).catch(e => console.warn(e)); window._skins = { ...SK, refresh: refreshSkins, use: async id => { S.skin = id; store.set('skin', id); await setStyle(); } }; window._sug = () => sugItems.map(r => ({ dbg: [r.ts, r.sc, Math.round(r.dist), r.src].join('/'), name: r.name, address: r.address, lat: r.lat, lng: r.lng, sem: !!r.sem, src: r.src, cls: r.cls || r.category }));
 applyBodyClass();
 const updHash = () => { const c = map.getCenter(); history.replaceState(null, '', `${location.pathname}${location.search}#${map.getZoom().toFixed(2)}/${c.lat.toFixed(5)}/${c.lng.toFixed(5)}`); };
 map.on('moveend', updHash);
@@ -306,7 +306,7 @@ function addAccLayer() {
 function setMe(pos) {
   S.me = { lat: pos.coords.latitude, lng: pos.coords.longitude, heading: pos.coords.heading ?? S.compassHdg ?? null, speed: pos.coords.speed, acc: pos.coords.accuracy };
   if (!puck) { const el = document.createElement('div'); el.className = 'puck'; el.innerHTML = puckSvg(); el.style.cursor = 'pointer'; el.addEventListener('click', ev => { ev.stopPropagation(); showMe(); }); puck = new maplibregl.Marker({ element: el, rotationAlignment: 'map', pitchAlignment: 'map' }).setLngLat(S.me).addTo(map); }
-  puck.setLngLat(S.me); if (S.me.heading != null && !isNaN(S.me.heading) && !S.nav?.active) puck.setRotation(S.me.heading); updAcc();
+  window.__rgCar?.pos(S.me); puck.setLngLat(S.me); if (S.me.heading != null && !isNaN(S.me.heading) && !S.nav?.active) puck.setRotation(S.me.heading); updAcc();
 }
 export const locate = (fly = true) => navigator.geolocation?.getCurrentPosition(p => { setMe(p); fly && map.flyTo({ center: S.me, zoom: Math.max(map.getZoom(), 15) }); }, err => ios.geoHelp(err, openPanel), { enableHighAccuracy: true, timeout: 10000 });
 
