@@ -71,7 +71,7 @@
    "version": "1.1.0",
    "minAppVersion": "0.9.5",
    "url": "blueprint-1.1.0.rgpack",
-   "sha256": "faeb2a3828827158286fa665d15c5d063372d7e1dc8c08f43bf51e6427218038",
+   "sha256": "76973d16a085d0cf8c7331e75bd2bd1a3ae7c68ba2623228a06d74e5028d71f2",
    "size": 7998
   },
   {
@@ -88,7 +88,7 @@
    "version": "1.1.1",
    "minAppVersion": "0.9.7",
    "url": "sanguo-1.1.1.rgpack",
-   "sha256": "dc9ddacc2589ba65dad1dc214c9e25fa0ab63bcc1151e175185d10b729ab4b5b",
+   "sha256": "bdcab7b62bad8ada571ee3ae983144e929a605763306876c6bb6fe227221678c",
    "size": 2332445
   },
   {
@@ -105,8 +105,8 @@
    "version": "1.0.0",
    "minAppVersion": "0.9.9",
    "url": "synthb-1.0.0.rgpack",
-   "sha256": "7c020d09621e9a5d36c8fed7221e9408b33ff74dbc7311b7c6fbf6138c281192",
-   "size": 345278
+   "sha256": "55fcd25169cbae703a4cd1cbb74c6c35cc90b925f6a4ef987b914077822e916b",
+   "size": 345288
   },
   {
    "type": "skin",
@@ -122,7 +122,7 @@
    "version": "1.0.0",
    "minAppVersion": "0.9.9",
    "url": "synthc-1.0.0.rgpack",
-   "sha256": "a2a5e199af37602640d9284175839adb9bbb33a442a735a9dbc3565a4650ff35",
+   "sha256": "b56f3f9b6953901745dbe1159254fcf020a55a1bc9406e33b0ffc346684b1e21",
    "size": 355207
   },
   {
@@ -139,7 +139,7 @@
    "version": "1.0.0",
    "minAppVersion": "0.9.5",
    "url": "calm-1.0.0.rgpack",
-   "sha256": "0119b7c29f5461d616e831665f25a7765c454ac3628c090b53f43ab56df5b133",
+   "sha256": "e4ffd255b2e1d8ec52e77d8dbb55a66719bcc2cf6af10de8bf2ee79a406166b9",
    "size": 1082
   }
  ]
