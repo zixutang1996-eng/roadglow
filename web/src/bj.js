@@ -102,14 +102,16 @@ function bundle(bx, by) {
   }
   return p;
 }
+// v0.9.7.1: shared by the MapLibre protocol and tilepoi.js (plain fetch() cannot read rgt:// — that left province maps without tile POI icons)
+export async function rgtTile(url) {
+  const [z, x, y] = url.slice(6).split('/').map(Number);
+  if (z >= 13) {
+    const s = z - 10, b = await bundle(x >> s, y >> s), e = b?.idx.get(`${z}/${x & ((1 << s) - 1)}/${y & ((1 << s) - 1)}`);
+    return e ? b.buf.slice(e[0], e[0] + e[1]) : new ArrayBuffer(0);
+  }
+  const r = await fetch(`${base}tiles/${z}/${x}/${y}.pbf`);
+  return r.ok ? await r.arrayBuffer() : new ArrayBuffer(0);
+}
 export function registerTileProtocol(maplibregl) {
-  maplibregl.addProtocol('rgt', async (params) => {
-    const [z, x, y] = params.url.slice(6).split('/').map(Number);
-    if (z >= 13) {
-      const s = z - 10, b = await bundle(x >> s, y >> s), e = b?.idx.get(`${z}/${x & ((1 << s) - 1)}/${y & ((1 << s) - 1)}`);
-      return { data: e ? b.buf.slice(e[0], e[0] + e[1]) : new ArrayBuffer(0) };
-    }
-    const r = await fetch(`${base}tiles/${z}/${x}/${y}.pbf`);
-    return { data: r.ok ? await r.arrayBuffer() : new ArrayBuffer(0) };
-  });
+  maplibregl.addProtocol('rgt', async (params) => ({ data: await rgtTile(params.url) }));
 }

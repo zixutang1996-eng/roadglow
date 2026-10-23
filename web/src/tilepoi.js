@@ -3,6 +3,7 @@
 // decoded here and given a reveal zoom rz = class tier + per-tile importance rank (OpenMapTiles rank) -> evenly spread, no bursts.
 import { PbfReader as Pbf } from 'pbf';
 import { VectorTile } from '@mapbox/vector-tile';
+import { rgtTile } from './bj.js';
 export const DENY = new Set(['gate', 'bollard', 'lift_gate', 'kerb', 'cycle_barrier', 'bench', 'waste_basket', 'bicycle_parking', 'vending_machine', 'parking_entrance', 'street_lamp', 'fire_hydrant', 'manhole', 'pole', 'shelter', 'entrance', 'recycling', 'drinking_water', 'post_box', 'telephone', 'swimming_pool', 'pitch', 'bus_stop', 'toilets', 'atm', 'parking_space', 'charging_station']);
 const T0 = new Set(['mall', 'department_store', 'station', 'aerodrome', 'university', 'stadium', 'zoo', 'theme_park', 'ferry_terminal']);
 const C0 = new Set(['hospital', 'railway', 'college', 'stadium', 'museum', 'zoo', 'town_hall', 'ferry_terminal', 'attraction', 'castle']);
@@ -12,7 +13,8 @@ export const rzOf = p => (p.class === 'hospital' && p.subclass !== 'hospital') |
 const cache = new Map(), pend = new Map();
 async function tile(tpl, x, y) {
   const k = x + '/' + y; if (cache.has(k)) return cache.get(k); if (pend.has(k)) return pend.get(k);
-  const pr = fetch(tpl.replace('{z}', 14).replace('{x}', x).replace('{y}', y)).then(r => r.ok ? r.arrayBuffer() : null).then(buf => {
+  const u = tpl.replace('{z}', 14).replace('{x}', x).replace('{y}', y);
+  const pr = (u.startsWith('rgt://') ? rgtTile(u) : fetch(u).then(r => r.ok ? r.arrayBuffer() : null)).then(buf => {
     const out = []; if (buf) { const L = new VectorTile(new Pbf(buf)).layers.poi;
       if (L) for (let i = 0; i < L.length; i++) { const f = L.feature(i), p = f.properties; if (!p.name || DENY.has(p.subclass) || DENY.has(p.class)) continue;
         const g = f.toGeoJSON(x, y, 14); if (g.geometry.type !== 'Point') continue; const rz = +rzOf(p).toFixed(2); 
