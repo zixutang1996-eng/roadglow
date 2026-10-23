@@ -1,5 +1,5 @@
 // Offline test for a province edition: every request outside 127.0.0.1 is aborted. node tools/beijing/test_province.cjs <shandong|shaanxi> [baseURL]
-const puppeteer = require('/workspace/pixelnav/node_modules/puppeteer-core'); const sl = ms => new Promise(r => setTimeout(r, ms));
+const puppeteer = require('/workspace/pptr/node_modules/puppeteer-core'); const sl = ms => new Promise(r => setTimeout(r, ms));
 const ED = process.argv[2], BASE = process.argv[3] || 'http://127.0.0.1:18795/', OUT = `/workspace/gamenav/screenshots/${ED}/`;
 require('fs').mkdirSync(OUT, { recursive: true });
 const R = {
