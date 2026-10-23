@@ -59,6 +59,7 @@ export async function readPack(u8, { expectSha, appVer } = {}) {
   if (p.type === 'skin') {
     for (const m of ['light', 'dark']) { const md = p.skin.modes[m]; if (!md) continue;
       if (typeof md.style === 'string') md.style = JSON.parse(txt(md.style));
+      if (typeof md.car === 'string') md.car = JSON.parse(txt(md.car)); // v0.9.10 optional car-screen style
       if (typeof md.sprite === 'string') md.sprite = { json: JSON.parse(txt(md.sprite + '.json')), png: assets[md.sprite + '.png'] };
       if (typeof md.css === 'string' && files[md.css]) md.css = txt(md.css); }
     if (typeof p.skin.css === 'string' && files[p.skin.css]) p.skin.css = txt(p.skin.css);
@@ -73,7 +74,7 @@ export async function readPack(u8, { expectSha, appVer } = {}) {
 /** Convert a skin pack to the runtime shape used by skins.js (roadglow-skin/1) and store it there. */
 async function storeSkin(p, src, sha) {
   const k = p.skin, legacy = { format: SK.FORMAT, id: p.id, name: p.name, version: p.version, author: p.author || '—', license: p.license || '—', base: k.base,
-    modes: Object.fromEntries(['light', 'dark'].filter(m => k.modes[m]).map(m => [m, { style: k.modes[m].style, ...(k.modes[m].sprite ? { sprite: k.modes[m].sprite } : {}) }])),
+    modes: Object.fromEntries(['light', 'dark'].filter(m => k.modes[m]).map(m => [m, { style: k.modes[m].style, ...(k.modes[m].sprite ? { sprite: k.modes[m].sprite } : {}), ...(k.modes[m].car ? { car: k.modes[m].car } : {}) }])),
     tokens: k.tokens || {}, strings: p.strings || null, fx: Array.isArray(k.fx) ? k.fx.filter(x => typeof x === 'string').slice(0, 8) : [], puck: k.puck ? Object.fromEntries(['light', 'dark'].filter(m => typeof k.puck[m] === 'string' && /^data:image\/(png|webp);base64,/.test(k.puck[m])).map(m => [m, k.puck[m]])) : null, css: k.css || '', cssModes: { light: k.modes.light?.css || '', dark: k.modes.dark?.css || '' }, pack2: true, sha256: sha, minAppVersion: p.minAppVersion };
   for (const m of Object.keys(legacy.modes)) if (!legacy.modes[m].style) { const r = await fetch(`${new URL(import.meta.env.BASE_URL, location.href).href}styles/${k.base}_${m}.json`); legacy.modes[m].style = await r.json(); }
   return SK.installObject(legacy, src);

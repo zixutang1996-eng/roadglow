@@ -14,6 +14,7 @@ import androidx.car.app.CarContext;
 import androidx.car.app.SurfaceCallback;
 import androidx.car.app.SurfaceContainer;
 import com.personal.nav.roadglow.CarState;
+import com.personal.nav.roadglow.CarSkinStore;
 import java.util.ArrayList;
 import java.util.List;
 import org.maplibre.android.MapLibre;
@@ -46,7 +47,19 @@ final class CarMap implements SurfaceCallback, CarState.Listener {
     private String loadedStyle = null; private Rect visible = null, stable = null; private int w, h;
     boolean follow = true; private List<double[]> pins = new ArrayList<>();
     private static CarMap I; static CarMap get(CarContext c) { if (I == null || I.ctx != c) I = new CarMap(c); return I; }
-    private CarMap(CarContext c) { ctx = c; MapLibre.getInstance(c.getApplicationContext()); CarState.listen(this); }
+    private CarMap(CarContext c) { ctx = c; MapLibre.getInstance(c.getApplicationContext()); CarState.listen(this); restoreMeta(); }
+    /** car started without the phone UI in this process: take skin id / ink / mode / route colours from the last export */
+    private void restoreMeta() {
+        if (CarState.fromWeb) return; org.json.JSONObject m = CarSkinStore.meta(ctx); if (m == null) return;
+        CarState.skin = m.optString("id", CarState.skin); CarState.ink = m.optBoolean("ink", false); CarState.zh = m.optBoolean("zh", false);
+        CarState.mode = m.optString("mode", "auto"); CarState.routeLight = m.optString("route", null); CarState.routeDark = m.optString("routeDark", null);
+    }
+    void restyle() { ui.post(this::applyStyle); }
+    /** effective night mode: phone setting, or the car's own day/night when the phone is on auto */
+    private boolean dark() {
+        if ("light".equals(CarState.mode)) return false; if ("dark".equals(CarState.mode)) return true;
+        try { return ctx.isDarkMode(); } catch (Exception e) { return CarState.dark; }
+    }
     void register() { ctx.getCarService(AppManager.class).setSurfaceCallback(this); }
 
     @Override public void onSurfaceAvailable(@NonNull SurfaceContainer sc) {
@@ -82,23 +95,29 @@ final class CarMap implements SurfaceCallback, CarState.Listener {
 
     private void applyStyle() {
         if (map == null) return;
-        String js = CarState.styleJson; String key = js != null ? js : DEFAULT_STYLE;
+        final boolean dk = dark();
+        // 1) exported skin files (v0.9.10)  2) legacy in-memory style pushed by an older web bundle  3) built-in default
+        String js = CarSkinStore.load(ctx, dk); String src = "file";
+        if (js == null && CarState.styleJson != null && CarSkinStore.valid(CarState.styleJson)) { js = CarState.styleJson; src = "mem"; }
+        String key = js != null ? src + CarState.skinRev + dk + js.length() + js.hashCode() : DEFAULT_STYLE + dk;
         if (key.equals(loadedStyle)) return; loadedStyle = key;
         Style.Builder b = js != null ? new Style.Builder().fromJson(js) : new Style.Builder().fromUri(DEFAULT_STYLE);
         map.setStyle(b, st -> {
-            st.addImage("rg-me", Icons.me(CarState.skin, CarState.dark, CarState.ink));
+            st.addImage("rg-me", Icons.me(CarState.skin, dk, CarState.ink));
             st.addImage("rg-pin", Icons.arrow("arrive", CarState.ink ? 0xffa0281e : 0xffe0457a));
             st.addSource(new GeoJsonSource("rg-route")); st.addSource(new GeoJsonSource("rg-me")); st.addSource(new GeoJsonSource("rg-pins"));
-            int rc = routeColor();
-            st.addLayer(new LineLayer("rg-route-case", "rg-route").withProperties(PropertyFactory.lineColor(CarState.dark ? 0xff05070c : 0xffffffff), PropertyFactory.lineWidth(13f), PropertyFactory.lineCap(Property.LINE_CAP_ROUND), PropertyFactory.lineJoin(Property.LINE_JOIN_ROUND)));
+            int rc = routeColor(dk);
+            st.addLayer(new LineLayer("rg-route-case", "rg-route").withProperties(PropertyFactory.lineColor(dk ? 0xff05070c : 0xffffffff), PropertyFactory.lineWidth(13f), PropertyFactory.lineCap(Property.LINE_CAP_ROUND), PropertyFactory.lineJoin(Property.LINE_JOIN_ROUND)));
             st.addLayer(new LineLayer("rg-route-line", "rg-route").withProperties(PropertyFactory.lineColor(rc), PropertyFactory.lineWidth(8f), PropertyFactory.lineCap(Property.LINE_CAP_ROUND), PropertyFactory.lineJoin(Property.LINE_JOIN_ROUND)));
             st.addLayer(new SymbolLayer("rg-pins", "rg-pins").withProperties(PropertyFactory.iconImage("rg-pin"), PropertyFactory.iconAllowOverlap(true), PropertyFactory.iconSize(0.6f), PropertyFactory.iconAnchor(Property.ICON_ANCHOR_BOTTOM_LEFT)));
             st.addLayer(new SymbolLayer("rg-me", "rg-me").withProperties(PropertyFactory.iconImage("rg-me"), PropertyFactory.iconAllowOverlap(true), PropertyFactory.iconIgnorePlacement(true), PropertyFactory.iconSize(0.5f), PropertyFactory.iconRotationAlignment(Property.ICON_ROTATION_ALIGNMENT_MAP), PropertyFactory.iconRotate(org.maplibre.android.style.expressions.Expression.get("b"))));
             drawOverlays(); camera(0);
         });
     }
-    private int routeColor() {
-        if (CarState.ink) return CarState.dark ? 0xffc8a46a : 0xffa0281e;
+    private int routeColor(boolean dk) {
+        String t = dk ? CarState.routeDark : CarState.routeLight;
+        if (t != null && t.matches("#[0-9a-fA-F]{6}")) return 0xff000000 | Integer.parseInt(t.substring(1), 16);
+        if (CarState.ink) return dk ? 0xffc8a46a : 0xffa0281e;
         switch (CarState.skin) { case "west": return 0xff8a2f1c; case "nord": return 0xff7fb6d8; case "tac": return 0xffd9ff4a; case "space": return 0xfff2a33a; default: return 0xff4fd6e8; }
     }
     private void drawOverlays() {

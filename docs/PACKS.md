@@ -74,3 +74,15 @@ The catalog is served next to the web app on GitHub Pages, so it arrives through
   `prefers-reduced-motion` disables it.
 - `html[data-lang=zh|en]` is available to pack CSS. Background-pattern images from a pack sprite now load.
 - Packs with these fields should set `"minAppVersion": "0.9.6"`.
+
+## Car screen (Android Auto, app 0.9.10+)
+The car map follows the phone's active skin automatically, downloaded packs included: on every skin / day-night change
+the app exports the pack's light + dark styles **and its sprite sheet** to app storage, and the car loads them from there
+(offline; glyphs/base sprites come from the bundled web assets). Nothing is required from pack authors.
+
+Optional: `skin.modes.<mode>.car` — a separate MapLibre v8 style file (same rules as `style`: https sources, bundled
+fonts only) used only on the car screen, e.g. bigger labels or fewer POIs for a 7–12" head unit:
+```json
+"modes": { "light": { "style": "light.json", "sprite": "icons_light", "car": "car_light.json" } }
+```
+Invalid `car` styles are dropped at install with a warning (the map style is used). Route line colour = `tokens.<mode>.route`.
