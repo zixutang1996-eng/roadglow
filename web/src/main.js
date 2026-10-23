@@ -57,6 +57,10 @@ async function loadStyle() {
   if (S.skin) { try { pk = await SK.getPack(S.skin); } catch {} if (!pk) { S.skin = null; store.set('skin', null); } }
   if (pk) { S.theme = pk.base; const ps = await SK.packStyle(pk, isDark() ? 'dark' : 'light', base); st = ps.style; window.__skinTok = pk.tokens || {}; SK.applyPackCss(pk, isDark() ? 'dark' : 'light'); setOverrides(pk.strings); window.__skinPuck = pk.puck?.[isDark() ? 'dark' : 'light'] || pk.puck?.light || null; document.documentElement.classList.toggle('fx-scroll', (pk.fx || []).includes('scroll')); document.documentElement.classList.toggle('fx-inkui', (pk.fx || []).includes('inkui')); }
   else { window.__skinTok = null; SK.applyPackCss(null); setOverrides(null); window.__skinPuck = null; document.documentElement.classList.remove('fx-scroll', 'fx-inkui'); st = await (await fetch(`${base}styles/${styleKey()}.json${AV}`)).json(); st.sprite = typeof st.sprite === 'string' && st.sprite.startsWith('{SPRITE}/') && !['neon', 'west'].includes(S.theme) ? `${base}sprites/${st.sprite.slice(9)}` : `${base}sprites/${styleKey()}`; if (styleKey() === 'west_dark') recolor(st, S.pal); }
+  return finishStyle(st);
+}
+/** shared tail of loadStyle / carStyleFor: local glyphs, offline tiles (province builds), label language, airport icon */
+function finishStyle(st) {
   st.glyphs = `${base}glyphs/{fontstack}/{range}.pbf`;
   if (BJ) for (const [k, sr] of Object.entries(st.sources)) if (sr.type === 'vector' && /openfreemap/.test(sr.url || (sr.tiles || [])[0] || '')) st.sources[k] = { type: 'vector', tiles: [BJ_TILES()], minzoom: 0, maxzoom: 14, bounds: BJ_BOUNDS, attribution: '© OpenStreetMap contributors · OpenMapTiles · OpenFreeMap（离线）' };
   const nameExpr = lang === 'zh' ? ['coalesce', ['get', 'name:zh-Hans'], ['get', 'name:zh'], ['get', 'name'], ['get', 'name:en']] : ['coalesce', ['get', 'name:en'], ['get', 'name:latin'], ['get', 'name']];
@@ -65,7 +69,27 @@ async function loadStyle() {
   if (poi) poi.layout['icon-image'] = ['case', ['==', ['get', 'class'], 'aerodrome'], 'airport', poi.layout['icon-image']];
   return st;
 }
-const routeColor = () => skinTok().route || ({ neon_dark: '#4fd6e8', neon_light: '#0b6f75', west_light: '#9a2a18', west_dark: PALS[S.pal].map.route, space_light: '#d8462b', space_dark: '#e9e6dc', nord_light: '#34312b', nord_dark: '#e8e2d0', tac_dark: '#d7ff3a', tac_light: '#e0571f' })[styleKey()];
+/** v0.9.10 car screen: the active skin's style for one mode, without touching the live map/UI.
+ *  Packs: optional modes.<m>.car style, else the pack's map style; embedded sprite sheets are returned for export. */
+async function carStyleFor(mode) {
+  let st, sprite = null, route;
+  const pk = S.skin ? await SK.getPack(S.skin).catch(() => null) : null;
+  if (pk) {
+    const m = pk.modes[mode] ? mode : (mode === 'dark' ? 'light' : 'dark'), md = pk.modes[m];
+    st = structuredClone(md.car || md.style);
+    if (md.sprite) { sprite = md.sprite; st.sprite = '{CAR}/sprite_' + mode; } else st.sprite = `${base}sprites/${pk.base}_${m}`;
+    route = pk.tokens?.[m]?.route;
+  } else {
+    const key = `${S.theme}_${mode}`;
+    st = await (await fetch(`${base}styles/${key}.json${AV}`)).json();
+    st.sprite = typeof st.sprite === 'string' && st.sprite.startsWith('{SPRITE}/') && !['neon', 'west'].includes(S.theme) ? `${base}sprites/${st.sprite.slice(9)}` : `${base}sprites/${key}`;
+    if (key === 'west_dark') recolor(st, S.pal);
+    route = key === 'west_dark' ? PALS[S.pal].map.route : ROUTEC[key];
+  }
+  return { style: finishStyle(st), sprite, route };
+}
+const ROUTEC = { neon_dark: '#4fd6e8', neon_light: '#0b6f75', west_light: '#9a2a18', space_light: '#d8462b', space_dark: '#e9e6dc', nord_light: '#34312b', nord_dark: '#e8e2d0', tac_dark: '#d7ff3a', tac_light: '#e0571f' };
+const routeColor = () => skinTok().route || (styleKey() === 'west_dark' ? PALS[S.pal].map.route : ROUTEC[styleKey()]);
 const THEMEC = { neon_light: '#e9e4da', neon_dark: '#0f131c', west_light: '#5a3a1a', west_dark: '#24170c', space_light: '#eceae4', space_dark: '#0a0c10', nord_light: '#d9d7cf', nord_dark: '#24272a', tac_dark: '#11140f', tac_light: '#c4c1ab' };
 import { ncApply, ncHtml, ncSet, ncOwn, NC_SCALES, NC_DEF } from './navcard.js';
 export const skinTok = () => window.__skinTok?.[isDark() ? 'dark' : 'light'] || {};
@@ -139,7 +163,7 @@ if (NEED_LOC) setTimeout(async () => {
     go(g.lng, g.lat, 10.5);
   } catch {} // 4. stay on the neutral world view
 }, 0);
-initScrollFx(); window._map = map; map.once('load', () => { window.__rgMapReady = 1; window.__rgHideSplash?.(); window.__rgT = performance.now(); }); map.once('load', loadWestFonts); map.once('load', loadSkinFonts); map.once('idle', () => setTimeout(() => (window.requestIdleCallback || setTimeout)(warmDrawer, { timeout: 3000 }), 1500)); if (NATIVE && !BJ) map.once('load', () => setTimeout(() => import('./updates.js').then(m => m.initUpdates({ toast, L, store, openUpd: () => tools.update() })).catch(e => console.warn(e)), 4000)); SK.hookMissingImages(map); refreshSkins(); import('./car.js').then(m => m.initCar({ map, S, isDark, lang, onDest: d => { S.travel = 'drive'; openDirections(d, true); }, onStop: () => S.nav?.end?.() })).catch(e => console.warn(e)); window._skins = { ...SK, refresh: refreshSkins, use: async id => { S.skin = id; store.set('skin', id); await setStyle(); } }; window._sug = () => sugItems.map(r => ({ dbg: [r.ts, r.sc, Math.round(r.dist), r.src].join('/'), name: r.name, address: r.address, lat: r.lat, lng: r.lng, sem: !!r.sem, src: r.src, cls: r.cls || r.category }));
+initScrollFx(); window._map = map; map.once('load', () => { window.__rgMapReady = 1; window.__rgHideSplash?.(); window.__rgT = performance.now(); }); map.once('load', loadWestFonts); map.once('load', loadSkinFonts); map.once('idle', () => setTimeout(() => (window.requestIdleCallback || setTimeout)(warmDrawer, { timeout: 3000 }), 1500)); if (NATIVE && !BJ) map.once('load', () => setTimeout(() => import('./updates.js').then(m => m.initUpdates({ toast, L, store, openUpd: () => tools.update() })).catch(e => console.warn(e)), 4000)); SK.hookMissingImages(map); refreshSkins(); import('./car.js').then(m => m.initCar({ map, S, isDark, lang, carStyleFor, onDest: d => { S.travel = 'drive'; openDirections(d, true); }, onStop: () => S.nav?.end?.() })).catch(e => console.warn(e)); window._skins = { ...SK, refresh: refreshSkins, use: async id => { S.skin = id; store.set('skin', id); await setStyle(); } }; window._sug = () => sugItems.map(r => ({ dbg: [r.ts, r.sc, Math.round(r.dist), r.src].join('/'), name: r.name, address: r.address, lat: r.lat, lng: r.lng, sem: !!r.sem, src: r.src, cls: r.cls || r.category }));
 applyBodyClass();
 const updHash = () => { const c = map.getCenter(); history.replaceState(null, '', `${location.pathname}${location.search}#${map.getZoom().toFixed(2)}/${c.lat.toFixed(5)}/${c.lng.toFixed(5)}`); };
 map.on('moveend', updHash);

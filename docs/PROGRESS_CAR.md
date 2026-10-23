@@ -18,3 +18,17 @@
 2. Android Auto settings → tap "Version" 10× → developer mode on.
 3. ⋮ → Developer settings → enable "Unknown sources".
 4. Connect to the car / DHU; RoadGlow appears in the launcher. Start nav on the phone (or search in the car).
+
+## 0.9.10 — car screen follows any skin incl. downloaded packs (2026-10-23)
+- Web `src/car.js`: `carExport()` builds light+dark car styles via `main.js carStyleFor(mode)` (pack `modes.<m>.car` if present,
+  else the pack's map style; built-ins: their own style). Page URLs → `{WEB}/`, embedded pack sprite → `{CAR}/sprite_<m>` +
+  exported json/png (root cause of the missing ink icons in 0.9.8: pack sprites only lived in a JS cache). Sent with
+  `CarBridge.setSkin` on style.load (deduped). `setStyle` (legacy) still sent → 0.9.8/0.9.9 natives keep working;
+  if `setSkin` is unimplemented the web stops calling it. minNative unchanged.
+- Native `CarSkinStore`: validates (v8, sources, every layer source exists), writes atomically to `files/car/skin/`,
+  resolves `{CAR}`/`{WEB}` (live-update dir if active, else `asset://public/`). CarMap: file style → legacy in-memory → `car_default.json`.
+  Day/night: phone mode light/dark, or the car's own `isDarkMode()` when the phone is on auto (Session.onCarConfigurationChanged → restyle).
+  Meta (skin, ink, route colours) persisted → car works without opening the phone UI.
+- Tests: `node --test web/tools/car/test_export.mjs` (6 pass), JVM `CarSkinStoreTest` (2 pass). Previews: `screenshots/car/v0910/` (MOCK).
+- Not tested: real Android Auto/DHU (emulator: no KVM permission on the box), on-device file writes.
+- 0.9.10 / versionCode 9100.

@@ -13,6 +13,11 @@ public final class CarState {
     public static volatile String styleJson = null;   // resolved MapLibre style of the active skin (phone-side)
     public static volatile String skin = "neon";       // skin id, e.g. neon / west / space / nord / tac / sanguo
     public static volatile boolean dark = true, ink = false, zh = false;
+    // v0.9.10: exported skin (CarSkinStore) — phone day/night setting ("auto" → follow the car's own night mode), route colours
+    public static volatile String mode = "auto";
+    public static volatile String routeLight = null, routeDark = null;
+    public static volatile int skinRev = 0;            // bumped whenever a new skin export lands
+    public static volatile boolean fromWeb = false;    // true once the WebView pushed state in this process
     // position
     public static volatile double lat = Double.NaN, lng = Double.NaN, bearing = 0;
     // navigation

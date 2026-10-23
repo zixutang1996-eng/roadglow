@@ -1,0 +1,17 @@
+<html><head><meta charset="utf-8"><link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet"><script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<style>body{margin:0;font-family:sans-serif}#m{width:1024px;height:600px}.c{position:absolute;left:16px;top:16px;width:330px;border-radius:14px;padding:14px;font-size:20px}.a{position:absolute;right:16px;top:16px;display:flex;flex-direction:column;gap:8px}.a div{width:52px;height:52px;border-radius:26px;display:flex;align-items:center;justify-content:center;font-size:26px}.t{position:absolute;left:16px;bottom:16px;border-radius:12px;padding:10px 16px;font-size:18px}.w{position:absolute;right:8px;bottom:4px;font-size:11px;opacity:.8;background:#0008;color:#fff;padding:2px 6px}</style></head><body><div id=m></div><div id=ui></div><script>
+// v0.9.10 car preview MOCK: renders the exported car style files (carex/<skin>/<mode>.json) the way CarSkinStore resolves them
+const q=new URLSearchParams(location.search),sk=q.get('sk'),mode=q.get('mode'),dark=mode=='dark',nav=q.get('nav')=='1';
+const bg=dark?'#202124':'#fff',fg=dark?'#fff':'#202124',O=location.origin;
+Promise.all([fetch(`/carex/${sk}/${mode}.json`).then(r=>r.text()),fetch(`/carex/${sk}/meta.json`).then(r=>r.json())]).then(([t,meta])=>{
+const st=JSON.parse(t.split('{CAR}/').join(`${O}/carex/${sk}/`).split('{WEB}/').join(`${O}/pub/`));
+const m=new maplibregl.Map({container:'m',style:st,center:[116.397,39.909],zoom:15,bearing:nav?30:0,pitch:nav?45:0,attributionControl:false,preserveDrawingBuffer:true});
+let miss=new Set();m.on('styleimagemissing',e=>miss.add(e.id));
+m.on('load',()=>{if(nav){m.addSource('r',{type:'geojson',data:{type:'LineString',coordinates:[[116.385,39.905],[116.397,39.909],[116.41,39.915]]}});m.addLayer({id:'rc',type:'line',source:'r',paint:{'line-color':dark?'#05070c':'#fff','line-width':13}});m.addLayer({id:'r',type:'line',source:'r',paint:{'line-color':(dark?meta.routeDark:meta.route)||'#4fd6e8','line-width':8}})}
+setTimeout(()=>{window.miss=[...miss];window.done=1},6000)});
+const ink=meta.ink;let h='';const C=`style="background:${bg};color:${fg};box-shadow:0 2px 8px #0006"`;
+if(nav)h+=`<div class=c ${C}><div style="font-size:34px">${ink?'↱ 右转':'↱ 300 m'}</div><div>${ink?'行三百步，右折入长安街':'Turn right onto Chang\'an Ave'}</div></div><div class=t ${C}>${ink?'余程五里 · 约一刻':'4.8 km · 12 min · ETA 21:14'}</div>`;
+else h+=`<div class=t ${C}>${ink?'寻地':'🔍 Search'}</div>`;
+h+=`<div class=a>${['＋','－','◎'].map(x=>`<div ${C}>${x}</div>`).join('')}</div><div class=w>PREVIEW MOCK · ${sk} ${mode} · exported car style · © OpenStreetMap</div>`;
+document.getElementById('ui').innerHTML=h;});
+</script></body></html>

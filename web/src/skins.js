@@ -36,6 +36,9 @@ export function validate(p) {
     if (st.version !== 8 || !Array.isArray(st.layers) || typeof st.sources !== 'object') E.push(`modes.${m}.style is not a MapLibre v8 style`);
     for (const [k, s] of Object.entries(st.sources || {})) for (const u of [s.url, ...(s.tiles || [])].filter(Boolean)) if (!/^https:\/\//.test(u)) E.push(`source ${k}: only https URLs allowed`);
     for (const l of st.layers || []) { const f = l.layout?.['text-font']; if (Array.isArray(f) && f.some(x => !FONTS.includes(x))) { W.push(`layer ${l.id}: font replaced (only bundled fonts: ${FONTS.join(', ')})`); l.layout['text-font'] = [['west', 'nord'].includes(p.base) ? 'IM FELL English Regular' : 'Rajdhani SemiBold']; } }
+    if (md.car != null) { const c = md.car; const bad = !c || typeof c !== 'object' || c.version !== 8 || !Array.isArray(c.layers) || typeof c.sources !== 'object' || Object.values(c.sources).some(s => [s.url, ...(s.tiles || [])].filter(Boolean).some(u => !/^https:\/\//.test(u)));
+      if (bad) { W.push(`modes.${m}.car ignored (needs a MapLibre v8 style with https sources); the car uses the map style`); delete md.car; }
+      else for (const l of c.layers) { const f = l.layout?.['text-font']; if (Array.isArray(f) && f.some(x => !FONTS.includes(x))) l.layout['text-font'] = [['west', 'nord'].includes(p.base) ? 'IM FELL English Regular' : 'Rajdhani SemiBold']; } }
     if (md.sprite && !(md.sprite.json && typeof md.sprite.json === 'object' && /^data:image\/png;base64,/.test(md.sprite.png || ''))) E.push(`modes.${m}.sprite needs {json, png:data:image/png;base64,...}`);
     const t = p.tokens?.[m] || {};
     for (const k of TOK) if (t[k] != null && !HEX.test(t[k])) E.push(`tokens.${m}.${k} must be #rrggbb`);
@@ -60,6 +63,7 @@ async function resolve(p, baseUrl) {
   for (const m of ['light', 'dark']) {
     const md = p.modes?.[m]; if (!md) continue;
     if (typeof md.style === 'string') md.style = await getJSON(u(md.style));
+    if (typeof md.car === 'string') md.car = await getJSON(u(md.car));
     if (typeof md.sprite === 'string') { const png = await (await fetch(u(md.sprite + '.png'))).blob(); if (png.size > MAX_BYTES) throw new Error('sprite too big'); md.sprite = { json: await getJSON(u(md.sprite + '.json')), png: await blobToDataURL(png) }; }
   }
   return p;

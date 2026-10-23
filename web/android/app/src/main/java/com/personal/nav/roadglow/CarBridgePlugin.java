@@ -26,7 +26,25 @@ public class CarBridgePlugin extends Plugin {
         CarState.dark = Boolean.TRUE.equals(c.getBoolean("dark", CarState.dark));
         CarState.ink = Boolean.TRUE.equals(c.getBoolean("ink", CarState.ink));
         CarState.zh = Boolean.TRUE.equals(c.getBoolean("zh", CarState.zh));
+        CarState.fromWeb = true;
         CarState.emit("style"); c.resolve();
+    }
+
+    /** v0.9.10: persist the active skin's car styles (light + dark, + pack sprite sheets) for the car map. Older natives lack this → JS falls back to setStyle. */
+    @PluginMethod
+    public void setSkin(PluginCall c) {
+        JSObject d = c.getData();
+        final android.content.Context ctx = getContext();
+        new Thread(() -> {
+            boolean ok = CarSkinStore.save(ctx, d);
+            if (ok) {
+                CarState.skin = d.optString("id", CarState.skin); CarState.ink = d.optBoolean("ink", CarState.ink); CarState.zh = d.optBoolean("zh", CarState.zh);
+                CarState.mode = d.optString("mode", CarState.mode); CarState.dark = d.optBoolean("dark", CarState.dark);
+                CarState.routeLight = d.optString("route", null); CarState.routeDark = d.optString("routeDark", null);
+                CarState.fromWeb = true; CarState.skinRev++; CarState.emit("style");
+                c.resolve(new JSObject().put("ok", true));
+            } else c.reject("invalid car style");
+        }).start();
     }
 
     @PluginMethod

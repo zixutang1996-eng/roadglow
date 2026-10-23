@@ -12,6 +12,8 @@ public class RoadGlowCarService extends CarAppService {
     @NonNull @Override public HostValidator createHostValidator() { return HostValidator.ALLOW_ALL_HOSTS_VALIDATOR; }
     @NonNull @Override public Session onCreateSession() {
         return new Session() {
+            /** car day/night switched → restyle when the phone skin is on "auto" */
+            @Override public void onCarConfigurationChanged(@NonNull android.content.res.Configuration c) { CarMap.get(getCarContext()).restyle(); }
             @NonNull @Override public Screen onCreateScreen(@NonNull Intent intent) { CarMap.get(getCarContext()).register(); return new NavScreen(getCarContext()); }
         };
     }
