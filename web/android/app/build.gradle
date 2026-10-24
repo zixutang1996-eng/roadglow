@@ -3,6 +3,7 @@ apply plugin: 'com.android.application'
 android {
     namespace = "com.personal.nav.roadglow"
     compileSdk = rootProject.ext.compileSdkVersion
+    buildFeatures { buildConfig = true }
     defaultConfig {
         applicationId "com.personal.nav.roadglow"
         minSdkVersion rootProject.ext.minSdkVersion
@@ -27,6 +28,9 @@ android {
     flavorDimensions = ["edition"]
     productFlavors {
         standard { dimension "edition" }
+        // v0.9.12 Google Play build (Internal testing, needed for Android Auto): same app id as standard,
+        // no REQUEST_INSTALL_PACKAGES; updates come from Play (web-content updates stay).
+        play { dimension "edition" }
         // RoadGlow 北京: offline Beijing edition, installs next to the normal app
         beijing { dimension "edition"; applicationIdSuffix ".beijing"; versionNameSuffix "-beijing" }
         // v0.9.7 province editions (offline Shandong / Shaanxi maps), same offline engine as Beijing
@@ -39,6 +43,7 @@ android {
         shandong { java.srcDirs = ['src/beijing/java'] }
         shaanxi { java.srcDirs = ['src/beijing/java'] }
         standard { java.srcDirs += ['src/car/java']; assets.srcDirs += ['src/car/assets'] }
+        play { java.srcDirs += ['src/car/java', 'src/standard/java']; assets.srcDirs += ['src/car/assets']; res.srcDirs += ['src/standard/res'] }
         aaos { java.srcDirs = ['src/beijing/java', 'src/car/java', 'src/aaos/java']; assets.srcDirs += ['src/car/assets'] }
     }
     buildTypes {
@@ -69,9 +74,12 @@ dependencies {
     implementation project(':capacitor-cordova-android-plugins')
     // v0.9.4 one-tap "turn on location" dialog: standard edition only (Beijing build has no GMS dependency)
     standardImplementation "com.google.android.gms:play-services-location:21.3.0"
+    playImplementation "com.google.android.gms:play-services-location:21.3.0"
     // v0.9.8 Android Auto: Car App Library + MapLibre Native for the car map (standard edition; aaos = emulator test build)
     standardImplementation "androidx.car.app:app:1.7.0"
+    playImplementation "androidx.car.app:app:1.7.0"
     standardImplementation "org.maplibre.gl:android-sdk:13.7.1"
+    playImplementation "org.maplibre.gl:android-sdk:13.7.1"
     aaosImplementation "androidx.car.app:app:1.7.0"
     aaosImplementation "androidx.car.app:app-automotive:1.7.0"
     aaosImplementation "org.maplibre.gl:android-sdk:13.7.1"

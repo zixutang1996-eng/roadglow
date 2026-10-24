@@ -40,6 +40,14 @@ public class ApkUpdaterPlugin extends Plugin {
             r.put("versionName", pi.versionName);
             r.put("versionCode", Build.VERSION.SDK_INT >= 28 ? pi.getLongVersionCode() : pi.versionCode);
         } catch (Exception ignored) {}
+        String inst = null;
+        try {
+            PackageManager pm = getContext().getPackageManager();
+            inst = Build.VERSION.SDK_INT >= 30 ? pm.getInstallSourceInfo(getContext().getPackageName()).getInstallingPackageName() : pm.getInstallerPackageName(getContext().getPackageName());
+        } catch (Exception ignored) {}
+        r.put("installer", inst);
+        // Play build (no REQUEST_INSTALL_PACKAGES) or installed from Play: updates must come from Play
+        r.put("store", "com.android.vending".equals(inst) || BuildConfig.FLAVOR.equals("play"));
         r.put("canInstall", Build.VERSION.SDK_INT < 26 || getContext().getPackageManager().canRequestPackageInstalls());
         r.put("sdk", Build.VERSION.SDK_INT);
         call.resolve(r);

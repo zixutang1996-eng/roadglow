@@ -20,8 +20,9 @@ export async function initUpdates({ toast, L, store, openUpd }) {
   const now = Date.now(); if (now - (store.get('updChecked', 0)) < 6 * 3600e3 && !location.search.includes('updcheck')) return;
   store.set('updChecked', now);
 
-  // (a) APK
-  try {
+  // (a) APK (not for Google Play installs: Play delivers updates itself)
+  let store_ = false; try { store_ = !!(await registerPlugin('ApkUpdater').info()).store; } catch {}
+  if (!store_) try {
     const r = await (await fetch(`https://api.github.com/repos/${REPO}/releases/latest`, { headers: { Accept: 'application/vnd.github+json' } })).json();
     const v = (r.tag_name || '').replace(/^v/, ''), apk = (r.assets || []).find(a => /\.apk$/i.test(a.name));
     if (v && cmp(v, info.version) > 0 && apk && store.get('apkSkip') !== v) showApk(v, r.html_url, `https://github.com/${REPO}/releases/latest/download/RoadGlow.apk`, L, store, openUpd);
@@ -68,9 +69,11 @@ export async function openUpdater({ openPanel, L, $, native, bj, webVer }) {
   let me = { versionName: null, canInstall: true, plugin: false };
   if (native) { try { me = { ...(await Up.info()), plugin: true }; } catch { try { const { App } = await import('@capacitor/app'); me.versionName = (await App.getInfo()).version; } catch {} } }
   const cur = me.versionName || webVer || '?';
+  const playMsg = me.store ? `<div class="updn">${L('此版本从 Google Play 安装：新版本请在 Play 商店更新（网页内容更新仍会自动下载）。', 'Installed from Google Play: get new versions through the Play Store (web-content updates still download automatically).')}</div><div class="updbtns"><a class="btn" href="https://play.google.com/store/apps/details?id=com.personal.nav.roadglow" target="_blank" rel="noopener">${L('打开 Play 商店', 'Open Play Store')}</a></div>` : '';
   const head = `<div class="upd"><div class="updv"><div><div class="updk">${L('当前版本', 'Installed')}</div><b>v${esc(cur)}</b></div><div><div class="updk">${L('网页内容', 'Web content')}</div><b>${esc(webVer || '–')}</b></div></div><div id="updBody"></div></div>`;
   openPanel(head, L('检查更新', 'Check for updates'), 'upd');
   const body = $('#updBody'), set = h => { if ($('#updBody')) $('#updBody').innerHTML = h; };
+  if (playMsg) return set(playMsg);
   if (bj) return set(`<div class="updn">${L('离线版不联网检查更新：GitHub 在中国大陆通常无法访问。有新版本时，家人会把安装包直接发给您，点开安装即可（数据保留）。', 'The offline edition does not check online: GitHub is usually unreachable in mainland China. New versions are sent to you as an APK file; tap it to install (your data is kept).')}</div>`);
   set(`<div class="updn"><span class="updspin"></span>${L('正在检查…', 'Checking…')}</div>`);
   let r;
