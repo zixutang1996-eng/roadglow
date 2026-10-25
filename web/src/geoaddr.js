@@ -46,16 +46,18 @@ export async function geocodeAddress(q, near, signal) {
   const ph = text => fetch('https://photon.komoot.io/api/?' + new URLSearchParams({ q: text, limit: 6, ...(near ? { lat: near.lat, lon: near.lng, location_bias_scale: 0.3 } : {}) }), { signal: tmo(signal, 6000) }).then(r => r.json()).then(j => j.features.map(f => ({ ...f.properties, lng: f.geometry.coordinates[0], lat: f.geometry.coordinates[1] }))).catch(() => []);
   const nm = () => fetch('https://nominatim.openstreetmap.org/search?' + new URLSearchParams({ street: `${p.hn} ${p.street}`, ...(p.city ? { city: p.city } : {}), ...(p.prov ? { state: p.prov } : {}), ...(p.post ? { postalcode: p.post } : {}), format: 'jsonv2', addressdetails: 1, limit: 3,
     ...(!p.city && near ? { viewbox: `${near.lng - 1},${near.lat + 1},${near.lng + 1},${near.lat - 1}` } : {}) }), { signal: tmo(signal, 8000) }).then(r => r.json()).catch(() => []);
-  const [a, b, n] = await Promise.all([ph(q), q.toLowerCase() === full.toLowerCase() ? [] : ph(full), nm()]); if (signal?.aborted) return [];
+  // v0.9.14: Nominatim starts in parallel but is only awaited if Photon has no exact house-number hit (Photon answers in ~0.5 s)
+  const nmP = nm(); const [a, b] = await Promise.all([ph(q), q.toLowerCase() === full.toLowerCase() ? [] : ph(full)]); if (signal?.aborted) return [];
   const out = [], street = [];
   for (const x of [...a, ...b]) { const st = x.street || (x.housenumber ? null : x.name); if (!st || !streetMatch(p, st)) continue; if (p.city && x.city && !fold(x.city).includes(fold(p.city)) && !fold(p.city).includes(fold(x.city))) continue;
     if (fold(x.housenumber) === fold(p.hn)) out.push({ name: `${x.housenumber} ${st}`, address: [x.city, x.state].filter(Boolean).join(', '), lat: x.lat, lng: x.lng, exact: true, src: 'photon', category: 'address' });
     else if (!x.housenumber) street.push({ name: st, address: [x.city, x.state].filter(Boolean).join(', '), lat: x.lat, lng: x.lng }); }
+  const n = out.length ? [] : await nmP; if (signal?.aborted) return [];
   for (const x of n) { const ad = x.address || {}; const st = ad.road || x.name; if (!st || !streetMatch(p, st)) continue; const c = ad.city || ad.town || ad.village || '';
     if (fold(ad.house_number) === fold(p.hn)) out.push({ name: `${ad.house_number} ${st}`, address: [c, ad.state].filter(Boolean).join(', '), lat: +x.lat, lng: +x.lon, exact: true, src: 'nominatim', category: 'address' });
     else street.push({ name: st, address: [c, ad.state].filter(Boolean).join(', '), lat: +x.lat, lng: +x.lon }); }
   if (!out.length && (p.city || near)) { // OSM has no house number here: geocoder.ca (free, ~2 req/s throttle; one at a time)
-    try { await gcBusy; const r = fetch('https://geocoder.ca/?' + new URLSearchParams({ locate: full + (p.post ? ' ' + p.post : ''), json: 1 }), { signal: tmo(signal, 6000) }).then(r => r.json()); gcBusy = r.catch(() => {}); const j = await r;
+    try { if (signal?.aborted) return []; await Promise.race([gcBusy, new Promise(r => setTimeout(r, 700))]); const r = fetch('https://geocoder.ca/?' + new URLSearchParams({ locate: full + (p.post ? ' ' + p.post : ''), json: 1 }), { signal: tmo(signal, 4000) }).then(r => r.json()); gcBusy = r.catch(() => {}); const j = await r;
       const sd = j?.standard; if (j && +j.latt && sd && +sd.confidence >= 0.7 && fold(sd.stnumber) === fold(p.hn) && typeof sd.staddress === 'string' && streetMatch(p, sd.staddress))
         out.push({ name: `${sd.stnumber} ${sd.staddress}`, address: [sd.city, sd.prov].filter(Boolean).join(', '), lat: +j.latt, lng: +j.longt, exact: true, src: 'geocoder.ca', category: 'address' }); } catch { } }
   const seen = new Set(), res = out.filter(x => { const k = x.lat.toFixed(4) + x.lng.toFixed(4); return !seen.has(k) && seen.add(k); });

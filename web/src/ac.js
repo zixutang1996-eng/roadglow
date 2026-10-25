@@ -13,8 +13,14 @@ const PROV = [['PE', [-64.5, 45.9, -61.9, 47.1]], ['NS', [-66.4, 43.3, -59.6, 47
 export const provinceOf = c => (PROV.find(([, b]) => c.lng >= b[0] && c.lng <= b[2] && c.lat >= b[1] && c.lat <= b[3]) || [null, null]);
 export const norm = s => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[’'`.]/g, '').replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
 // one-edit tolerance (substitution/insertion/deletion/transposition) between q and the same-length prefix of w
+/** v0.9.14 Damerau-Levenshtein (optimal string alignment), capped */
+export function dl(a, b, cap = 3) { if (Math.abs(a.length - b.length) > cap) return cap + 1; const m = a.length, n = b.length; let p2 = null, p = Array.from({ length: n + 1 }, (_, j) => j);
+  for (let i = 1; i <= m; i++) { const c = [i]; let lo = i; for (let j = 1; j <= n; j++) { let v = Math.min(p[j] + 1, c[j - 1] + 1, p[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)); if (p2 && i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) v = Math.min(v, p2[j - 2] + 1); c[j] = v; if (v < lo) lo = v; } if (lo > cap) return cap + 1; p2 = p; p = c; } return p[n]; }
+// typo budget by token length (Google-like forgiveness): 4-6 letters → 1 edit, 7+ → 2 edits
+const budget = n => n >= 7 ? 2 : n >= 4 ? 1 : 0;
 function near1(q, w) {
   if (w.startsWith(q)) return 0; if (q.length < 4) return 9;
+  { const b = budget(q.length); if (b >= 2) { let best = 9; for (const L of [q.length - 2, q.length - 1, q.length, q.length + 1, q.length + 2]) { if (L < 1 || L > w.length) continue; const d = dl(q, w.slice(0, L), 2); if (d <= 2) best = Math.min(best, d); } if (best <= 2) return best === 0 ? 0 : 1 + (best - 1) * 0.5; } }
   for (const L of [q.length - 1, q.length, q.length + 1]) { const p = w.slice(0, L); if (Math.abs(p.length - q.length) > 1) continue; let i = 0, j = 0, e = 0;
     while (i < q.length && j < p.length) { if (q[i] === p[j]) { i++; j++; continue; } if (++e > 1) break;
       if (q[i + 1] === p[j] && q[i] === p[j + 1]) { i += 2; j += 2; continue; } if (q.length > p.length) i++; else if (p.length > q.length) j++; else { i++; j++; } }
@@ -62,7 +68,17 @@ export const ALIAS = { superstore: 'Real Canadian Superstore', 'super store': 'R
   'u of l': 'University of Lethbridge', uofl: 'University of Lethbridge', 'u of a': 'University of Alberta', uofa: 'University of Alberta', 'u of c': 'University of Calgary', nait: 'NAIT', sait: 'SAIT',
   'chinook hospital': 'Chinook Regional Hospital', 'park n fly': 'Park\'N Fly', wem: 'West Edmonton Mall' };
 /** alias expansion for q (exact key, or a ≥4-letter prefix of a single alias key). Returns the brand name or null. */
-export function aliasOf(q) { const x = norm(q).replace(/\s+/g, ' ').replace(/(\s+(in|near|at))?(\s+(lethbridge|edmonton|calgary|red deer|medicine hat|regina|saskatoon|winnipeg|vancouver|toronto|ottawa|montreal|ab|alberta|bc|sk|mb|on|qc|canada))+$/, '').trim(); if (!x) return null; if (ALIAS[x]) return norm(ALIAS[x]) === x ? null : ALIAS[x];
+/** v0.9.14 spelling correction: each query token snapped to the closest known word (aliases, brands, local POI names) within its typo budget. Returns corrected string or null. */
+let VOC = null; const vocab = () => { if (VOC) return VOC; const set = new Set(); const add = t => norm(t).split(' ').forEach(w => w.length >= 3 && set.add(w));
+  Object.keys(ALIAS).forEach(add); Object.values(ALIAS).forEach(add); INTENTS.forEach(e => { e.k.forEach(add); e.q.forEach(add); }); EXTRA_WORDS.forEach(add); if (IDX) IDX.forEach(x => add(x.name)); VOC = [...set]; return VOC; };
+const EXTRA_WORDS = ['Lethbridge', 'Edmonton', 'Calgary', 'Red Deer', 'Medicine Hat', 'Regina', 'Saskatoon', 'Winnipeg', 'Vancouver', 'Toronto', 'Ottawa', 'Montreal', 'Coalbanks', 'Boulevard', 'Street', 'Avenue', 'Drive', 'Mall', 'Centre', 'Hospital', 'University', 'Airport', 'Restaurant', 'Library', 'Station', 'Market', 'Walmart', 'Costco', 'Safeway', 'Sobeys', 'Starbucks', 'Wendys', 'Subway', 'Boston Pizza', 'Dairy Queen', 'Canadian Tire', 'Home Depot', 'Staples', 'Rona', 'Lowes', 'Shell', 'Esso', 'Petro Canada', 'Husky', 'Safeway', 'Michaels', 'Indigo', 'Cineplex', 'Galaxy', 'Chinook', 'Henderson', 'Nikka Yuko', 'Park', 'Lake'];
+export function correct(q) { const t = norm(q).split(' ').filter(Boolean); if (!t.length || /[\u3400-\u9fff]/.test(q)) return null; const V = vocab(); let changed = false;
+  const out = t.map(w => { if (w.length < 4 || /\d/.test(w) || V.includes(w) || V.some(v => v.startsWith(w))) return w; const b = budget(w.length); let best = null, bd = b + 1;
+    for (const v of V) { if (Math.abs(v.length - w.length) > b) continue; const d = dl(w, v, b); if (d < bd) { bd = d; best = v; } } if (best) { changed = true; return best; } return w; });
+  return changed ? out.join(' ') : null; }
+export function resetVocab() { VOC = null; }
+export function aliasOf(q) { const c = correct(q); if (c) { const a = aliasOf0(c); if (a) return a; } return aliasOf0(q); }
+function aliasOf0(q) { const x = norm(q).replace(/\s+/g, ' ').replace(/(\s+(in|near|at))?(\s+(lethbridge|edmonton|calgary|red deer|medicine hat|regina|saskatoon|winnipeg|vancouver|toronto|ottawa|montreal|ab|alberta|bc|sk|mb|on|qc|canada))+$/, '').trim(); if (!x) return null; if (ALIAS[x]) return norm(ALIAS[x]) === x ? null : ALIAS[x];
   if (x.length < 4) return null; const ks = Object.keys(ALIAS).filter(k => k.startsWith(x)); const v = [...new Set(ks.map(k => ALIAS[k]))]; return v.length === 1 && !norm(v[0]).startsWith(x) ? v[0] : null; }
 // brand alias hits (e.g. "superstore" → Real Canadian Superstore) go first, nearest first — like typing a chain nickname in Google Maps
 function boostAlias(all) { const a = all.filter(x => x._alias && x.ts >= 9).sort((p, q) => p.dist - q.dist); if (!a.length) return; const rest = all.filter(x => !a.includes(x)); all.length = 0; all.push(...a.slice(0, 3), ...rest, ...a.slice(3)); }
@@ -81,10 +97,16 @@ async function photonTag(q, ctx, it, signal) {
     lng: f.geometry.coordinates[0], lat: f.geometry.coordinates[1], osm: p.osm_type ? { type: p.osm_type, id: p.osm_id } : null, _cat: 1, sc: apSc(p.name, it) }; }).filter(x => x.name);
 }
 let IDX = null, idxP = null;
+/** v0.9.14 search area for the current view: the visible bbox grown 50 %, never smaller than ~min degrees (a city) — pure, unit-tested. */
+export function viewBox(ctx, min = 0.15) { const c = ctx.c, B = ctx.B; let w = B ? (B.getEast() - B.getWest()) * 0.75 : 0.7, h = B ? (B.getNorth() - B.getSouth()) * 0.75 : 0.45;
+  w = Math.min(Math.max(w, min), 3); h = Math.min(Math.max(h, min * 0.65), 2); return [c.lng - w, c.lat - h, c.lng + w, c.lat + h].map(v => +v.toFixed(4)); }
+/** "Lethbridge, AB" style locality for a result row (city + province/state code). */
+const PCODE = { alberta: 'AB', 'british columbia': 'BC', saskatchewan: 'SK', manitoba: 'MB', ontario: 'ON', quebec: 'QC', 'québec': 'QC', 'new brunswick': 'NB', 'nova scotia': 'NS', 'prince edward island': 'PE', 'newfoundland and labrador': 'NL', yukon: 'YT', 'northwest territories': 'NT', nunavut: 'NU', washington: 'WA', montana: 'MT', idaho: 'ID', 'north dakota': 'ND', oregon: 'OR', california: 'CA', 'new york': 'NY' };
+export function locality(x) { const st = x.state || x.prov || ''; const sc = PCODE[st.toLowerCase()] || st; return [x.city, sc].filter(Boolean).filter((v, i, a) => a.indexOf(v) === i).join(', '); }
 const PC = new Map(); // Photon cache by area (0.1 deg) + normalised prefix
 let PFX = null; // 2-char token-prefix -> entries (v0.9 prebuilt in-memory prefix index)
 function buildPfx() { PFX = new Map(); for (const x of IDX) { const ks = new Set(norm(x.name + ' ' + (x.alt || '')).split(' ').filter(w => w.length >= 2).map(w => w.slice(0, 2))); for (const k of ks) { let a = PFX.get(k); if (!a) PFX.set(k, a = []); a.push(x); } } }
-export function loadIndex(url) { return idxP ||= fetch(url).then(r => r.json()).then(j => { IDX = j.features.filter(f => f.properties.name).map(f => ({ name: f.properties.name, zh: f.properties['name:zh'], cls: f.properties.class, sc: f.properties.sc || 0, lng: f.geometry.coordinates[0], lat: f.geometry.coordinates[1], osm: f.properties.osm ? { type: f.properties.osm[0], id: +f.properties.osm.slice(1) } : null, toks: norm(f.properties.name), alt: [f.properties.en, f.properties.py].filter(Boolean).join(' ') || undefined, address: [f.properties.district, f.properties.street].filter(Boolean).join(' ') || '' })); buildPfx(); return IDX; }).catch(() => (IDX = [])); }
+export function loadIndex(url) { return idxP ||= fetch(url).then(r => r.json()).then(j => { IDX = j.features.filter(f => f.properties.name).map(f => ({ name: f.properties.name, zh: f.properties['name:zh'], cls: f.properties.class, sc: f.properties.sc || 0, lng: f.geometry.coordinates[0], lat: f.geometry.coordinates[1], osm: f.properties.osm ? { type: f.properties.osm[0], id: +f.properties.osm.slice(1) } : null, toks: norm(f.properties.name), alt: [f.properties.en, f.properties.py].filter(Boolean).join(' ') || undefined, address: [f.properties.district, f.properties.street].filter(Boolean).join(' ') || '' })); buildPfx(); VOC = null; return IDX; }).catch(() => (IDX = [])); }
 const tier = (x, ctx) => ctx.B && ctx.B.contains([x.lng, x.lat]) ? 0 : x.dist < 15000 ? 1 : x.dist < 60000 || ctx.prov && x.lng >= ctx.prov[0] && x.lng <= ctx.prov[2] && x.lat >= ctx.prov[1] && x.lat <= ctx.prov[3] ? 2 : 3;
 const rank = (x, ctx) => ctx.it ? -x.ts * 40 - (x.ts >= 8 ? x.sc || 0 : 0) * 2 + Math.log10(1 + x.dist) * 60 + (x.dist > 60000 ? Math.min(220, (x.dist - 60000) / 1200) : 0) : tier(x, ctx) * (x.ts >= 4.5 ? 40 : 300) - x.ts * 40 - (x.sc || 0) * 2 + Math.log10(1 + x.dist) * 15 + (x.dist > 60000 ? Math.min(220, (x.dist - 60000) / 1200) : 0);
 const key = x => norm(x.name) + '|' + (+x.lat).toFixed(3) + ',' + (+x.lng).toFixed(3);
@@ -117,12 +139,18 @@ export async function suggest(q, ctx, extra, render, signal) {
   addrP.then(a => { if (a.length && !signal?.aborted) render([...a, ...local], 'addr', performance.now() - t0, code); });
   const ck = `${ctx.c.lat.toFixed(1)},${ctx.c.lng.toFixed(1)}|${qn}`;
   const ph = (...a) => { const ts = AbortSignal.timeout(7000), sg = signal && AbortSignal.any ? AbortSignal.any([signal, ts]) : ts; return photon(...a.slice(0, 4), sg, a[4]).catch(() => []); };
-  const reqs = PC.has(ck) ? [Promise.resolve(PC.get(ck))] : [Promise.all([ph(q, ctx.c, 8, ctx.z), ph(q, ctx.c, 8, ctx.z, [ctx.c.lng - 0.7, ctx.c.lat - 0.45, ctx.c.lng + 0.7, ctx.c.lat + 0.45]), prov ? ph(q, ctx.c, 8, Math.min(ctx.z, 9), prov) : []]).then(r => { const f = r.flat(); if (f.length) { PC.set(ck, f); if (PC.size > 300) PC.delete(PC.keys().next().value); } return f; })];
-  const alias = aliasOf(q); if (alias) { const ak = 'a|' + ck; reqs.push(PC.has(ak) ? Promise.resolve(PC.get(ak)) : ph(alias, ctx.c, 8, ctx.z, [ctx.c.lng - 0.7, ctx.c.lat - 0.45, ctx.c.lng + 0.7, ctx.c.lat + 0.45]).then(f => { f.forEach(x => x._alias = 1); if (f.length) PC.set(ak, f); return f; })); }
+  // v0.9.14: viewport/city bias. Zoomed in (z>=11) → first request is the visible area (+50%, min ~city size), second the province.
+  // Each request renders on its own (progressive), so the fast local one paints first; no global request when zoomed in.
+  const vb = viewBox(ctx); const pc = (k, p) => PC.has(k) ? Promise.resolve(PC.get(k)) : p.then(f => { if (f.length) { PC.set(k, f); if (PC.size > 300) PC.delete(PC.keys().next().value); } return f; });
+  const reqs = [pc('v|' + vb.join() + '|' + qn, ph(q, ctx.c, 8, ctx.z, vb))];
+  if (ctx.z < 11) reqs.push(pc('g|' + ck, ph(q, ctx.c, 8, ctx.z)));
+  if (prov) reqs.push(pc('p|' + code + '|' + ck, ph(q, ctx.c, 8, Math.min(ctx.z, 9), prov)));
+  const fix = correct(q); if (fix && fix !== qn) { const fk = 'c|' + ck + '|' + fix; reqs.push(PC.has(fk) ? Promise.resolve(PC.get(fk)) : ph(fix, ctx.c, 8, ctx.z, viewBox(ctx, 0.35)).then(f => { f.forEach(x => x._fix = 1); if (f.length) PC.set(fk, f); return f; })); }
+  const alias = aliasOf(q); if (alias) { const ak = 'a|' + ck; reqs.push(PC.has(ak) ? Promise.resolve(PC.get(ak)) : ph(alias, ctx.c, 8, ctx.z, viewBox(ctx, 0.35)).then(f => { f.forEach(x => x._alias = 1); if (f.length) PC.set(ak, f); return f; })); }
   const it = intentOf(q); ctx.it = it;
   if (it) { const ts = AbortSignal.timeout(7000), sg = signal && AbortSignal.any ? AbortSignal.any([signal, ts]) : ts; const ik = 'i|' + ck.split('|')[0] + '|' + it.id;
     reqs.push(PC.has(ik) ? Promise.resolve(PC.get(ik)) : Promise.all(it.q.slice(0, 3).map(w => photonTag(w, ctx, it, sg).catch(() => []))).then(r => { const f = r.flat(); if (f.length) PC.set(ik, f); return f; })); }
-  const icl = new Set(it?.cls || []); const score = x => { x.dist = haversine(ctx.c, x); if (it && x.sc == null && (it.id !== 'airport' || /aerodrome/.test(x.category || ''))) x.sc = apSc(x.name, it); const cat = x._cat || (it && icl.has(String(x.category || '').split('=').pop())); x.ts = cat ? 8 : Math.max(Math.min(textScore(qn, x.name, x.address), it ? 4 : 99), x._alias ? (norm(x.name).startsWith(norm(aliasOf(q) || '')) ? 9 : 6) : 0.5); return x; };
+  const icl = new Set(it?.cls || []); const score = x => { x.dist = haversine(ctx.c, x); if (it && x.sc == null && (it.id !== 'airport' || /aerodrome/.test(x.category || ''))) x.sc = apSc(x.name, it); const cat = x._cat || (it && icl.has(String(x.category || '').split('=').pop())); x.ts = cat ? 8 : Math.max(Math.min(textScore(qn, x.name, x.address), it ? 4 : 99), fix ? textScore(fix, x.name, x.address) - 0.3 : -1, x._alias ? (norm(x.name).startsWith(norm(aliasOf(q) || '')) ? 9 : 6) : 0.5); return x; };
   const addr = await addrP;
   // v0.9.13 progressive: render as soon as the fastest request lands instead of waiting for the slowest (7 s timeout)
   const got = []; let done = 0; const ib = [];

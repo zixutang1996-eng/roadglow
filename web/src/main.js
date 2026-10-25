@@ -368,19 +368,25 @@ function tileFeats(v) {
 }
 const acPrefix = (v, list) => { const sem = semMatch(v); if (sem) return [{ sem, name: `${L('在此区域搜索', 'Search this area for')}「${sem.t}」`, address: L('附近所有相关地点（含连锁品牌）', 'All matching places nearby, incl. chains') }]; const ce = chainEntry(v, list); return ce ? [ce] : []; };
 window._acLat = [];
+const SUGC = new Map(); const sugKey = (v, ctx) => `${v.toLowerCase().replace(/\s+/g, ' ')}|${ctx.c.lat.toFixed(2)},${ctx.c.lng.toFixed(2)}|${Math.round(ctx.z)}`;
+// v0.9.14: a search is running (category/chain list, place opened) → stop autocomplete from re-opening the dropdown over it
+function beginSearch() { S.searching = 1; clearTimeout(sugTimer); searchAbort?.abort(); $('#suggest').classList.add('hidden'); }
 q.addEventListener('input', () => {
   $('#clearBtn').classList.toggle('hidden', !q.value);
-  clearTimeout(sugTimer); searchAbort?.abort();
+  clearTimeout(sugTimer); searchAbort?.abort(); S.searching = 0;
   const v = q.value.trim(); lastQ = v;
   if (v.length < 1) { renderSuggest(recentItems()); return; }
   const t0 = performance.now(), ctx = acCtx(), local = AC.localSuggest(v, ctx, acExtra(v));
   renderSuggest([...acPrefix(v, local), ...local], false, v); window._acLat.push({ q: v, phase: 'local', ms: +(performance.now() - t0).toFixed(1), n: local.length });
   const ac = new AbortController(); searchAbort = ac;
-  sugTimer = setTimeout(() => AC.suggest(v, { ...ctx, me: S.me }, acExtra(v), (list, phase, ms, prov) => { if (ac.signal.aborted || lastQ !== v || phase === 'local') return;
-    renderSuggest([...acPrefix(v, list), ...list], false, v); window._acLat.push({ q: v, phase, ms: +(performance.now() - t0).toFixed(0), n: list.length, prov }); }, ac.signal).catch(() => {}), v.length < 3 ? 160 : 90);
+  // v0.9.14: recent-query cache (case-insensitive, per ~1 km map area): repeat / back-spaced queries paint the final list instantly
+  const rk = sugKey(v, ctx); const hit = SUGC.get(rk); if (hit) { renderSuggest([...acPrefix(v, hit), ...hit], false, v); window._acLat.push({ q: v, phase: 'cache', ms: +(performance.now() - t0).toFixed(1), n: hit.length }); return; }
+  sugTimer = setTimeout(() => AC.suggest(v, { ...ctx, me: S.me }, acExtra(v), (list, phase, ms, prov) => { if (ac.signal.aborted || lastQ !== v || phase === 'local' || S.searching) return;
+    if (phase === 'remote') { SUGC.set(rk, list); if (SUGC.size > 80) SUGC.delete(SUGC.keys().next().value); }
+    renderSuggest([...acPrefix(v, list), ...list], false, v); window._acLat.push({ q: v, phase, ms: +(performance.now() - t0).toFixed(0), n: list.length, prov }); }, ac.signal).catch(() => {}), v.length < 3 ? 220 : 180);
 });
 q.addEventListener('focus', () => { const c = S.me && AC.ADDR.cityAt(S.me.lat, S.me.lng, 0.5); AC.ADDR.loadIndex(c || undefined); }, { once: true });
-q.addEventListener('focus', () => { if (!q.value) renderSuggest(recentItems()); });
+q.addEventListener('focus', () => { S.searching = 0; if (!q.value) renderSuggest(recentItems()); });
 q.addEventListener('keydown', e => {
   if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { sugSel = Math.max(0, Math.min(sugItems.length - 1, sugSel + (e.key === 'ArrowDown' ? 1 : -1))); renderSuggest(sugItems, true); e.preventDefault(); }
   if (e.key === 'Enter') { const sm = sugSel < 0 && semMatch(q.value); if (sm) return semanticSearch(sm, q.value.trim()); if (sugItems[sugSel >= 0 ? sugSel : 0]) pick(sugItems[sugSel >= 0 ? sugSel : 0]); else nominatimSearch(q.value.trim()); }
@@ -434,9 +440,11 @@ async function nominatimSearch(v) {
   $('#suggest').innerHTML = `<div class="sug"><div class="t">${t('searching')}</div></div>`; $('#suggest').classList.remove('hidden');
   try { renderSuggest(await nominatim(v, map.getCenter()), false, null); } catch (e) { renderSuggest([], false, null); }
 }
-const shortAddr = r => { const a = (r.address || '').split(', ').filter(x => x && x !== r.name && !/^(Canada|加拿大)$/.test(x)); return (a.length ? a.slice(0, 3).join(', ') : catLabel(String(r.cls || r.category || '').split('=').pop())) || ''; };
+const shortAddr = r => { const lc = AC.locality(r); if (lc) { const a0 = (r.address || '').split(', ').find(x => x && x !== r.name && x !== r.city && x !== r.state && !/^(Canada|加拿大)$/.test(x) && !/^[A-Z]\d[A-Z]/.test(x)); return [a0, lc].filter(Boolean).join(' · '); } return shortAddr0(r); };
+const shortAddr0 = r => { const a = (r.address || '').split(', ').filter(x => x && x !== r.name && !/^(Canada|加拿大)$/.test(x)); return (a.length ? a.slice(0, 3).join(', ') : catLabel(String(r.cls || r.category || '').split('=').pop())) || ''; };
 const recentItems = () => store.get('recents', []).slice(0, 8).map(r => ({ ...r, recent: true }));
 function renderSuggest(items, keepSel, qForNom) {
+  if (S.searching && qForNom !== null) return; // v0.9.14: no dropdown while a search runs (nominatimSearch passes null)
   setTimeout(() => { const b = $('#suggest'); if (!b.querySelector('.sugx') && !b.classList.contains('hidden') && b.innerHTML) { b.insertAdjacentHTML('afterbegin', `<div class="sugx"><button class="xbig" aria-label="close">✕</button></div>`); b.querySelector('.sugx button').addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); b.classList.add('hidden'); q.blur(); }); } }, 0);
   sugItems = items; if (!keepSel) sugSel = -1;
   const box = $('#suggest');
@@ -445,6 +453,7 @@ function renderSuggest(items, keepSel, qForNom) {
   box.classList.remove('inks');
   box.innerHTML = items.map((r, i) => `<div class="sug${i === sugSel ? ' sel' : ''}" data-i="${i}"><div class="i">${r.sem ? ic('search') : r.recent || r.src === 'recent' ? ic('clock') : r.src === 'saved' ? ic('star') : catIc(r.cls || r.category)}</div><div style="flex:1;min-width:0"><div class="t">${esc(r.name)}</div><div class="s">${esc(shortAddr(r))}</div></div>${r.dist != null ? `<div class="s" style="flex:none">${fmtDist(r.dist)}</div>` : ''}</div>`).join('')
     + (!items.length ? `<div class="sug"><div class="s">${t('noresults')}</div></div>` : '')
+    + (qForNom && AC.correct(qForNom) ? `<div class="sug" data-fix="${esc(AC.correct(qForNom))}"><div class="i">${ic('search')}</div><div class="t" style="font-size:14px">${L('您是不是要找：', 'Did you mean: ')}<b>${esc(AC.correct(qForNom))}</b></div></div>` : '')
     + (qForNom ? `<div class="sug" data-nom="1"><div class="i">${ic('search')}</div><div class="t">${t('nominatim')}</div></div>` : '');
   box.classList.remove('hidden');
 }
@@ -453,6 +462,7 @@ $('#suggest').addEventListener('click', e => {
   if (ik) { if (ik.dataset.inkclr) { store.set('recents', []); $('#suggest').classList.add('hidden'); return; } const b = document.querySelector(`.chip[data-k="${ik.dataset.inkk}"]`); $('#suggest').classList.add('hidden'); q.blur(); if (b) runChip(b); return; }
   const el = e.target.closest('.sug'); if (!el) return;
   if (el.dataset.nom) return nominatimSearch(q.value.trim());
+  if (el.dataset.fix) { q.value = el.dataset.fix; q.dispatchEvent(new Event('input')); q.focus(); return; }
   if (el.dataset.i) pick(sugItems[+el.dataset.i]);
 });
 document.addEventListener('pointerdown', e => { if (!e.target.closest('#top')) $('#suggest').classList.add('hidden'); });
@@ -462,7 +472,7 @@ function addRecent(p) {
 }
 function pick(p) {
   if (p.sem) return semanticSearch(p.sem, q.value.trim());
-  $('#suggest').classList.add('hidden'); q.value = p.name; q.blur(); $('#clearBtn').classList.remove('hidden');
+  beginSearch(); q.value = p.name; q.blur(); $('#clearBtn').classList.remove('hidden');
   map.flyTo({ center: [p.lng, p.lat], zoom: Math.max(map.getZoom(), 16), padding: panelPadding() });
   showPlace(p);
 }
@@ -953,7 +963,7 @@ const SEM = [
   { k: ['ev', 'charging', '充电', '充电站'], t: L('充电站', 'EV charging'), icon: 'fuel', amen: 'charging_station', name: '', ...BR([]) },
 ];
 const reEsc = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-function semMatch(v) { const x = v.trim().toLowerCase(); if (!x) return null; return SEM.find(e => e.k.includes(x)) || SEM.find(e => e.k.some(k => k.length > 2 && (x === k + 's' || x.endsWith(' ' + k) || x.startsWith(k + ' ')))) || null; }
+function semMatch(v) { const x = v.trim().toLowerCase(); if (!x) return null; const K = e => e.k.map(k => k.toLowerCase()); return SEM.find(e => K(e).includes(x)) || SEM.find(e => K(e).some(k => k.length > 2 && (x === k + 's' || x.endsWith(' ' + k) || x.startsWith(k + ' ')))) || null; }
 function semOverpass(e, bb) {
   const P = [];
   if (e.amen) P.push(`nwr["amenity"~"^(${e.amen})$"]${e.cuisine && !/cafe|pharmacy|fuel|bank|library|parking|charging|hospital|ice_cream/.test(e.amen) && e.t !== L('餐厅', 'Restaurants') ? `["cuisine"~"${e.cuisine}",i]` : ''}(${bb});`);
@@ -973,7 +983,7 @@ function semTiles(e) {
     const id = typeof f.id === 'number' ? f.id : null; return { type: id ? ['node', 'node', 'way', 'relation'][id % 10] : 'node', id: id ? Math.floor(id / 10) : 0, lat: f.geometry.coordinates[1], lon: f.geometry.coordinates[0], tags: { name: f.properties.name, amenity: f.properties.subclass } }; });
 }
 async function semanticSearch(e, raw, again = false) {
-  $('#suggest').classList.add('hidden'); q.blur(); if (again) clearCat0(); else clearCat();
+  beginSearch(); q.blur(); const tok = S.semTok = (S.semTok || 0) + 1; if (again) clearCat0(); else clearCat();
   openPanel(`<div class="list"><div class="row">${t('searching')}</div></div>`, e.t);
   if (map.getZoom() < 12.5) await new Promise(r => { map.once('moveend', r); map.easeTo({ zoom: 13 }); });
   const B = map.getBounds(), bb = `${B.getSouth()},${B.getWest()},${B.getNorth()},${B.getEast()}`;
@@ -982,25 +992,36 @@ async function semanticSearch(e, raw, again = false) {
   const ovP = Promise.race([overpass(semOverpass(e, bb), 9000), new Promise((_, rj) => setTimeout(() => rj(new Error('timeout')), 11000))]).then(r => { src.push('Overpass'); return r; }).catch(() => []);
   const terms = [...new Set([raw, e.k.find(k => /^[a-z]/.test(k)), ...e.brands.slice(0, 7)].filter(Boolean))];
   const phP = Promise.all(terms.map(tm => photonBox(tm, B, map.getCenter(), map.getZoom(), 20).catch(() => []))).then(r => r.flat());
-  const [ov, ph] = await Promise.all([ovP, phP]);
-  els.push(...ov);
   const okPh = x => !/^(highway|place|boundary|landuse|building)=/.test(x.category || '') && (nameRe.test(x.name) || (!e.name && !e.brands.length && new RegExp(`=(${[e.amen, e.shop, e.tour, e.leis].filter(Boolean).join('|')})$`).test(x.category || '')));
-  const phs = ph.filter(okPh); if (phs.length) src.push('Photon');
-  els.push(...phs.map(x => ({ type: { N: 'node', W: 'way', R: 'relation' }[x.osm?.type] || 'node', id: x.osm?.id, lat: x.lat, lon: x.lng, tags: { name: x.name, _addr: x.address.split(',')[0] } })));
+  const phEl = ph => ph.filter(okPh).map(x => ({ type: { N: 'node', W: 'way', R: 'relation' }[x.osm?.type] || 'node', id: x.osm?.id, lat: x.lat, lon: x.lng, tags: { name: x.name, _addr: x.address.split(',')[0], _city: AC.locality(x) } }));
+  // v0.9.14 progressive: Photon (~0.5 s) paints list + pins first; Overpass (up to 11 s) merges in when it lands
+  let fitted = false;
+  const draw = (els, src, final) => {
+    if (tok !== S.semTok) return;
+    const seen = new Set(), all = [...els, ...semTiles(e)].filter(x => x.tags?.name && (x.lat ?? x.center?.lat)).filter(x => { const k = x.type + x.id; if (x.id && seen.has(k)) return false; seen.add(k); const k2 = x.tags.name.toLowerCase() + (x.lat ?? x.center.lat).toFixed(3) + (x.lon ?? x.center.lon).toFixed(3); if (seen.has(k2)) return false; seen.add(k2); return true; });
+    const c = map.getCenter();
+    const items = all.map(x => ({ name: x.tags.name, lat: x.lat ?? x.center.lat, lng: x.lon ?? x.center.lon, osm: x.id ? { type: x.type, id: x.id } : null, tags: x.tags.opening_hours || x.tags.cuisine ? x.tags : null, category: e.t,
+      address: [[x.tags['addr:housenumber'], x.tags['addr:street']].filter(Boolean).join(' ') || x.tags._addr || '', x.tags._city || [x.tags['addr:city'], x.tags['addr:province'] || x.tags['addr:state']].filter(Boolean).join(', ')].filter(Boolean).join(' · '), _t: x.tags }))
+      .sort((a, b) => haversine(c, a) - haversine(c, b));
+    // pins: only the current view (+50 %) / nearest few — the list keeps everything
+    const pinB = { w: B.getWest() - (B.getEast() - B.getWest()) / 2, e: B.getEast() + (B.getEast() - B.getWest()) / 2, s: B.getSouth() - (B.getNorth() - B.getSouth()) / 2, n: B.getNorth() + (B.getNorth() - B.getSouth()) / 2 };
+    const pinned = items.map((it, i) => [it, i]).filter(([it], k) => k < 5 || (it.lng >= pinB.w && it.lng <= pinB.e && it.lat >= pinB.s && it.lat <= pinB.n)).slice(0, 60);
+    S.catData = { type: 'FeatureCollection', features: pinned.map(([it, i]) => ({ type: 'Feature', id: i, properties: { name: it.name, icon: e.icon, i }, geometry: { type: 'Point', coordinates: [it.lng, it.lat] } })) };
+    map.getSource('cat')?.setData(S.catData); S.catItems = items;
+    openPanel(`<div class="list"><div style="font-size:13px;color:var(--muted);padding:6px 18px">${L('当前地图范围内 · 按距离排序 · 数据', 'In current map view · nearest first · data')}: ${src.join(' + ') || '—'} / OSM${final ? '' : ' · ' + L('仍在补充…', 'loading more…')}</div>${items.map((it, i) => `<div class="it" data-i="${i}"><div>${esc(it.name)}</div><div class="s">${fmtDist(haversine(c, it))}${it.address ? ' · ' + esc(it.address) : ''}${it._t.cuisine ? ' · ' + esc(it._t.cuisine.replace(/;/g, ', ')) : ''}${hoursBadgeSync(it._t)}</div></div>`).join('') || (final ? `<div class="row">${t('noresults')}</div>` : `<div class="row">${t('searching')}</div>`)}</div>`, `${e.t} · ${items.length}`);
+    $('#panelBody').querySelector('.list').onclick = ev => { const it = ev.target.closest('.it'); if (it) { const p = S.catItems[+it.dataset.i]; map.easeTo({ center: [p.lng, p.lat], zoom: 17, padding: panelPadding() }); showPlace(p); } };
+    hydrateBadges();
+    if (!fitted && pinned.length) { fitted = true; const p0 = pinned[0][0]; const bx = new maplibregl.LngLatBounds([p0.lng, p0.lat], [p0.lng, p0.lat]); pinned.slice(0, 25).forEach(([i]) => bx.extend([i.lng, i.lat])); if (!B.contains(bx.getNorthEast()) || !B.contains(bx.getSouthWest())) map.fitBounds(bx, { padding: 60, maxZoom: 15 }); }
+  };
+  const ph = await phP; if (tok !== S.semTok) return; const phs = phEl(ph); if (phs.length) src.push('Photon');
+  let ovDone = false; ovP.then(() => { ovDone = true; });
+  await Promise.resolve(); if (!ovDone && phs.length) draw([...phs], src, false);
+  const ov = await ovP; if (tok !== S.semTok) return; els.push(...ov, ...phs);
   if (!ov.length) { try { await nomWait(); const u = new URL('https://nominatim.openstreetmap.org/search'); u.search = new URLSearchParams({ q: e.k.find(k => /^[a-z]/.test(k)) || raw, viewbox: `${B.getWest()},${B.getNorth()},${B.getEast()},${B.getSouth()}`, bounded: 1, limit: 40, extratags: 1, addressdetails: 1, format: 'jsonv2' });
-      const nm = (await (await fetch(u)).json()).map(x => ({ type: x.osm_type, id: x.osm_id, lat: +x.lat, lon: +x.lon, tags: { name: x.name, ...(x.extratags || {}), 'addr:housenumber': x.address?.house_number, 'addr:street': x.address?.road } })); if (nm.length) src.push('Nominatim'); els.push(...nm); } catch {} }
-  src = src.join(' + ') || '—';
-  const seen = new Set(), all = [...els, ...semTiles(e)].filter(x => x.tags?.name && (x.lat ?? x.center?.lat)).filter(x => { const k = x.type + x.id; if (x.id && seen.has(k)) return false; seen.add(k); return true; });
-  const c = map.getCenter();
-  const items = all.map(x => ({ name: x.tags.name, lat: x.lat ?? x.center.lat, lng: x.lon ?? x.center.lon, osm: x.id ? { type: x.type, id: x.id } : null, tags: x.tags.opening_hours || x.tags.cuisine ? x.tags : null, category: e.t,
-    address: [x.tags['addr:housenumber'], x.tags['addr:street']].filter(Boolean).join(' ') || x.tags._addr || '', _t: x.tags }))
-    .sort((a, b) => haversine(c, a) - haversine(c, b));
-  S.catData = { type: 'FeatureCollection', features: items.map((it, i) => ({ type: 'Feature', id: i, properties: { name: it.name, icon: e.icon, i }, geometry: { type: 'Point', coordinates: [it.lng, it.lat] } })) };
-  map.getSource('cat')?.setData(S.catData); S.catItems = items;
-  openPanel(`<div class="list"><div style="font-size:13px;color:var(--muted);padding:6px 18px">${L('当前地图范围内 · 按距离排序 · 数据', 'In current map view · nearest first · data')}: ${src} / OSM</div>${items.map((it, i) => `<div class="it" data-i="${i}"><div>${esc(it.name)}</div><div class="s">${fmtDist(haversine(c, it))}${it.address ? ' · ' + esc(it.address) : ''}${it._t.cuisine ? ' · ' + esc(it._t.cuisine.replace(/;/g, ', ')) : ''}${hoursBadgeSync(it._t)}</div></div>`).join('') || `<div class="row">${t('noresults')}</div>`}</div>`, `${e.t} · ${items.length}`);
-  $('#panelBody').querySelector('.list').onclick = ev => { const it = ev.target.closest('.it'); if (it) { const p = S.catItems[+it.dataset.i]; map.easeTo({ center: [p.lng, p.lat], zoom: 17, padding: panelPadding() }); showPlace(p); } };
-  hydrateBadges(); S._fitting = true; setTimeout(() => { S._fitting = false; markSearch({ type: 'sem', e, raw }); }, 1500);
-  if (items.length) { const bx = new maplibregl.LngLatBounds([items[0].lng, items[0].lat], [items[0].lng, items[0].lat]); items.slice(0, 25).forEach(i => bx.extend([i.lng, i.lat])); if (!B.contains(bx.getNorthEast()) || !B.contains(bx.getSouthWest())) map.fitBounds(bx, { padding: 60, maxZoom: 15 }); }
+      const nm = (await (await fetch(u)).json()).map(x => ({ type: x.osm_type, id: x.osm_id, lat: +x.lat, lon: +x.lon, tags: { name: x.name, ...(x.extratags || {}), 'addr:housenumber': x.address?.house_number, 'addr:street': x.address?.road, _city: AC.locality({ city: x.address?.city || x.address?.town || x.address?.village, state: x.address?.state }) } })); if (nm.length) src.push('Nominatim'); els.push(...nm); } catch {} }
+  draw(els, src, true);
+  S._fitting = true; setTimeout(() => { S._fitting = false; markSearch({ type: 'sem', e, raw }); }, 1500);
+
 }
 let lastNomS = 0; const nomWait = async () => { const w = Math.max(0, lastNomS + 1100 - Date.now()); await new Promise(r => setTimeout(r, w)); lastNomS = Date.now(); };
 

@@ -34,14 +34,16 @@ function fromPhoton(f) {
     category: [p.osm_key, p.osm_value].filter(Boolean).join('='),
     lng: f.geometry.coordinates[0], lat: f.geometry.coordinates[1],
     osm: p.osm_type && p.osm_id ? { type: p.osm_type, id: p.osm_id } : null,
+    city: p.city || p.town || p.village || p.county || '', state: p.state || '', cc: p.countrycode || '',
   };
 }
 
 // Nominatim: max 1 request/second (usage policy). Browser sends Referer automatically.
 let lastNom = 0;
 export async function nominatim(q, center, opt = {}) {
-  const wait = Math.max(0, lastNom + 1100 - Date.now());
-  await new Promise(r => setTimeout(r, wait)); lastNom = Date.now();
+  // v0.9.14: reserve a slot (1 req/s policy) without stacking stale keystrokes; abortable while waiting
+  const slot = Math.max(Date.now(), lastNom + 1100); lastNom = slot;
+  await new Promise((r, rj) => { const t = setTimeout(r, slot - Date.now()); opt.signal?.addEventListener('abort', () => { clearTimeout(t); rj(new Error('aborted')); }, { once: true }); });
   const d = 0.6;
   const u = new URL('https://nominatim.openstreetmap.org/search');
   u.search = new URLSearchParams({ q, format: 'jsonv2', limit: 8, addressdetails: 1, 'accept-language': lang === 'zh' ? 'zh,en' : 'en',
@@ -51,6 +53,7 @@ export async function nominatim(q, center, opt = {}) {
   return (await r.json()).map(x => ({
     name: x.name || x.display_name.split(',')[0], address: x.display_name, category: `${x.category}=${x.type}`,
     lat: +x.lat, lng: +x.lon, osm: { type: x.osm_type[0].toUpperCase(), id: x.osm_id },
+    city: x.address?.city || x.address?.town || x.address?.village || x.address?.county || '', state: x.address?.state || '',
   }));
 }
 
