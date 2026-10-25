@@ -58,15 +58,21 @@ export async function nominatim(q, center, opt = {}) {
 }
 
 const OVERPASS = ['https://overpass-api.de/api/interpreter', 'https://overpass.kumi.systems/api/interpreter', 'https://overpass.private.coffee/api/interpreter'];
-export async function overpass(query, totalMs = 20000) {
-  let err; const t0 = Date.now();
-  for (const ep of OVERPASS) {
-    if (Date.now() - t0 > totalMs) break;
+// v0.9.15: endpoints that answered 4xx/5xx or timed out are skipped for 10 min (was: every search re-tried a dead mirror for
+// 8 s each — overpass-api.de answers 406 to some clients and kumi/private.coffee often hang), and the whole call honours
+// totalMs + an optional abort signal so a caller never waits longer than it asked for.
+const OV_DEAD = new Map();
+export async function overpass(query, totalMs = 20000, signal) {
+  let err = new Error('Overpass: no live endpoint'); const t0 = Date.now();
+  const eps = OVERPASS.filter(ep => !(OV_DEAD.get(ep) > Date.now())); if (!eps.length) OV_DEAD.clear();
+  for (const ep of eps.length ? eps : OVERPASS) {
+    const left = totalMs - (Date.now() - t0); if (left < 800 || signal?.aborted) break;
     try {
-      const r = await fetch(ep, { method: 'POST', body: 'data=' + encodeURIComponent(query), headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, signal: withTimeout(8000) });
+      const sig = AbortSignal.any([withTimeout(Math.min(left, 8000)), ...(signal ? [signal] : [])]);
+      const r = await fetch(ep, { method: 'POST', body: 'data=' + encodeURIComponent(query), headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, signal: sig });
       if (r.ok) return (await r.json()).elements;
-      err = new Error('Overpass ' + r.status);
-    } catch (e) { err = e; }
+      err = new Error('Overpass ' + r.status); if (r.status !== 429) OV_DEAD.set(ep, Date.now() + 600000);
+    } catch (e) { err = e; if (!signal?.aborted) OV_DEAD.set(ep, Date.now() + 600000); }
   }
   throw err;
 }

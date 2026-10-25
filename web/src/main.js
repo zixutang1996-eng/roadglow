@@ -351,7 +351,7 @@ export const locate = (fly = true) => navigator.geolocation?.getCurrentPosition(
 
 // ---------- search ----------
 const q = $('#q'); q.placeholder = t('search');
-let sugTimer, sugItems = [], sugSel = -1, lastQ = '';
+let sugTimer, sugItems = [], sugSel = -1, lastQ = '', sugFor = '';
 // v0.7 autocomplete: instant local rows on every keystroke, remote rows merged after a 150 ms debounce (stale requests aborted)
 const acCtx = () => ({ c: map.getCenter(), z: map.getZoom(), B: map.getBounds(), zh: ZH });
 const acExtra = v => [['saved', store.get('saved', [])], ['recent', store.get('recents', [])], ['offline', offlineSearch(v)], ['tile', tileFeats(v)]];
@@ -389,7 +389,12 @@ q.addEventListener('focus', () => { const c = S.me && AC.ADDR.cityAt(S.me.lat, S
 q.addEventListener('focus', () => { S.searching = 0; if (!q.value) renderSuggest(recentItems()); });
 q.addEventListener('keydown', e => {
   if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { sugSel = Math.max(0, Math.min(sugItems.length - 1, sugSel + (e.key === 'ArrowDown' ? 1 : -1))); renderSuggest(sugItems, true); e.preventDefault(); }
-  if (e.key === 'Enter') { const sm = sugSel < 0 && semMatch(q.value); if (sm) return semanticSearch(sm, q.value.trim()); if (sugItems[sugSel >= 0 ? sugSel : 0]) pick(sugItems[sugSel >= 0 ? sugSel : 0]); else nominatimSearch(q.value.trim()); }
+  if (e.key === 'Enter') { const v = q.value.trim(); if (!v) return; const sm = sugSel < 0 && semMatch(v); if (sm) return semanticSearch(sm, v);
+    const fresh = sugFor.toLowerCase() === v.toLowerCase(); // v0.9.15: a list painted for 'cost' must not answer Enter on 'costco'
+    if (sugSel >= 0 && fresh && sugItems[sugSel]) return pick(sugItems[sugSel]);
+    const ce = chainEntry(v, fresh ? sugItems.filter(r => !r.sem) : []); if (ce) return pick(ce);
+    if (fresh && sugItems[0]) return pick(sugItems[0]);
+    runSearch(v).then(() => { if (lastQ === v && !sugItems.length) nominatimSearch(v); }); }
   if (e.key === 'Escape') { $('#suggest').classList.add('hidden'); q.blur(); }
 });
 $('#clearBtn').onclick = () => { q.value = ''; $('#clearBtn').classList.add('hidden'); closePanel(); clearCat(); S.place = null; drawPin(); q.focus(); };
@@ -408,11 +413,19 @@ function localHits(v) {
 function chainEntry(v, list) {
   if (BJ) return null; // chain lookup needs Overpass (online)
   const x = v.trim().toLowerCase(); if (x.length < 3 || /^\d/.test(x)) return null;
-  const known = SEM.flatMap(e => e.brands).find(b => b.toLowerCase().replace(/[’']/g, '') === x.replace(/[’']/g, '') || (x.length > 4 && b.toLowerCase().startsWith(x)));
+  // v0.9.15: exact brand wins over prefix (was: 'costco' → first prefix hit 'Costco Gas' from the gas list); a prefix hit only
+  // supplies the display name when it is the *only* brand family, and matching always uses what the user typed.
+  const nx = x.replace(/[’']/g, ''), AB = [...new Set(SEM.flatMap(e => e.brands))], bn = b => b.toLowerCase().replace(/[’']/g, '');
+  const pre = AB.filter(b => x.length > 4 && bn(b).startsWith(nx));
+  pre.sort((a, b) => a.length - b.length);
+  const known = AB.find(b => bn(b) === nx) || (pre.length && pre.every(b => bn(b).startsWith(bn(pre[0]))) ? pre[0] : null)
+    || (AC.aliasOf(v) && AB.find(b => bn(b) === AC.aliasOf(v).toLowerCase()));
   const same = list.filter(r => r.name && r.name.toLowerCase().includes(x)); const multi = new Set(same.map(r => r.name.toLowerCase())).size < same.length;
   if (!known && !multi) return null;
-  const nm = known || same[0].name;
-  return { sem: { chain: 1, t: nm, k: [nm.toLowerCase()], icon: 'generic', name: reEsc(nm).replace(/['’]/g, '.?'), brands: [nm], qids: [] }, name: `${L('显示所有「', 'All 「')}${nm}${L('」分店与同名地点', '」 branches & same-named places')}`, address: L('当前范围及附近 · 列表 + 地图标记', 'In view & nearby · list + map markers') };
+  const nm = known || v.trim().replace(/\b\w/g, c => c.toUpperCase());
+  // name regex = word-start match of the typed text (and the canonical brand) → 'costco' finds Costco, Costco Gasoline, Costco Pharmacy …
+  const nre = [...new Set([nx, bn(nm)])].map(t => '\\b' + reEsc(t).replace(/['’]/g, '.?').replace(/\s+/g, '[\\s-]*')).join('|');
+  return { sem: { chain: 1, t: nm, k: [nm.toLowerCase()], icon: 'generic', name: nre, ovName: [...new Set([nx, bn(nm)])].map(t => t.replace(/[^a-z0-9 ]/g, '.')).join('|'), brands: [], qids: [] }, name: `${L('显示所有「', 'All 「')}${nm}${L('」分店与同名地点', '」 branches & same-named places')}`, address: L('当前范围及附近 · 列表 + 地图标记', 'In view & nearby · list + map markers') };
 }
 function renderLocal(v) { if (v.length < 2) return; const lh = localHits(v); if (!lh.length) return; const ce = chainEntry(v, lh); renderSuggest([...(semMatch(v) ? [{ sem: semMatch(v), name: `${L('在此区域搜索', 'Search this area for')}「${semMatch(v).t}」`, address: '' }] : ce ? [ce] : []), ...lh], false, v); }
 let searchAbort = null;
@@ -446,7 +459,7 @@ const recentItems = () => store.get('recents', []).slice(0, 8).map(r => ({ ...r,
 function renderSuggest(items, keepSel, qForNom) {
   if (S.searching && qForNom !== null) return; // v0.9.14: no dropdown while a search runs (nominatimSearch passes null)
   setTimeout(() => { const b = $('#suggest'); if (!b.querySelector('.sugx') && !b.classList.contains('hidden') && b.innerHTML) { b.insertAdjacentHTML('afterbegin', `<div class="sugx"><button class="xbig" aria-label="close">✕</button></div>`); b.querySelector('.sugx button').addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); b.classList.add('hidden'); q.blur(); }); } }, 0);
-  sugItems = items; if (!keepSel) sugSel = -1;
+  sugItems = items; if (!keepSel) sugSel = -1; if (typeof qForNom === 'string') sugFor = qForNom; else if (qForNom === null) sugFor = q.value.trim();
   const box = $('#suggest');
   if (!items.length && qForNom === undefined) { box.classList.add('hidden'); return; }
   if (INK() && items.length && items.every(r => r.recent || r.inkSaved)) { box.innerHTML = inkSugHtml(items); box.classList.add('inks'); box.classList.remove('hidden'); return; }
@@ -970,7 +983,8 @@ function semOverpass(e, bb) {
   if (e.shop) P.push(`nwr["shop"~"^(${e.shop})$"](${bb});`);
   if (e.tour) P.push(`nwr["tourism"~"^(${e.tour})$"](${bb});`);
   if (e.leis) P.push(`nwr["leisure"~"^(${e.leis})$"]["name"](${bb});`);
-  if (e.name) P.push(`nwr["name"~"${e.name}",i]["amenity"](${bb});`, `nwr["name"~"${e.name}",i]["shop"](${bb});`);
+  if (e.ovName) P.push(`nwr["name"~"${e.ovName}",i](${bb});`); // chain: any tagged feature named like the query (Overpass ERE has no \b)
+  else if (e.name) P.push(`nwr["name"~"${e.name}",i]["amenity"](${bb});`, `nwr["name"~"${e.name}",i]["shop"](${bb});`);
   if (e.brands.length) P.push(`nwr["brand"~"^(${e.brands.map(reEsc).join('|')})",i](${bb});`, `nwr["name"~"^(${e.brands.map(reEsc).join('|')})",i](${bb});`);
   if (e.qids.length) P.push(`nwr["brand:wikidata"~"^(${e.qids.join('|')})$"](${bb});`);
   return `[out:json][timeout:12];(${P.join('')});out tags center 150;`;
@@ -989,12 +1003,12 @@ async function semanticSearch(e, raw, again = false) {
   const B = map.getBounds(), bb = `${B.getSouth()},${B.getWest()},${B.getNorth()},${B.getEast()}`;
   let els = [], src = [];
   const nameRe = new RegExp([e.name, ...e.brands.map(reEsc), ...e.k.filter(k => /^[a-z]{4,}/.test(k))].filter(Boolean).join('|') || '^$', 'i');
-  const ovP = Promise.race([overpass(semOverpass(e, bb), 9000), new Promise((_, rj) => setTimeout(() => rj(new Error('timeout')), 11000))]).then(r => { src.push('Overpass'); return r; }).catch(() => []);
-  const terms = [...new Set([raw, e.k.find(k => /^[a-z]/.test(k)), ...e.brands.slice(0, 7)].filter(Boolean))];
-  const phP = Promise.all(terms.map(tm => photonBox(tm, B, map.getCenter(), map.getZoom(), 20).catch(() => []))).then(r => r.flat());
+  // v0.9.15: every source paints the moment it lands (was: wait for ALL Photon terms, then Overpass up to 11 s, then Nominatim
+  // only after Overpass failed → 6–20 s of 「搜索中…」 even with the place on screen). Tiles/offline paint at t=0, Photon and
+  // Nominatim run in parallel, Overpass is capped at 6 s and skipped once an endpoint is known dead.
+  const terms = [...new Set([raw, e.k.find(k => /^[a-z]/.test(k)), ...e.brands.slice(0, 7)].filter(Boolean).map(x => x.toLowerCase()))];
   const okPh = x => !/^(highway|place|boundary|landuse|building)=/.test(x.category || '') && (nameRe.test(x.name) || (!e.name && !e.brands.length && new RegExp(`=(${[e.amen, e.shop, e.tour, e.leis].filter(Boolean).join('|')})$`).test(x.category || '')));
-  const phEl = ph => ph.filter(okPh).map(x => ({ type: { N: 'node', W: 'way', R: 'relation' }[x.osm?.type] || 'node', id: x.osm?.id, lat: x.lat, lon: x.lng, tags: { name: x.name, _addr: x.address.split(',')[0], _city: AC.locality(x) } }));
-  // v0.9.14 progressive: Photon (~0.5 s) paints list + pins first; Overpass (up to 11 s) merges in when it lands
+  const phEl = ph => ph.filter(okPh).map(x => ({ type: { N: 'node', W: 'way', R: 'relation' }[x.osm?.type] || 'node', id: x.osm?.id, lat: x.lat, lon: x.lng, tags: { name: x.name, _addr: (x.address || '').split(',')[0], _city: AC.locality(x) } }));
   let fitted = false;
   const draw = (els, src, final) => {
     if (tok !== S.semTok) return;
@@ -1013,13 +1027,17 @@ async function semanticSearch(e, raw, again = false) {
     hydrateBadges();
     if (!fitted && pinned.length) { fitted = true; const p0 = pinned[0][0]; const bx = new maplibregl.LngLatBounds([p0.lng, p0.lat], [p0.lng, p0.lat]); pinned.slice(0, 25).forEach(([i]) => bx.extend([i.lng, i.lat])); if (!B.contains(bx.getNorthEast()) || !B.contains(bx.getSouthWest())) map.fitBounds(bx, { padding: 60, maxZoom: 15 }); }
   };
-  const ph = await phP; if (tok !== S.semTok) return; const phs = phEl(ph); if (phs.length) src.push('Photon');
-  let ovDone = false; ovP.then(() => { ovDone = true; });
-  await Promise.resolve(); if (!ovDone && phs.length) draw([...phs], src, false);
-  const ov = await ovP; if (tok !== S.semTok) return; els.push(...ov, ...phs);
-  if (!ov.length) { try { await nomWait(); const u = new URL('https://nominatim.openstreetmap.org/search'); u.search = new URLSearchParams({ q: e.k.find(k => /^[a-z]/.test(k)) || raw, viewbox: `${B.getWest()},${B.getNorth()},${B.getEast()},${B.getSouth()}`, bounded: 1, limit: 40, extratags: 1, addressdetails: 1, format: 'jsonv2' });
-      const nm = (await (await fetch(u)).json()).map(x => ({ type: x.osm_type, id: x.osm_id, lat: +x.lat, lon: +x.lon, tags: { name: x.name, ...(x.extratags || {}), 'addr:housenumber': x.address?.house_number, 'addr:street': x.address?.road, _city: AC.locality({ city: x.address?.city || x.address?.town || x.address?.village, state: x.address?.state }) } })); if (nm.length) src.push('Nominatim'); els.push(...nm); } catch {} }
-  draw(els, src, true);
+  const got = [], add = (xs, name) => { if (tok !== S.semTok) return; if (xs.length && !src.includes(name)) src.push(name); got.push(...xs); draw(got, src, false); };
+  draw([], src, false); // t≈0: on-screen tile POIs (semTiles) + offline hits
+  const sig = AbortSignal.timeout(6000), c0 = map.getCenter(), z0 = map.getZoom();
+  const jobs = terms.map(tm => photonBox(tm, B, c0, z0, 20, sig).then(r => add(phEl(r), 'Photon')).catch(() => {}));
+  // chain/brand: also look a little beyond the view (nearest branch may sit just off-screen, like Google's "Costco" → nearest warehouse)
+  if (e.chain) jobs.push(photon(raw, c0, 15, Math.min(z0, 12), sig).then(r => add(phEl(r.filter(x => haversine(c0, x) < 60000)), 'Photon')).catch(() => {}));
+  jobs.push((async () => { try { await nomWait(); if (tok !== S.semTok) return; const u = new URL('https://nominatim.openstreetmap.org/search'); u.search = new URLSearchParams({ q: e.chain ? raw : (e.k.find(k => /^[a-z]/.test(k)) || raw), viewbox: `${B.getWest()},${B.getNorth()},${B.getEast()},${B.getSouth()}`, bounded: 1, limit: 40, extratags: 1, addressdetails: 1, format: 'jsonv2' });
+      const nm = (await (await fetch(u, { signal: sig })).json()).map(x => ({ type: x.osm_type, id: x.osm_id, lat: +x.lat, lon: +x.lon, tags: { name: x.name, ...(x.extratags || {}), 'addr:housenumber': x.address?.house_number, 'addr:street': x.address?.road, _city: AC.locality({ city: x.address?.city || x.address?.town || x.address?.village, state: x.address?.state }) } })).filter(x => x.tags.name && (!e.chain || nameRe.test(x.tags.name))); add(nm, 'Nominatim'); } catch {} })());
+  jobs.push(overpass(semOverpass(e, bb), 6000, sig).then(r => add(r, 'Overpass')).catch(() => {}));
+  await Promise.all(jobs); if (tok !== S.semTok) return;
+  draw(got, src, true);
   S._fitting = true; setTimeout(() => { S._fitting = false; markSearch({ type: 'sem', e, raw }); }, 1500);
 
 }
