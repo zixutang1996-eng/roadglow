@@ -9,7 +9,7 @@ const D = {
     charging:'充电站', parking:'停车场', min:'分钟', h:'小时', km:'公里', m:'米', steps:'路线步骤', arrive:'到达目的地',
     reroute:'正在重新规划路线', nav_end:'结束导航', clear_history:'清除历史', empty:'空', locate:'定位', layers:'图层', zoomin:'放大', zoomout:'缩小', compass:'指北',
     nominatim:'使用 Nominatim 补充搜索', coords:'坐标', nearby:'附近', more:'更多',
-    about_text:'个人使用的导航应用。地图数据 © OpenStreetMap 贡献者 (ODbL)；矢量瓦片 OpenFreeMap / OpenMapTiles；搜索 Photon (komoot)、Nominatim；地点详情 Overpass；路线 FOSSGIS OSRM；照片 Wikimedia Commons；支线任务 Wikidata (CC0)；公交 Transitous (MOTIS)；天气 Open-Meteo (CC BY 4.0)；图标 Maki (CC0)；字体 Rajdhani、IM FELL English (OFL)。埃德蒙顿门牌地址：Contains information licensed under the Open Government Licence – City of Edmonton（市政府开放数据 Parcel Addresses，不含邮编）。' },
+    about_text:'个人使用的导航应用。地图数据 © OpenStreetMap 贡献者 (ODbL)；矢量瓦片 OpenFreeMap / OpenMapTiles；搜索 Photon (komoot)、Nominatim；地点详情 Overpass；路线 FOSSGIS OSRM；照片 Wikimedia Commons；支线任务 Wikidata (CC0)；公交 Transitous (MOTIS)；天气 Open-Meteo (CC BY 4.0)；图标 Maki (CC0)；字体 Rajdhani、IM FELL English (OFL)。埃德蒙顿门牌地址：Contains information licensed under the Open Government Licence – City of Edmonton / City of Lethbridge（市政府开放数据 Parcel Addresses，不含邮编）。' },
   en: {search:'Search places or addresses', menu:'Menu', saved:'Saved', recents:'Recents', styles:'Map style', neon:'Neon City', west:'Frontier Ink', space:'Deep Space', nord:'Northland', tac:'Tactical',
     auto:'System', light:'Light', dark:'Dark', offline:'Offline maps', offline_soon:'Coming soon: download PMTiles regions', settings:'Settings',
     language:'Language', lang_auto:'Browser default', about:'About & attribution', directions:'Directions', start:'Start', save:'Save', saved_ok:'Saved', share:'Share',
@@ -20,7 +20,7 @@ const D = {
     charging:'EV charging', parking:'Parking', min:'min', h:'h', km:'km', m:'m', steps:'Steps', arrive:'You have arrived',
     reroute:'Rerouting', nav_end:'End', clear_history:'Clear history', empty:'Empty', locate:'Locate', layers:'Layers', zoomin:'Zoom in', zoomout:'Zoom out', compass:'Reset north',
     nominatim:'Search more with Nominatim', coords:'Coordinates', nearby:'Nearby', more:'More',
-    about_text:'Personal navigation app. Map data © OpenStreetMap contributors (ODbL); vector tiles OpenFreeMap / OpenMapTiles; search Photon (komoot), Nominatim; details Overpass; routing FOSSGIS OSRM; photos Wikimedia Commons; side quests Wikidata (CC0); transit Transitous (MOTIS); weather Open-Meteo (CC BY 4.0); icons Maki (CC0); fonts Rajdhani, IM FELL English (OFL). Edmonton address points: Contains information licensed under the Open Government Licence – City of Edmonton (Open Data "Parcel Addresses"; no postal codes).' },
+    about_text:'Personal navigation app. Map data © OpenStreetMap contributors (ODbL); vector tiles OpenFreeMap / OpenMapTiles; search Photon (komoot), Nominatim; details Overpass; routing FOSSGIS OSRM; photos Wikimedia Commons; side quests Wikidata (CC0); transit Transitous (MOTIS); weather Open-Meteo (CC BY 4.0); icons Maki (CC0); fonts Rajdhani, IM FELL English (OFL). Edmonton address points: Contains information licensed under the Open Government Licence – City of Edmonton / City of Lethbridge (Open Data "Parcel Addresses"; no postal codes).' },
 };
 export let lang = (localStorage.getItem('lang') || (['beijing', 'shandong', 'shaanxi'].includes((import.meta.env||{}).VITE_EDITION) ? 'zh' : navigator.language || 'en')).toLowerCase().startsWith('zh') ? 'zh' : 'en';
 export const setLang = l => { if (l) localStorage.setItem('lang', l); else localStorage.removeItem('lang'); location.reload(); };

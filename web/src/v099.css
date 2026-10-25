@@ -26,3 +26,21 @@ html:not(#_s):not(#_t):not(#_u) body #layersPop.sheet.rg-unroll,html:not(#_s):no
 @media (prefers-reduced-motion:reduce){html:not(#_s):not(#_t):not(#_u) body #layersPop.sheet{transition:none}}
 /* scroll audit: every overlay that can outgrow the screen scrolls with momentum and contains overscroll */
 #panel,#drawer,#suggest,.card.listpick,.card.pickbar,#panelBody{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+/* v0.9.13 nav card: simplified (arrow · distance to manoeuvre · total remaining · lanes). Grows vertically only — never wider than the screen. */
+html body #navBanner{box-sizing:border-box;width:auto;max-width:min(520px,calc(100vw - 24px));max-height:min(46vh,calc(100vh - 220px));overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain}
+html body #navBanner #navBody{min-width:0}
+html body #navBanner .nc13{align-items:center;gap:calc(12px * var(--ncs,1))}
+html body #navBanner .nc13 .ar{width:calc(34px * var(--nts));font-size:inherit}
+html body #navBanner .rda{display:block;width:100%;height:auto;fill:currentColor;filter:drop-shadow(0 1px 1px rgba(0,0,0,.25))}
+html body #navBanner .ncm{flex:1;min-width:0}
+html body #navBanner .nc13 .dd{font-size:calc(30px * var(--nts));line-height:1.05;overflow-wrap:anywhere}
+html body #navBanner .nc13 .objsub{border-top:0;margin-top:2px;padding-top:0;white-space:normal;overflow:visible;font-size:calc(14px * var(--nts));opacity:.85}
+html body #navBanner .lanes{display:flex;flex-wrap:wrap;gap:4px;margin-top:calc(8px * var(--ncs,1));padding:5px 6px;border-radius:8px;background:color-mix(in srgb,currentColor 12%,transparent);width:max-content;max-width:100%;box-sizing:border-box}
+html body #navBanner .ln{display:flex;gap:1px;padding:2px 3px;opacity:.35;border-inline-start:2px dashed color-mix(in srgb,currentColor 45%,transparent)}
+html body #navBanner .ln:first-child{border-inline-start:0}
+html body #navBanner .ln.ok{opacity:1}
+html body #navBanner .lna{width:calc(13px * var(--nts));height:calc(22px * var(--nts));fill:currentColor}
+
+/* v0.9.13 island drag (all skins) */
+#controls.isl-drag{transform:scale(1.06);filter:drop-shadow(0 6px 14px rgba(0,0,0,.45));transition:transform .15s;cursor:grabbing;touch-action:none}
+#controls{touch-action:manipulation;max-height:calc(100vh - 24px)}

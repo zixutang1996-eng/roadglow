@@ -3,6 +3,8 @@
 // Nominatim fallback (countrycodes=ca + province viewbox, 1 req/s). Ranking tiers: in viewport < nearby (15 km) < same province < elsewhere.
 import { photon, nominatim, haversine } from './services.js';
 import * as ADDR from './addr.js';
+import { parseAddress, geocodeAddress } from './geoaddr.js';
+export { parseAddress, geocodeAddress };
 export { ADDR };
 // Canadian provinces/territories: rough bboxes [W,S,E,N] (checked in order; small ones first)
 const PROV = [['PE', [-64.5, 45.9, -61.9, 47.1]], ['NS', [-66.4, 43.3, -59.6, 47.1]], ['NB', [-69.1, 44.5, -63.7, 48.1]], ['AB', [-120.0, 49.0, -110.0, 60.0]],
@@ -50,6 +52,20 @@ export const INTENTS = [
   { id: 'bank', k: ['bank', 'banks', 'atm', '银行', '取款机', '自动取款机'], cls: ['bank', 'atm'], tag: ['amenity:bank'], q: ['bank'] },
   { id: 'parking', k: ['parking', 'parking lot', 'car park', '停车场', '停车'], cls: ['parking'], tag: ['amenity:parking'], q: ['parking'] },
 ];
+// v0.9.13 brand / nickname aliases (Canada first): what people type → the name actually mapped in OSM. Queried in parallel, local bbox.
+export const ALIAS = { superstore: 'Real Canadian Superstore', 'super store': 'Real Canadian Superstore', rcss: 'Real Canadian Superstore', 'real canadian': 'Real Canadian Superstore',
+  timmies: 'Tim Hortons', timmys: 'Tim Hortons', tims: 'Tim Hortons', 'tim hortons': 'Tim Hortons', 'tim horton': 'Tim Hortons', shoppers: 'Shoppers Drug Mart', sdm: 'Shoppers Drug Mart',
+  'canadian tire': 'Canadian Tire', 'cdn tire': 'Canadian Tire', ct: 'Canadian Tire', mcd: "McDonald's", mcdonalds: "McDonald's", mickeyds: "McDonald's", 'a and w': 'A&W', aw: 'A&W',
+  petro: 'Petro-Canada', 'petro canada': 'Petro-Canada', nofrills: 'No Frills', 'no frills': 'No Frills', 'save on': 'Save-On-Foods', saveon: 'Save-On-Foods', 'save on foods': 'Save-On-Foods',
+  coop: 'Co-op', 'co op': 'Co-op', bestbuy: 'Best Buy', walmart: 'Walmart', 'wal mart': 'Walmart', costco: 'Costco', sbux: 'Starbucks', starbuck: 'Starbucks', dt: 'Dollar Tree', dollarama: 'Dollarama',
+  'home depot': 'The Home Depot', homedepot: 'The Home Depot', 'london drug': 'London Drugs', 'winners': 'Winners', 'sport chek': 'Sport Chek', sportchek: 'Sport Chek', 'mec': 'MEC',
+  'u of l': 'University of Lethbridge', uofl: 'University of Lethbridge', 'u of a': 'University of Alberta', uofa: 'University of Alberta', 'u of c': 'University of Calgary', nait: 'NAIT', sait: 'SAIT',
+  'chinook hospital': 'Chinook Regional Hospital', 'park n fly': 'Park\'N Fly', wem: 'West Edmonton Mall' };
+/** alias expansion for q (exact key, or a ≥4-letter prefix of a single alias key). Returns the brand name or null. */
+export function aliasOf(q) { const x = norm(q).replace(/\s+/g, ' ').replace(/(\s+(in|near|at))?(\s+(lethbridge|edmonton|calgary|red deer|medicine hat|regina|saskatoon|winnipeg|vancouver|toronto|ottawa|montreal|ab|alberta|bc|sk|mb|on|qc|canada))+$/, '').trim(); if (!x) return null; if (ALIAS[x]) return norm(ALIAS[x]) === x ? null : ALIAS[x];
+  if (x.length < 4) return null; const ks = Object.keys(ALIAS).filter(k => k.startsWith(x)); const v = [...new Set(ks.map(k => ALIAS[k]))]; return v.length === 1 && !norm(v[0]).startsWith(x) ? v[0] : null; }
+// brand alias hits (e.g. "superstore" → Real Canadian Superstore) go first, nearest first — like typing a chain nickname in Google Maps
+function boostAlias(all) { const a = all.filter(x => x._alias && x.ts >= 9).sort((p, q) => p.dist - q.dist); if (!a.length) return; const rest = all.filter(x => !a.includes(x)); all.length = 0; all.push(...a.slice(0, 3), ...rest, ...a.slice(3)); }
 export function intentOf(q) {
   const x = norm(q); if (!x) return null; const cjk = /[\u3400-\u9fff]/.test(x);
   return INTENTS.find(e => e.k.includes(x)) || (cjk ? INTENTS.find(e => e.k.some(k => /[\u3400-\u9fff]/.test(k) && (k.includes(x) || (x.includes(k) && /^(附近|附近的|最近|最近的|周边|周边的|找|去|去最近的)?$/.test(x.replace(k, '').replace(/(在哪里?|在哪儿|附近)$/, '')))))) : null)
@@ -88,29 +104,42 @@ export function localSuggest(q, ctx, extra = []) {
   return farCut(dd).slice(0, 8);
 }
 // drop far-away rows (e.g. the Alberta dataset while viewing Seattle) whenever something nearby matched
-const farCut = L => L.some(x => x.dist < 80000) ? L.filter(x => x.dist < 200000 || x.src === 'saved') : L;
+const farCut = L => L.some(x => x.dist < 80000) ? L.filter(x => x.dist < 200000 || x.src === 'saved' || x.exact) : L;
 // full pipeline: calls render(list, phase) with 'local' first (sync), then 'remote' merged with stable ordering
 export async function suggest(q, ctx, extra, render, signal) {
   const t0 = performance.now(); const local = localSuggest(q, ctx, extra); render(local, 'local', performance.now() - t0);
   const qn = norm(q); if (qn.length < 2) return;
   const [code, prov] = provinceOf(ctx.c); ctx.prov = prov;
-  const addrP = ADDR.parse(q) && ctx.c.lng > -114 && ctx.c.lng < -113 && ctx.c.lat > 53.2 && ctx.c.lat < 53.8 ? ADDR.search(q, 5).catch(() => []) : Promise.resolve([]);
+  const addrP = ADDR.parse(q) ? ADDR.search(q, 5, ctx.me || ctx.c).catch(() => []) : Promise.resolve([]); // city open-data address points (Edmonton, Lethbridge)
+  // v0.9.13 general address pipeline (any Canadian address; offline city points first, then Photon/Nominatim structured/geocoder.ca, honest street fallback)
+  const geoP = parseAddress(q) ? addrP.then(a => a.some(x => x.exact) ? [] : geocodeAddress(q, ctx.me || ctx.c, signal)).then(g => g.map(x => ({ ...x, _addr: 1, ts: x.exact ? 9 : 3, address: x.approx ? `${x.address} · ${ctx.zh ? '门牌号未收录，仅定位到街道' : 'house number not in open data — street only'}` : x.address }))).catch(() => []) : Promise.resolve([]);
+  geoP.then(g => { if (g.length && !signal?.aborted) render([...g, ...local], 'addr', performance.now() - t0, code); });
   addrP.then(a => { if (a.length && !signal?.aborted) render([...a, ...local], 'addr', performance.now() - t0, code); });
   const ck = `${ctx.c.lat.toFixed(1)},${ctx.c.lng.toFixed(1)}|${qn}`;
   const ph = (...a) => { const ts = AbortSignal.timeout(7000), sg = signal && AbortSignal.any ? AbortSignal.any([signal, ts]) : ts; return photon(...a.slice(0, 4), sg, a[4]).catch(() => []); };
   const reqs = PC.has(ck) ? [Promise.resolve(PC.get(ck))] : [Promise.all([ph(q, ctx.c, 8, ctx.z), ph(q, ctx.c, 8, ctx.z, [ctx.c.lng - 0.7, ctx.c.lat - 0.45, ctx.c.lng + 0.7, ctx.c.lat + 0.45]), prov ? ph(q, ctx.c, 8, Math.min(ctx.z, 9), prov) : []]).then(r => { const f = r.flat(); if (f.length) { PC.set(ck, f); if (PC.size > 300) PC.delete(PC.keys().next().value); } return f; })];
+  const alias = aliasOf(q); if (alias) { const ak = 'a|' + ck; reqs.push(PC.has(ak) ? Promise.resolve(PC.get(ak)) : ph(alias, ctx.c, 8, ctx.z, [ctx.c.lng - 0.7, ctx.c.lat - 0.45, ctx.c.lng + 0.7, ctx.c.lat + 0.45]).then(f => { f.forEach(x => x._alias = 1); if (f.length) PC.set(ak, f); return f; })); }
   const it = intentOf(q); ctx.it = it;
   if (it) { const ts = AbortSignal.timeout(7000), sg = signal && AbortSignal.any ? AbortSignal.any([signal, ts]) : ts; const ik = 'i|' + ck.split('|')[0] + '|' + it.id;
     reqs.push(PC.has(ik) ? Promise.resolve(PC.get(ik)) : Promise.all(it.q.slice(0, 3).map(w => photonTag(w, ctx, it, sg).catch(() => []))).then(r => { const f = r.flat(); if (f.length) PC.set(ik, f); return f; })); }
+  const icl = new Set(it?.cls || []); const score = x => { x.dist = haversine(ctx.c, x); if (it && x.sc == null && (it.id !== 'airport' || /aerodrome/.test(x.category || ''))) x.sc = apSc(x.name, it); const cat = x._cat || (it && icl.has(String(x.category || '').split('=').pop())); x.ts = cat ? 8 : Math.max(Math.min(textScore(qn, x.name, x.address), it ? 4 : 99), x._alias ? (norm(x.name).startsWith(norm(aliasOf(q) || '')) ? 9 : 6) : 0.5); return x; };
   const addr = await addrP;
-  let remote = (await Promise.all(reqs)).flat().map(x => ({ ...x })); if (signal?.aborted) return;
-  const icl = new Set(it?.cls || []); const score = x => { x.dist = haversine(ctx.c, x); if (it && x.sc == null && (it.id !== 'airport' || /aerodrome/.test(x.category || ''))) x.sc = apSc(x.name, it); const cat = x._cat || (it && icl.has(String(x.category || '').split('=').pop())); x.ts = cat ? 8 : Math.max(Math.min(textScore(qn, x.name, x.address), it ? 4 : 99), 0.5); return x; };
+  // v0.9.13 progressive: render as soon as the fastest request lands instead of waiting for the slowest (7 s timeout)
+  const got = []; let done = 0; const ib = [];
+  await new Promise(res => { reqs.forEach((p, i) => p.then(f => { got[i] = f; }).catch(() => {}).finally(() => { done++; if (done < reqs.length && !signal?.aborted) { const part = got.flat().filter(Boolean); if (part.length) ib.push(part.length); try { mergeOut(part.map(x => ({ ...x })), false); } catch {} } if (done === reqs.length) res(); })); if (!reqs.length) res(); });
+  let remote = got.flat().filter(Boolean).map(x => ({ ...x })); if (signal?.aborted) return;
+  addr.push(...(await geoP)); if (signal?.aborted) return;
+  function mergeOut(rm, fin) { const L = local.slice(); const loc = [...addr, ...L];
+    rm = rm.map(score).filter(x => x.ts >= 0.5 && !(it && x.dist > 250000)); const sn = new Set(loc.map(key)); const nr = (a, b) => norm(a.name) === norm(b.name) && haversine(a, b) < 350;
+    const all = []; for (const x of [...loc, ...rm.filter(x => !sn.has(key(x)))]) if (!all.some(y => nr(x, y))) all.push(x); for (const x of all) { if (x.dist == null) x.dist = haversine(ctx.c, x); if (x.ts == null) x.ts = 1; }
+    all.sort((a, b) => rank(a, ctx) - rank(b, ctx)); boostAlias(all); render(farCut(all).slice(0, 8), fin ? 'remote' : 'partial', performance.now() - t0, code); }
   remote = remote.map(score).filter(x => x.ts >= 0.5 && !(it && x.dist > 250000));
-  if (remote.length + local.length + addr.length < 3) { try { remote.push(...(await nominatim(q, ctx.c, { countrycodes: 'ca', viewbox: prov ? `${prov[0]},${prov[3]},${prov[2]},${prov[1]}` : undefined, signal })).map(score)); } catch {} if (signal?.aborted) return; }
+  const addrLike = false; // v0.9.13: address-shaped queries go through geoaddr (Nominatim structured) instead
+  if (addrLike || remote.length + local.length + addr.length < 3) { try { remote.push(...(await nominatim(q, ctx.c, { countrycodes: 'ca', viewbox: prov ? `${prov[0]},${prov[3]},${prov[2]},${prov[1]}` : undefined, signal })).map(score)); } catch {} if (signal?.aborted) return; }
   // stable merge: keep the local rows (and their order) on top; add new remote rows below, sorted by rank; fill to 8
   local.unshift(...addr); const seen = new Set(local.map(key)); const near = (a, b) => norm(a.name) === norm(b.name) && haversine(a, b) < (/airport|aerodrome/i.test(a.name) ? 9000 : 350);
   const add = remote.filter(x => !seen.has(key(x)) && !local.some(l => near(l, x))).sort((a, b) => rank(a, ctx) - rank(b, ctx));
   const dd = []; for (const x of add) if (!dd.some(y => near(x, y))) dd.push(x);
-  const all = []; for (const x of [...local, ...dd]) if (!all.some(y => near(x, y))) all.push(x); for (const x of all) { if (x.dist == null) x.dist = haversine(ctx.c, x); if (x.ts == null) x.ts = 1; } all.sort((a, b) => rank(a, ctx) - rank(b, ctx));
+  const all = []; for (const x of [...local, ...dd]) if (!all.some(y => near(x, y))) all.push(x); for (const x of all) { if (x.dist == null) x.dist = haversine(ctx.c, x); if (x.ts == null) x.ts = 1; } all.sort((a, b) => rank(a, ctx) - rank(b, ctx)); boostAlias(all);
   render(farCut(all).slice(0, 8), 'remote', performance.now() - t0, code);
 }

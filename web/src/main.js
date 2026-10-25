@@ -139,9 +139,11 @@ function bootFail(e) {
 }
 // v0.9.4 start view (never Edmonton by default): URL hash → last saved view → (Beijing edition: Chaoyang) → neutral world view,
 // then, without blocking the first render, refine: coarse device fix if permission is already granted, else city-level IP lookup.
-const HASHOK = hash.length >= 3 && !hash.some(isNaN), SAVEDV = store.get('view', null);
-const START = HASHOK ? { center: [hash[2], hash[1]], zoom: hash[0] } : SAVEDV?.c ? { center: SAVEDV.c, zoom: SAVEDV.z } : BJ ? { center: BJ_CENTER, zoom: BJ_ZOOM } : { center: [10, 28], zoom: 1.6 };
-const NEED_LOC = !HASHOK && !SAVEDV?.c && !BJ;
+// v0.9.13: start on the user's real position. Order: explicit URL hash (web only) → last real GPS fix → last saved view → world view;
+// then ALWAYS refine with a live fix (cold start and every resume). IP lookup only if we have never had a GPS fix.
+const HASHOK = !(window.Capacitor?.isNativePlatform?.()) && hash.length >= 3 && !hash.some(isNaN), SAVEDV = store.get('view', null), LASTFIX = store.get('lastFix', null);
+const START = HASHOK ? { center: [hash[2], hash[1]], zoom: hash[0] } : LASTFIX ? { center: [LASTFIX.lng, LASTFIX.lat], zoom: 14 } : SAVEDV?.c ? { center: SAVEDV.c, zoom: SAVEDV.z } : BJ ? { center: BJ_CENTER, zoom: BJ_ZOOM } : { center: [10, 28], zoom: 1.6 };
+const NEED_LOC = !HASHOK && !BJ;
 let map;
 try { map = new maplibregl.Map({
   container: 'map', style: bootStyle,
@@ -151,18 +153,21 @@ try { map = new maplibregl.Map({
 }); } catch (e) { bootFail(e); throw e; }
 let userMoved = false; map.on('dragstart', () => userMoved = true); map.on('zoomstart', e => { if (e.originalEvent) userMoved = true; });
 map.on('moveend', () => { const c = map.getCenter(); store.set('view', { c: [+c.lng.toFixed(5), +c.lat.toFixed(5)], z: +map.getZoom().toFixed(2) }); });
-if (NEED_LOC) setTimeout(async () => {
-  const go = (lng, lat, z) => { if (!userMoved && !store.get('view', null)?.u && isFinite(lng) && isFinite(lat)) map.easeTo({ center: [lng, lat], zoom: z, duration: 900 }); };
-  try { // 2. permission already granted → fast coarse fix, no GPS wait, never prompts
-    const st = await navigator.permissions?.query({ name: 'geolocation' }).catch(() => null);
-    if (st?.state === 'granted') { const p = await new Promise((ok, no) => navigator.geolocation.getCurrentPosition(ok, no, { enableHighAccuracy: false, timeout: 2500, maximumAge: 6 * 3600e3, noPrompt: true })); return go(p.coords.longitude, p.coords.latitude, 12); }
-  } catch {}
-  try { // 3. city-level IP lookup (ipapi.co, HTTPS, no key; only the bare GET is sent), cached 7 days
+const startLoc = async (resume = false) => {
+  let moved = false; const t0 = Date.now();
+  const go = (lng, lat, z) => { if (moved || S.nav?.active || !isFinite(lng) || !isFinite(lat) || (userMoved && !resume)) return; map.easeTo({ center: [lng, lat], zoom: Math.max(z, resume ? map.getZoom() : 0), duration: resume ? 500 : 900 }); };
+  const fix = (o) => new Promise((ok, no) => navigator.geolocation ? navigator.geolocation.getCurrentPosition(ok, no, o) : no(0));
+  const got = (p, final) => { store.set('lastFix', { lng: p.coords.longitude, lat: p.coords.latitude, t: Date.now() }); go(p.coords.longitude, p.coords.latitude, 15); if (final) moved = true; };
+  try { got(await fix({ enableHighAccuracy: false, timeout: 3000, maximumAge: 5 * 60e3 }), false); } catch {}
+  try { got(await fix({ enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }), true); return; } catch {}
+  if (store.get('lastFix', null) || resume) return; // never let a coarse IP guess override a real fix
+  try { // city-level IP lookup (ipapi.co, no key), cached 7 days — only before the first ever GPS fix
     let g = store.get('ipGeo', null);
     if (!g || Date.now() - g.t > 7 * 864e5) { const r = await fetch('https://ipapi.co/json/', { signal: AbortSignal.timeout ? AbortSignal.timeout(1500) : undefined, credentials: 'omit', referrerPolicy: 'no-referrer', cache: 'no-store' }); const j = await r.json(); if (!(isFinite(j.latitude) && isFinite(j.longitude))) throw 0; g = { lng: j.longitude, lat: j.latitude, t: Date.now() }; store.set('ipGeo', g); }
-    go(g.lng, g.lat, 10.5);
-  } catch {} // 4. stay on the neutral world view
-}, 0);
+    if (!store.get('lastFix', null) && Date.now() - t0 < 20000) go(g.lng, g.lat, 10.5);
+  } catch {}
+};
+if (NEED_LOC) { setTimeout(() => startLoc(false), 0); let hid = 0; document.addEventListener('visibilitychange', () => { if (document.hidden) hid = Date.now(); else if (hid && Date.now() - hid > 60e3) startLoc(true); }); }
 initScrollFx(); window._map = map; map.once('load', () => { window.__rgMapReady = 1; window.__rgHideSplash?.(); window.__rgT = performance.now(); }); map.once('load', loadWestFonts); map.once('load', loadSkinFonts); map.once('idle', () => setTimeout(() => (window.requestIdleCallback || setTimeout)(warmDrawer, { timeout: 3000 }), 1500)); if (NATIVE && !BJ) map.once('load', () => setTimeout(() => import('./updates.js').then(m => m.initUpdates({ toast, L, store, openUpd: () => tools.update() })).catch(e => console.warn(e)), 4000)); SK.hookMissingImages(map); refreshSkins(); import('./car.js').then(m => m.initCar({ map, S, isDark, lang, carStyleFor, panelSrc: async () => ({ pk: S.skin ? await SK.getPack(S.skin).catch(() => null) : null, theme: S.theme, pal: S.theme === 'west' ? { accent: PALS[S.pal]?.map?.route } : null }), panelOn: () => store.get('carPanel', true), onDest: d => { S.travel = 'drive'; openDirections(d, true); }, onStop: () => S.nav?.end?.() })).catch(e => console.warn(e)); window._skins = { ...SK, refresh: refreshSkins, use: async id => { S.skin = id; store.set('skin', id); await setStyle(); } }; window._sug = () => sugItems.map(r => ({ dbg: [r.ts, r.sc, Math.round(r.dist), r.src].join('/'), name: r.name, address: r.address, lat: r.lat, lng: r.lng, sem: !!r.sem, src: r.src, cls: r.cls || r.category }));
 applyBodyClass();
 const updHash = () => { const c = map.getCenter(); history.replaceState(null, '', `${location.pathname}${location.search}#${map.getZoom().toFixed(2)}/${c.lat.toFixed(5)}/${c.lng.toFixed(5)}`); };
@@ -339,6 +344,7 @@ function addAccLayer() {
 function setMe(pos) {
   S.me = { lat: pos.coords.latitude, lng: pos.coords.longitude, heading: pos.coords.heading ?? S.compassHdg ?? null, speed: pos.coords.speed, acc: pos.coords.accuracy };
   if (!puck) { const el = document.createElement('div'); el.className = 'puck'; el.innerHTML = puckSvg(); el.style.cursor = 'pointer'; el.addEventListener('click', ev => { ev.stopPropagation(); showMe(); }); puck = new maplibregl.Marker({ element: el, rotationAlignment: 'map', pitchAlignment: 'map' }).setLngLat(S.me).addTo(map); }
+  if (isFinite(S.me.lat) && pos.coords.accuracy != null && (!setMe.t || Date.now() - setMe.t > 30e3)) { setMe.t = Date.now(); store.set('lastFix', { lng: S.me.lng, lat: S.me.lat, t: setMe.t }); }
   window.__rgCar?.pos(S.me); puck.setLngLat(S.me); if (S.me.heading != null && !isNaN(S.me.heading) && !S.nav?.active) puck.setRotation(S.me.heading); updAcc();
 }
 export const locate = (fly = true) => navigator.geolocation?.getCurrentPosition(p => { setMe(p); fly && map.flyTo({ center: S.me, zoom: Math.max(map.getZoom(), 15) }); }, err => ios.geoHelp(err, openPanel), { enableHighAccuracy: true, timeout: 10000 });
@@ -370,10 +376,10 @@ q.addEventListener('input', () => {
   const t0 = performance.now(), ctx = acCtx(), local = AC.localSuggest(v, ctx, acExtra(v));
   renderSuggest([...acPrefix(v, local), ...local], false, v); window._acLat.push({ q: v, phase: 'local', ms: +(performance.now() - t0).toFixed(1), n: local.length });
   const ac = new AbortController(); searchAbort = ac;
-  sugTimer = setTimeout(() => AC.suggest(v, ctx, acExtra(v), (list, phase, ms, prov) => { if (ac.signal.aborted || lastQ !== v || phase === 'local') return;
-    renderSuggest([...acPrefix(v, list), ...list], false, v); window._acLat.push({ q: v, phase, ms: +(performance.now() - t0).toFixed(0), n: list.length, prov }); }, ac.signal).catch(() => {}), 0);
+  sugTimer = setTimeout(() => AC.suggest(v, { ...ctx, me: S.me }, acExtra(v), (list, phase, ms, prov) => { if (ac.signal.aborted || lastQ !== v || phase === 'local') return;
+    renderSuggest([...acPrefix(v, list), ...list], false, v); window._acLat.push({ q: v, phase, ms: +(performance.now() - t0).toFixed(0), n: list.length, prov }); }, ac.signal).catch(() => {}), v.length < 3 ? 160 : 90);
 });
-q.addEventListener('focus', () => { AC.ADDR.loadIndex(); }, { once: true });
+q.addEventListener('focus', () => { const c = S.me && AC.ADDR.cityAt(S.me.lat, S.me.lng, 0.5); AC.ADDR.loadIndex(c || undefined); }, { once: true });
 q.addEventListener('focus', () => { if (!q.value) renderSuggest(recentItems()); });
 q.addEventListener('keydown', e => {
   if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { sugSel = Math.max(0, Math.min(sugItems.length - 1, sugSel + (e.key === 'ArrowDown' ? 1 : -1))); renderSuggest(sugItems, true); e.preventDefault(); }
@@ -408,15 +414,16 @@ async function runSearch(v) {
   lastQ = v; searchAbort?.abort(); const ac = new AbortController(); searchAbort = ac;
   try {
     const B = map.getBounds(), c = map.getCenter(), z = map.getZoom();
-    const [inView, near] = await Promise.all([photonBox(v, B, c, z, 10, ac.signal).catch(() => []), photon(v, c, 10, z, ac.signal).catch(() => [])]);
+    const al = AC.aliasOf(v); const [inView, near, adr, als] = await Promise.all([photonBox(v, B, c, z, 10, ac.signal).catch(() => []), photon(v, c, 10, z, ac.signal).catch(() => []), AC.ADDR.parse(v) ? AC.ADDR.search(v, 5, S.me || c).then(o => o.some(x => x.exact) ? o : AC.geocodeAddress(v, S.me || c, ac.signal).then(g => [...g.map(x => x.approx ? { ...x, address: `${x.address} · ${L('门牌号未收录，仅定位到街道', 'house number not in open data — street only')}` } : x), ...o])).catch(() => []) : [], al ? photon(al, c, 10, z, ac.signal).catch(() => []) : []]);
     if (ac.signal.aborted) return;
     if (lastQ !== v) return;
     const inB = x => B.contains([x.lng, x.lat]);
     const sc = x => (inB(x) ? 0 : 1e7) + haversine(c, x) * (inB(x) ? 0.2 : 1);
-    let r = [...localHits(v), ...inView, ...near];
+    let r = [...localHits(v), ...inView, ...als, ...near];
     r = r.sort((a, b) => sc(a) - sc(b)).map(x => ({ ...x, dist: haversine(c, x) }));
     const sem = semMatch(v); if (sem || r.some(x => x.dist < 50000)) r = r.filter(x => x.dist < 150000 || inB(x));
     const ce = !sem && chainEntry(v, r); if (ce) r.unshift(ce);
+    r.unshift(...adr);
     if (sem) r.unshift({ sem, name: `${L('在此区域搜索', 'Search this area for')}「${sem.t}」`, address: L('附近所有相关地点（含连锁品牌）', 'All matching places nearby, incl. chains') });
     if (!r.filter(x => !x.sem).length && /^\d/.test(v)) { try { r.push(...await nominatim(v, c)); } catch {} }
     const seen = new Set(); renderSuggest(r.filter(x => { const key = x.sem ? 'sem' + x.name : x.name.toLowerCase() + '|' + (x.lat ?? 0).toFixed(3) + (x.lng ?? 0).toFixed(3); if (seen.has(key)) return false; seen.add(key); return true; }), false, v);
@@ -1016,9 +1023,9 @@ async function fillAddress(p, tags) {
     let extra = null;
     if (has && p.osm && !tags._display) { const el = await osmElement(p.osm.type, p.osm.id); extra = el?.tags; }
     let coe = null;
-    if (!has && p.lat > 53.38 && p.lat < 53.72 && p.lng > -113.75 && p.lng < -113.2) { const r = await AC.ADDR.reverse(p.lat, p.lng).catch(() => null); if (r && r.dist < (p.me ? 60 : 40)) { const [, hn, st] = r.name.match(/^(\S+) (.+)$/); coe = r; extra = { 'addr:housenumber': hn, 'addr:street': st, 'addr:city': 'Edmonton' }; } }
+    if (!has && AC.ADDR.cityAt(p.lat, p.lng)) { const r = await AC.ADDR.reverse(p.lat, p.lng).catch(() => null); if (r && r.dist < (p.me ? 60 : 40)) { const [, hn, st] = r.name.match(/^(\S+) (.+)$/); coe = r; extra = { 'addr:housenumber': hn, 'addr:street': st, 'addr:city': r.city.split(',')[0] }; } }
     if (!coe && (!extra || !fmtAddr({ ...extra, ...tags }))) extra = { ...(await reverseAddr(p)), _approx: !has, _nom: !has };
-    if (coe) p._note = L(`最近的门牌（埃德蒙顿市政府地址点，约 ${Math.round(coe.dist)} 米）`, `Nearest address point (City of Edmonton, ~${Math.round(coe.dist)} m)`);
+    if (coe) p._note = L(`最近的门牌（${/Leth/.test(coe.city) ? '莱斯布里奇' : '埃德蒙顿'}市政府地址点，约 ${Math.round(coe.dist)} 米）`, `Nearest address point (City of ${coe.city.split(',')[0]}, ~${Math.round(coe.dist)} m)`);
     if (!coe && extra._nom) p._note = BJ ? L('大致地址（离线按坐标估算）', 'Approx. address (offline, from coordinates)') : L('大致地址（Nominatim 按坐标反查）', 'Approx. address (Nominatim reverse geocode)');
     if (extra._approx) p._approx = true;
     if (S.place !== p || !$('#addrTx')) return;
@@ -1074,6 +1081,8 @@ document.addEventListener('input', e => { const k = e.target.dataset?.sz; if (!k
 // ---------- voice pack settings (voice.js is tiny; loaded with the drawer) ----------
 import { PACKS, voices, voicePack } from './voice.js';
 import * as PK from './packs.js';
+import { initIsland } from './island.js';
+setTimeout(() => { window._island = initIsland(store); }, 0);
 PK.registerVoices(PACKS);
 function voiceHtml() {
   const cur = voicePack(), vs = voices(), sel = localStorage.getItem('voiceName') || '';

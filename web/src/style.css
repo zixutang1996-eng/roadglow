@@ -47,7 +47,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 .act{flex:1;min-width:64px;border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:calc(16.5px * var(--ts,1));color:var(--accent)}
 .act .b{width:46px;height:46px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;font-size:calc(22.4px * var(--ts,1))}
 .act.primary .b{background:var(--accent);color:#fff;border-color:transparent}
-.row{display:flex;gap:16px;padding:11px 22px;font-size:calc(18.5px * var(--ts,1));align-items:flex-start}.row .i{width:20px;text-align:center;color:var(--accent);flex:none}
+.row{display:flex;gap:16px;padding:11px 22px;font-size:calc(18.5px * var(--ts,1));align-items:flex-start}.row .i{width:20px;min-width:max-content;line-height:1.2;text-align:center;color:var(--accent);flex:none}
 .row a{color:var(--accent);text-decoration:none;word-break:break-all}
 .open{color:#188038;font-weight:500}.closed{color:#d93025;font-weight:500}body.dark .open{color:#81c995}body.dark .closed{color:#f28b82}
 .hrs{font-size:calc(17.2px * var(--ts,1));color:var(--muted);margin-top:4px;white-space:pre-line}

@@ -3,6 +3,7 @@ import { t, tz, fmtDist, fmtDur, instruction, lang } from './i18n.js';
 import { haversine, distToLine } from './services.js';
 import { Marker } from 'maplibre-gl';
 import { phrase, say } from './voice.js';
+import { project, ahead, kindOf, roadArrow, lanesHtml } from './navgeo.js';
 
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -56,9 +57,28 @@ export function startNavigation({ map, S, setMe, makePuck, reroute, drawRoutes, 
     const remainingToTurn = haversine(p, route.steps[Math.min(step, route.steps.length - 1)].loc);
     const spd = Math.max(0, p.speed || 0);
     let zoom = 18 - Math.min(2.5, spd / 12); if (remainingToTurn < 250) zoom = Math.max(zoom, 17.5);
-    const h = map.getContainer().clientHeight;
-    map.easeTo({ center: [p.lng, p.lat], bearing: headingUp ? smBearing : 0, pitch: headingUp ? 55 : 0, zoom,
-      padding: { top: h * 0.42, bottom: 90, left: 0, right: 0 }, duration, easing: x => x });
+    camT = { zoom, pitch: headingUp ? 55 : 0 }; if (duration <= 700) { const h = map.getContainer().clientHeight; map.easeTo({ center: [anim.cur.lng, anim.cur.lat], bearing: headingUp ? anim.brg : 0, ...camT, padding: { top: h * 0.42, bottom: 90, left: 0, right: 0 }, duration }); }
+  }
+  // v0.9.13 smooth follow: GPS fixes (~1 Hz) become targets; every animation frame the puck glides from where it is drawn toward the
+  // fix + dead-reckoned motion (speed × heading, capped at 1.5 s), snapped onto the route when on it. Camera follows with jumpTo per
+  // frame (no queued easeTo animations → no stutter), and the driven part of the route is trimmed ~5×/s.
+  let camT = null, raf = 0, lastTrim = 0, segHint = 0;
+  const anim = { cur: null, fix: null, fixT: 0, v: 0, brg: smBearing };
+  function frame(now) {
+    raf = st.active ? requestAnimationFrame(frame) : 0; const f = anim.fix; if (!f) return;
+    const dt = Math.min(1.5, (now - anim.fixT) / 1000), mv = anim.v * dt, br = anim.brg * Math.PI / 180;
+    const tgt = { lat: f.lat + (mv * Math.cos(br)) / 111320, lng: f.lng + (mv * Math.sin(br)) / (111320 * Math.cos(f.lat * Math.PI / 180)) };
+    if (!anim.cur || haversine(anim.cur, tgt) > 120) anim.cur = tgt; else { const k = 0.18; anim.cur = { lat: anim.cur.lat + (tgt.lat - anim.cur.lat) * k, lng: anim.cur.lng + (tgt.lng - anim.cur.lng) * k }; }
+    anim.shown = (anim.shown ?? anim.brg) + angDiff(anim.shown ?? anim.brg, anim.brg) * 0.12;
+    puck.setLngLat(anim.cur); puck.setRotation(anim.shown);
+    if (follow && camT && !map.isMoving()) { const h = map.getContainer().clientHeight, z = map.getZoom(), pi = map.getPitch();
+      map.jumpTo({ center: [anim.cur.lng, anim.cur.lat], bearing: headingUp ? anim.shown : 0, zoom: z + (camT.zoom - z) * 0.05, pitch: pi + (camT.pitch - pi) * 0.08, padding: { top: h * 0.42, bottom: 90, left: 0, right: 0 } }); }
+    if (now - lastTrim > 200) { lastTrim = now; trim(anim.cur); }
+  }
+  function trim(p) { // hide the already-driven part of the highlighted route
+    const src = map.getSource('route'), c = route.geometry.coordinates; if (!src || c.length < 2) return;
+    const pr = project(p, c, segHint); if (pr.d > 40) return; segHint = pr.i;
+    src.setData({ type: 'FeatureCollection', features: [{ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: ahead(c, pr) } }] });
   }
 
   let carRoute = null;
@@ -66,7 +86,11 @@ export function startNavigation({ map, S, setMe, makePuck, reroute, drawRoutes, 
     if (!st.active) return; st.gpsLostSaid = 0;
     if (lastPos && haversine(lastPos, p) > 1.5) { const brg = p.heading ?? bearingOf(lastPos, p); smBearing = (smBearing + angDiff(smBearing, brg) * 0.35 + 360) % 360; }
     else if (p.heading != null) smBearing = (smBearing + angDiff(smBearing, p.heading) * 0.35 + 360) % 360;
-    lastPos = p; setMe(p); puck.setRotation(smBearing);
+    lastPos = p;
+    { const c = route.geometry.coordinates, pr = project(p, c, segHint), snap = pr.d < Math.max(15, Math.min(30, p.acc || 15));
+      anim.fix = snap ? { lng: pr.pt[0], lat: pr.pt[1] } : p; anim.fixT = performance.now(); anim.v = Math.max(0, p.speed || 0) < 0.7 ? 0 : p.speed; anim.brg = smBearing;
+      if (snap && pr.i < c.length - 1) { const sb = bearingOf({ lng: c[pr.i][0], lat: c[pr.i][1] }, { lng: c[pr.i + 1][0], lat: c[pr.i + 1][1] }); if (Math.abs(angDiff(sb, smBearing)) < 50) anim.brg = sb; } }
+    setMe(anim.cur || anim.fix); if (!raf) raf = requestAnimationFrame(frame);
     if (follow) camera(p);
     // progress
     const d = distToLine(p, route.geometry.coordinates);
@@ -80,15 +104,14 @@ export function startNavigation({ map, S, setMe, makePuck, reroute, drawRoutes, 
     const dn = S.dest?.gps ? (lang === 'zh' ? '我的位置' : 'my location') : (S.dest?.name || (lang === 'zh' ? '目的地' : 'destination'));
     if (INK()) {
       const zh = lang === 'zh', nx = route.steps[step + 1], d2 = nx ? haversine(s.loc, nx.loc) : 0, sp = Math.max(0, p.speed || 0);
-      navBody.innerHTML = `<div class="ikn">${inkArrow(s)}<div class="ikn-t"><div class="ikd">${zh ? '前行' + zDist(toNext) : fmtDist(toNext)}</div><div class="ikx">${instruction(s)}</div></div><i class="ikseal">${zh ? turnZ(s) : { 左: 'L', 右: 'R', 直: '↑', 返: 'U', 至: '⚑' }[turnZ(s)]}</i></div>`;
+      navBody.innerHTML = `<div class="ikn">${inkArrow(s)}<div class="ikn-t"><div class="ikd">${zh ? '前行' + zDist(toNext) : fmtDist(toNext)}</div><div class="ikx">${instruction(s)}</div></div><i class="ikseal">${zh ? turnZ(s) : { 左: 'L', 右: 'R', 直: '↑', 返: 'U', 至: '⚑' }[turnZ(s)]}</i></div>${lanesHtml(s.lanes)}`;
       if (nx && nx.type !== 'arrive' && turnZ(nx) !== '直') { then.innerHTML = zh ? `再行${zDist(d2)} ${turnZ(nx)}折 ${inkArrow(nx)}` : `Then ${turnZ(nx) === '左' ? 'left' : turnZ(nx) === '右' ? 'right' : 'U-turn'} in ${fmtDist(d2)} ${inkArrow(nx)}`; then.classList.remove('hidden'); } else then.classList.add('hidden');
       footEta.innerHTML = `<b>${zh ? zEta(eta) : fmtDur(eta)}</b><div class="iks">${zh ? `尚余${zDist(rem)} · ${zClock(new Date(Date.now() + eta * 1000))}抵达` : `${fmtDist(rem)} left · arrive ${at}`}</div>`;
       spd.innerHTML = zh ? `<b>${CN(Math.round(sp * 3.6 * 2))}</b><small>里每时</small>` : `<b>${Math.round(sp * 3.6)}</b><small>km/h</small>`; spd.classList.remove('hidden');
       hdgBtn.textContent = headingUp ? '⬆' : 'N';
     } else {
-    navBody.innerHTML = `<div class="objk">${lang === 'zh' ? '当前目标' : 'OBJECTIVE'}</div>
-      <div class="objrow"><div class="ar">${arrowOf(s)}</div><div><div class="dd">${fmtDist(toNext)}</div><div class="tx">${instruction(s)}</div></div></div>
-      <div class="objsub">${lang === 'zh' ? `${tz('nav_go', '前往')} ${esc(dn)} · ${tz('nav_rem', '还剩')} ${fmtDist(rem)} · ${at} ${tz('nav_at', '到达')}` : `Go to ${esc(dn)} · ${fmtDist(rem)} left · arrive ${at}`}</div>`;
+    // v0.9.13 simplified card: road-paint arrow · distance to the manoeuvre · total remaining (no destination name) · lanes when OSRM has them
+    navBody.innerHTML = `<div class="objrow nc13"><div class="ar">${roadArrow(kindOf(s))}</div><div class="ncm"><div class="dd">${fmtDist(toNext)}</div><div class="objsub">${lang === 'zh' ? `${tz('nav_rem', '全程还剩')} ${fmtDist(rem)}` : `${fmtDist(rem)} to go`}</div></div></div>${lanesHtml(s.lanes)}`;
     footEta.innerHTML = `<b>${tz('eta_fmt', '{d}').replace('{d}', fmtDur(eta))}</b><div style="font-size:13px;color:var(--muted)">${fmtDist(rem)} · ${at}</div>`; hdgBtn.textContent = headingUp ? '⬆' : 'N';
     }
     const newR = carRoute !== route; carRoute = route;
@@ -136,12 +159,12 @@ export function startNavigation({ map, S, setMe, makePuck, reroute, drawRoutes, 
     }, 1000);
   } else {
     watchId = navigator.geolocation.watchPosition(g => onPos({ lat: g.coords.latitude, lng: g.coords.longitude, speed: g.coords.speed, heading: g.coords.heading ?? S.compassHdg ?? null, acc: g.coords.accuracy }),
-      () => { if (!st.gpsLostSaid) { st.gpsLostSaid = 1; sayEv('gpslost'); } }, { enableHighAccuracy: true, maximumAge: 1000 });
+      () => { if (!st.gpsLostSaid) { st.gpsLostSaid = 1; sayEv('gpslost'); } }, { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 });
   }
   sayEv('step', { st: route.steps[0] });
 
   function end() {
-    st.active = false; document.body.classList.remove('navon'); b3('none'); map.off('style.load', onSd); clearInterval(simTimer); if (watchId != null) navigator.geolocation.clearWatch(watchId); st.lock?.release?.();
+    st.active = false; if (raf) cancelAnimationFrame(raf); raf = 0; document.body.classList.remove('navon'); b3('none'); map.off('style.load', onSd); clearInterval(simTimer); if (watchId != null) navigator.geolocation.clearWatch(watchId); st.lock?.release?.();
     for (const ev of ['dragstart', 'rotatestart', 'pitchstart', 'zoomstart']) map.off(ev, userMove);
     banner.classList.add('hidden'); banner.classList.remove('objective'); destMarker.remove(); foot.remove(); then.remove(); spd.remove(); rc.remove(); puck.getElement().classList.remove('nav'); puck.setRotation(0);
     map.easeTo({ pitch: 0, bearing: 0, padding: { top: 0, bottom: 0, left: 0, right: 0 }, duration: 600 });
