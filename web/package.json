@@ -1,13 +1,13 @@
 {
   "name": "roadglow",
-  "version": "0.9.15",
+  "version": "0.9.16",
   "description": "",
   "main": "index.js",
   "scripts": {
     "dev": "vite",
     "build": "node tools/gensprites.mjs && node tools/genskins.mjs && node tools/gennewskins.mjs && node tools/genpacks.mjs && vite build && node tools/mkmanifest.mjs",
     "preview": "vite preview --port 18781 --host 127.0.0.1",
-    "android": "npm run build && npx cap sync android"
+    "android": "npm run build && rm -rf dist/hunt && npx cap sync android"
   },
   "keywords": [],
   "author": "",

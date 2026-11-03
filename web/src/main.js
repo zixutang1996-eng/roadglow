@@ -659,7 +659,7 @@ map.on('click', e => {
   if (dismissOnTap()) return;
   const pad = 10, b = [[e.point.x - pad, e.point.y - pad], [e.point.x + pad, e.point.y + pad]];
   const fs = map.queryRenderedFeatures(b, { layers: hitLayers() });
-  if (!fs.length) return;
+  if (!fs.length) { if (HU.on()) huntIdentify(e); return; }
   const f = fs.sort((a, b2) => (a.layer.id === 'poi' ? 1 : 0) - (b2.layer.id === 'poi' ? 1 : 0))[0];
   const [lng, lat] = f.geometry.coordinates;
   if (f.layer.id === 'quests') return showQuest(QDATA[f.properties.i]);
@@ -850,7 +850,7 @@ function renderDrawer() { drawerSig = drawerState();
   const sec = (id, icn, title, inner) => `<section class="dsec${open[id] ? ' open' : ''}" data-sec="${id}"><button class="dsh" data-sech="${id}" aria-expanded="${!!open[id]}"><span class="i">${ic(icn)}</span><b>${title}</b><span class="chev"></span></button><div class="dsb"><div class="dsi">${inner}</div></div></section>`;
   $('#drawer').innerHTML = `<div class="dh"><span>RoadGlow</span>${OV.L['@drawerSub'] ? `<i class="dsub">${esc(OV.L['@drawerSub'])}</i>` : ''}<button class="xbig xbtn" data-close="1" aria-label="close">${ic('close')}</button></div>${INK() ? inkMenuHtml() : ''}
    ${sec('mine', 'star', L('地点', 'Places'), sub('star', t('saved'), li(saved, 's')) + X.lists + sub('clock', t('recents'), li(rec, 'r') + (rec.length ? `<div class="di" data-clear="1"><span class="i">${ic('trash')}</span>${t('clear_history')}</div>` : '')))}
-   ${sec('map', 'layers', L('地图', 'Map'), `<div class="ds"><div class="di" data-tool="packs"><span class="i">${ic('layers')}</span><div><b>${L('地图皮肤', 'Map skins')}</b><div class="s" style="font-size:13.5px;color:var(--muted)">${esc(curSkinName())} · ${L('选择、下载、更新', 'choose, download, update')}</div></div></div></div>` + X.tools)}
+   ${sec('map', 'layers', L('地图', 'Map'), `<div class="ds"><div class="di" data-tool="packs"><span class="i">${ic('layers')}</span><div><b>${L('地图皮肤', 'Map skins')}</b><div class="s" style="font-size:13.5px;color:var(--muted)">${esc(curSkinName())} · ${L('选择、下载、更新', 'choose, download, update')}</div></div></div></div>` + `<div class="ds"><div class="di" data-tool="hunters"><span class="i">${ic('layers')}</span><div><b>${L('猎人模式 For Hunters', 'For Hunters')}</b><div class="s" style="font-size:13.5px;color:var(--muted)">${HU.meta() ? (HU.on() ? L('已开启', 'On') : L('已下载 · 关闭中', 'Downloaded · off')) : L('阿尔伯塔狩猎区 / 公有土地图层（可离线）', 'Alberta WMU / public-land layers (offline)')}</div></div></div></div>` + X.tools)}
    ${sec('explore', 'quest', L('探索', 'Explore'), `<div class="ds"><div class="di" data-sq="1"><span class="i">${ic('quest')}</span><div><b>${L('支线任务', 'Side quests')}</b><div class="s" style="font-size:13.5px;color:var(--muted)">${L('鬼镇、废墟、奇特景点、观景台', 'Ghost towns, ruins, oddities, viewpoints')} · ${questDone().length} ✔</div></div></div>
      <div class="di" data-tool="transit"><span class="i">${ic('dir')}</span><div><b>${L('公共交通', 'Transit')}</b><div class="s" style="font-size:13.5px;color:var(--muted)">${L('Transitous 社区数据（含 ETS）', 'Transitous community data (incl. ETS)')}</div></div></div>
      <div class="di" data-tool="weather"><span class="i">${ic('info')}</span><div><b>${L('天气（地图中心）', 'Weather (map centre)')}</b><div class="s" style="font-size:13.5px;color:var(--muted)">Open-Meteo</div></div></div></div>`)}
@@ -1120,6 +1120,7 @@ document.addEventListener('input', e => { const k = e.target.dataset?.sz; if (!k
 // ---------- voice pack settings (voice.js is tiny; loaded with the drawer) ----------
 import { PACKS, voices, voicePack } from './voice.js';
 import * as PK from './packs.js';
+import * as HU from './hunters.js';
 import { initIsland } from './island.js';
 setTimeout(() => { window._island = initIsland(store); }, 0);
 PK.registerVoices(PACKS);
@@ -1350,7 +1351,35 @@ tools.offline = async () => {
 function offlineSearch(v) { const x = v.toLowerCase(), c = map.getCenter(); return store.get('offlineIdx', []).filter(o => (o.name + ' ' + o.n2).toLowerCase().includes(x)).map(o => ({ name: o.name, address: L('离线 · ', 'offline · ') + (o.cls || ''), lat: o.lat, lng: o.lng, category: o.cls, dist: haversine(c, o) })).sort((a, b) => a.dist - b.dist).slice(0, 12); }
 
 AC.loadIndex(`${base}${BJ ? 'pois_bj' : 'pois_yeg'}.geojson${AV}`);
-window._app = { installPackBytes: (u8, sha) => PK.install(u8, 'test', { expectSha: sha, appVer: APPVER }), AC, ios, applySizes, setMe, updScale, sunTimes, offlineSearch, semanticSearch, semMatch, S, openSideQuests, showQuest, questData, tools, showPlace, openDirections, startNav, pick, openDrawer, closeDrawer, runSearch, setStyle, nominatimSearch };
+// ---------- v0.9.16 For Hunters / 猎人模式 ----------
+HU.init(map, store);
+const HDISC = () => L('仅供参考，不构成法律意见。身处某个狩猎区（WMU）不等于可以在此打猎：私有土地须取得土地所有人许可，保留地、军事区、多数公园禁止或限制狩猎；季节和规定每年变化，请以阿尔伯塔官方狩猎规定为准。', 'For reference only — not legal advice. Being inside a WMU does not mean you may hunt there: private land needs the owner’s permission; reserves, military areas and most parks prohibit or restrict hunting; seasons and rules change every year — check the official Alberta Hunting Regulations.');
+const HATTR = () => `<div class="s" style="font-size:12.5px;color:var(--muted);margin-top:8px">Contains information licensed under the <a href="https://open.alberta.ca/licence" target="_blank" rel="noopener">Open Government Licence – Alberta</a>. ${L('数据来源：阿尔伯塔政府 geospatial.alberta.ca', 'Source: Government of Alberta, geospatial.alberta.ca')}</div>`;
+function huntIdentify(e) {
+  const z = HU.identify(e.point); if (!z.length) return;
+  openPanel(`<div class="pks">${z.map(x => `<div class="pkrow"><i style="width:12px;height:12px;border-radius:3px;flex:none;background:${x.c}"></i><div class="pkt"><b>${esc(x.name || L(x.zh, x.en))}</b><span class="s">${esc(L(x.zh, x.en))}${x.extra ? ' · ' + esc(x.extra) : ''}</span></div></div>`).join('')}
+    <div class="pkmsg">${esc(HDISC())}</div>${HATTR()}</div>`, L('此处所在区域', 'Zones here'));
+}
+tools.hunters = async (msg = '') => {
+  const m = HU.meta(), mb = b => (b / 1048576).toFixed(1) + ' MB';
+  const rows = HU.DEFS.map(d => `<label class="pkrow" style="cursor:pointer"><input type="checkbox" data-hl="${d[0]}" ${HU.layerOn(d[0]) ? 'checked' : ''} style="width:20px;height:20px;flex:none"><i style="width:14px;height:14px;border-radius:3px;flex:none;background:${d[3]}"></i><div class="pkt"><b style="font-size:15px">${esc(L(d[1], d[2]))}</b></div></label>`).join('');
+  openPanel(`<div class="pks" id="huBox">${msg ? `<div class="pkmsg">${esc(msg)}</div>` : ''}
+    <div class="pkrow"><div class="pkt"><b>${L('阿尔伯塔猎人地图包', 'Alberta Hunters pack')}</b><span class="s">${m ? `v${esc(m.version)} · ${mb(m.bytes)} · ${L('数据日期', 'data')} ${esc(m.built || '')}` : L('约 2 MB 下载，装好后离线可用', '~2 MB download, works offline once installed')}</span></div><div class="pkb">
+      ${m ? `<button class="btn${HU.on() ? ' ghost' : ''}" data-hon="${HU.on() ? 0 : 1}">${HU.on() ? L('关闭模式', 'Turn off') : L('开启模式', 'Turn on')}</button>` : `<button class="btn" data-hdl="1">${L('下载', 'Download')}</button>`}</div></div>
+    ${m && m.version !== HU.PACK.version ? `<div class="pkrow"><div class="pkt"><span class="s">${L('有新版本', 'Update available')} v${HU.PACK.version}</span></div><div class="pkb"><button class="btn" data-hdl="1">${L('更新', 'Update')}</button></div></div>` : ''}
+    <div class="pkh">${L('图层', 'Layers')}</div>${rows}
+    <div class="s" style="font-size:13px;color:var(--muted);margin-top:6px">${L('开启后点地图任意位置可查看该处所在的狩猎区 / 土地分区。', 'With the mode on, tap anywhere on the map to see which WMU / land zones it falls in.')}</div>
+    <div class="pkmsg" style="margin-top:10px">${esc(HDISC())}</div>${HATTR()}
+    ${m ? `<div style="margin-top:10px"><button class="btn ghost" data-hrm="1">${L('删除地图包', 'Delete pack')}</button></div>` : ''}</div>`, L('猎人模式', 'For Hunters'));
+  $('#huBox').onclick = async e => {
+    const b = e.target.closest('button,input'); if (!b) return;
+    if (b.dataset.hl) { const s = Object.fromEntries(HU.DEFS.map(d => [d[0], HU.layerOn(d[0])])); s[b.dataset.hl] = b.checked; store.set('huntLy', s); return HU.apply(); }
+    if (b.dataset.hdl) { b.disabled = true; try { await HU.download((n, t2) => { b.textContent = t2 ? Math.round(n / t2 * 100) + '%' : mb(n); }); store.set('huntOn', true); await HU.apply(); tools.hunters(L('已下载并开启。', 'Downloaded and turned on.')); } catch (er) { tools.hunters(L('下载失败：', 'Download failed: ') + (er.message || er)); } return; }
+    if (b.dataset.hon) { store.set('huntOn', b.dataset.hon === '1'); await HU.apply(); return tools.hunters(); }
+    if (b.dataset.hrm) { if (!confirm(L('删除猎人地图包？', 'Delete the hunters pack?'))) return; await HU.remove(); return tools.hunters(); }
+  };
+};
+window._app = { HU, installPackBytes: (u8, sha) => PK.install(u8, 'test', { expectSha: sha, appVer: APPVER }), AC, ios, applySizes, setMe, updScale, sunTimes, offlineSearch, semanticSearch, semMatch, S, openSideQuests, showQuest, questData, tools, showPlace, openDirections, startNav, pick, openDrawer, closeDrawer, runSearch, setStyle, nominatimSearch };
 renderDrawer(); // re-render once all menu sections (lists, tools) are defined
 // v0.9.5 compass bar (Northland / Tactical navigation): one static strip, only its transform changes on rotate.
 { const cb = document.querySelector('#cbar .cbt'); if (cb && window._map) {

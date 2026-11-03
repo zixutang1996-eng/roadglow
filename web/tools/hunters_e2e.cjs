@@ -1,0 +1,24 @@
+// v0.9.16 For Hunters e2e (headless Chrome): drawer entry → download pack (served from local dist, intercepted) → overlays near Lethbridge → tap identify
+const puppeteer = require('/workspace/pptr/node_modules/puppeteer-core'); const fs = require('fs'); const sleep = ms => new Promise(r => setTimeout(r, ms));
+const BASE = process.env.URL || 'http://127.0.0.1:18782/', out = process.env.OUT || '../screenshots/v0916/', LANG = process.env.LANG2 || 'zh-CN';
+(async () => { const b = await puppeteer.launch({ executablePath: '/usr/bin/google-chrome', args: ['--no-sandbox', '--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'], headless: 'new' });
+  const p = await b.newPage(); await p.setViewport({ width: 390, height: 844, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
+  p.on('pageerror', e => console.log('PAGEERR', e.message));
+  await p.setRequestInterception(true);
+  p.on('request', r => { if (r.url().includes('github.io/roadglow/hunt/')) { const f = 'dist/hunt/' + r.url().split('/').pop(); return r.respond({ status: 200, headers: { 'access-control-allow-origin': '*', 'content-length': String(fs.statSync(f).size) }, body: fs.readFileSync(f) }); } r.continue(); });
+  await p.evaluateOnNewDocument(l => { Object.defineProperty(navigator, 'language', { get: () => l }); localStorage.setItem('a2hsSeen', '1'); }, LANG);
+  await p.goto(BASE + '#9/49.67/-112.83', { waitUntil: 'networkidle2', timeout: 90000 }); await sleep(2500);
+  await p.click('#menuBtn'); await sleep(700);
+  await p.evaluate(() => { const s = document.querySelector('[data-sech="map"]'); if (!s.parentElement.classList.contains('open')) s.click(); }); await sleep(600);
+  await p.screenshot({ path: out + 'drawer_' + LANG + '.png' });
+  await p.click('[data-tool="hunters"]'); await sleep(800); await p.screenshot({ path: out + 'panel_before_' + LANG + '.png' });
+  const t0 = Date.now(); await p.click('[data-hdl]'); await p.waitForFunction(() => !!document.querySelector('[data-hon]'), { timeout: 60000 }); console.log('download+parse ms', Date.now() - t0);
+  await sleep(1500); await p.screenshot({ path: out + 'panel_after_' + LANG + '.png' });
+  const lays = await p.evaluate(() => window._app ? Object.keys(window._app) : []); 
+  await p.evaluate(() => document.querySelector('#panelX')?.click());
+  await sleep(2500); await p.screenshot({ path: out + 'map_z9_' + LANG + '.png' });
+  const fps = await p.evaluate(() => new Promise(res => { let n = 0; const t = performance.now(); const f = () => { n++; if (performance.now() - t < 2000) requestAnimationFrame(f); else res(n / 2); }; requestAnimationFrame(f); }));
+  console.log('idle rAF/s (swiftshader)', fps);
+  await p.touchscreen.tap(195, 422); await sleep(1500); await p.screenshot({ path: out + 'identify_' + LANG + '.png' });
+  console.log('identify', await p.evaluate(() => document.querySelector('#panelTitle')?.textContent + ' | ' + [...document.querySelectorAll('#panelBody .pkt b')].map(x => x.textContent).join(' / ')));
+  await b.close(); })();
