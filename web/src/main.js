@@ -343,7 +343,7 @@ function addAccLayer() {
 }
 function setMe(pos) {
   S.me = { lat: pos.coords.latitude, lng: pos.coords.longitude, heading: pos.coords.heading ?? S.compassHdg ?? null, speed: pos.coords.speed, acc: pos.coords.accuracy };
-  if (!puck) { const el = document.createElement('div'); el.className = 'puck'; el.innerHTML = puckSvg(); el.style.cursor = 'pointer'; el.addEventListener('click', ev => { ev.stopPropagation(); showMe(); }); puck = new maplibregl.Marker({ element: el, rotationAlignment: 'map', pitchAlignment: 'map' }).setLngLat(S.me).addTo(map); }
+  if (!puck) { const el = document.createElement('div'); el.className = 'puck'; el.innerHTML = puckSvg(); el.style.cursor = 'pointer'; el.addEventListener('click', ev => { ev.stopPropagation(); showMe(); }); puck = new maplibregl.Marker({ element: el, rotationAlignment: 'map', pitchAlignment: 'map', subpixelPositioning: true }).setLngLat(S.me).addTo(map); }
   if (isFinite(S.me.lat) && pos.coords.accuracy != null && (!setMe.t || Date.now() - setMe.t > 30e3)) { setMe.t = Date.now(); store.set('lastFix', { lng: S.me.lng, lat: S.me.lat, t: setMe.t }); }
   window.__rgCar?.pos(S.me); puck.setLngLat(S.me); if (S.me.heading != null && !isNaN(S.me.heading) && !S.nav?.active) puck.setRotation(S.me.heading); updAcc();
 }
@@ -792,7 +792,7 @@ async function startNav() {
   ios.wakeOn(toast); document.getElementById('iosGuide')?.remove();
   const { startNavigation } = await import('./nav.js'); // lazy: only loaded when navigating
   closePanel();
-  S.nav = startNavigation({ map, S, setMe: (c) => { S.me = c; if (puck) puck.setLngLat(c); updAcc(); }, getPuck: () => puck, makePuck: c => { setMe({ coords: { latitude: c.lat, longitude: c.lng } }); return puck; }, reroute: async from => (await osrm(from, await resolveEnd(S.dest), S.travel)), drawRoutes, onEnd: () => { ios.wakeOff(); S.nav = null; S.routes = null; drawRoutes(); $('#top').classList.remove('hidden'); } });
+  S.nav = startNavigation({ map, S, setMe: (c) => { S.me = c; } /* v0.9.18: nav draws the arrow itself (smoothed); raw fix only updates S.me */, getPuck: () => puck, makePuck: c => { setMe({ coords: { latitude: c.lat, longitude: c.lng } }); return puck; }, reroute: async from => (await osrm(from, await resolveEnd(S.dest), S.travel)), drawRoutes, onEnd: () => { ios.wakeOff(); S.nav = null; S.routes = null; drawRoutes(); $('#top').classList.remove('hidden'); } });
   $('#top').classList.add('hidden');
 }
 $('#dirBtn').onclick = () => openDirections(S.place || null);

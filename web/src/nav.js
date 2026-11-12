@@ -28,7 +28,10 @@ export function startNavigation({ map, S, setMe, makePuck, reroute, drawRoutes, 
   const sim = new URLSearchParams(location.search).has('sim') || !navigator.geolocation;
   const puck = makePuck(S.me || { lat: route.geometry.coordinates[0][1], lng: route.geometry.coordinates[0][0] });
   puck.getElement().classList.add('nav');
-  document.body.classList.add('navon'); const b3 = v => { try { if (map.getLayer('bld3d')) map.setLayoutProperty('bld3d', 'visibility', v); } catch {} }; b3('visible'); const onSd = () => document.body.classList.contains('navon') && b3('visible'); map.on('style.load', onSd);
+  document.body.classList.add('navon'); const b3 = v => { try { if (map.getLayer('bld3d')) map.setLayoutProperty('bld3d', 'visibility', v); } catch {} }; b3('visible');
+  // the GPS accuracy circle is drawn at the raw 1 Hz fix; hide it while the smoothed arrow is shown
+  const accV = v => { for (const id of ['acc', 'acc-line']) try { if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', v); } catch {} }; accV('none');
+  const onSd = () => { if (document.body.classList.contains('navon')) { b3('visible'); accV('none'); } }; map.on('style.load', onSd);
 
   const banner = $('#navBanner'); banner.classList.remove('hidden'); banner.classList.add('objective');
   // original quest-objective destination marker
@@ -62,21 +65,73 @@ export function startNavigation({ map, S, setMe, makePuck, reroute, drawRoutes, 
     const remainingToTurn = haversine(p, route.steps[Math.min(step, route.steps.length - 1)].loc);
     const spd = Math.max(0, p.speed || 0);
     let zoom = 18 - Math.min(2.5, spd / 12); if (remainingToTurn < 250) zoom = Math.max(zoom, 17.5);
-    camT = { zoom, pitch: headingUp ? 55 : 0 }; if (duration <= 700) { const h = map.getContainer().clientHeight; map.easeTo({ center: [(anim.cur || p).lng, (anim.cur || p).lat], bearing: headingUp ? anim.brg : 0, ...camT, padding: { top: h * 0.42, bottom: 90, left: 0, right: 0 }, duration }); }
+    camT = { zoom, pitch: headingUp ? 55 : 0 }; if (duration <= 700) { const h = map.getContainer().clientHeight; map.easeTo({ center: [(anim.cur || p).lng, (anim.cur || p).lat], bearing: headingUp ? (anim.shown ?? smBearing) : 0, ...camT, padding: { top: h * 0.42, bottom: 90, left: 0, right: 0 }, duration }); }
   }
-  // Render only measured fixes. Prediction by speed × time used to put the arrow
-  // up to 1.5 seconds ahead (42 m at 100 km/h), including across unmade turns.
-  // Keep rotation/camera animation, but never invent forward position or trim to it.
-  let camT = null, raf = 0, segHint = 0;
-  const anim = { cur: null, fix: null, brg: smBearing };
-  function frame() {
-    raf = st.active ? requestAnimationFrame(frame) : 0; if (!anim.fix) return;
-    anim.cur = { ...anim.fix };
-    anim.shown = (anim.shown ?? anim.brg) + angDiff(anim.shown ?? anim.brg, anim.brg) * 0.12;
+  // v0.9.18 smooth follow (per display frame, follows the screen refresh rate, e.g. 120 Hz):
+  // every GPS fix defines a short trajectory: the measured point moved forward by speed × time, capped at 0.7 s
+  // (PRED_MAX). When the fix is on the route it moves ALONG the route geometry and is clamped at the next not-yet-reached
+  // manoeuvre point, so the arrow can never be drawn past a junction you haven't reached. A new fix does not teleport the
+  // arrow: the display cross-fades from the previous trajectory to the new one with a smoothstep weight, which keeps both
+  // position and velocity continuous ("projective velocity blending"). To keep the motion at a constant rate between
+  // ~1 Hz fixes without ever leading the latest fix by more than 0.7 s, the trajectory clock runs `lag` = interval − 0.7 s
+  // behind arrival (≈0.3 s at 1 Hz). Heading eases along the shortest angle; camera, arrow and route trim update in the
+  // same frame. Off-route / reroute / jump-over-150 m converge fast but still continuously; >1 km snaps.
+  // Measured fixes (not this display state) still drive off-route detection and instruction progress.
+  const PRED_MAX = 0.7, ML = 111320, rad = Math.PI / 180;
+  const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+  const meters = (a, b) => Math.hypot((b.lng - a.lng) * ML * Math.cos(a.lat * rad), (b.lat - a.lat) * ML);
+  const offsetBy = (o, m, brg) => ({ lat: o.lat + (m * Math.cos(brg * rad)) / ML, lng: o.lng + (m * Math.sin(brg * rad)) / (ML * Math.cos(o.lat * rad)) });
+  let camT = null, raf = 0, segHint = 0, lastFrame = 0, lastTrim = 0, gpsInterval = 1, gpsJitter = 0.03, lastArrival = 0;
+  const anim = { cur: null, f: null, last: null, shown: null, brg: smBearing };
+  function makeTraj(o) { // o: { at, B, v, brg, lag, predict, route?: { c, cum, along, limit, off } }
+    const { at, B, v, lag, predict, route: R } = o;
+    const pointAt = s => { // point + bearing at route distance s
+      let lo = 0, hi = R.cum.length - 1; while (hi - lo > 1) { const m = (lo + hi) >> 1; if (R.cum[m] <= s) lo = m; else hi = m; }
+      const L = R.cum[hi] - R.cum[lo], t = L ? (s - R.cum[lo]) / L : 0, a = R.c[lo], b = R.c[hi];
+      return { lng: a[0] + (b[0] - a[0]) * t + R.off[0], lat: a[1] + (b[1] - a[1]) * t + R.off[1], brg: bearingOf({ lng: a[0], lat: a[1] }, { lng: b[0], lat: b[1] }) };
+    };
+    const f = (now, ext = 0) => {
+      if (!predict) return { lng: B.lng, lat: B.lat, brg: o.brg };
+      const dt = clamp((now - at) / 1000 - lag, -lag, PRED_MAX + ext);
+      if (R) return pointAt(clamp(R.along + v * dt, Math.max(0, R.along - v * lag), Math.max(R.along, R.limit)));
+      const q = offsetBy(B, v * dt, o.brg); q.brg = o.brg; return q;
+    };
+    f.info = o; return f;
+  }
+  function setTraj(traj, now) {
+    anim.last = traj; const prev = anim.f;
+    if (!prev || document.hidden) { anim.f = traj; return; }
+    const d = meters(prev(now), traj(now));
+    if (d > 1000) { anim.f = traj; return; }
+    const T = (d > 150 ? 0.35 : clamp(gpsInterval * 0.9, 0.3, 0.9)) * 1000, t0 = now; let from = prev;
+    const blend = (t, ext = 0) => {
+      const u = (t - t0) / T; if (u >= 1 || !from) { from = null; return traj(t, ext); }
+      const w = u <= 0 ? 0 : u * u * (3 - 2 * u), a = from(t, Math.max(ext, 2)), b = traj(t, ext);
+      return { lng: a.lng + (b.lng - a.lng) * w, lat: a.lat + (b.lat - a.lat) * w, brg: b.brg };
+    };
+    anim.f = blend;
+  }
+  // hard limit on the drawn point: never more than 0.7 s × speed ahead of the newest measured fix
+  function capLead(q) {
+    const o = anim.last?.info; if (!o) return q;
+    const max = o.predict ? o.v * PRED_MAX : 0, u = [Math.sin(o.brg * rad), Math.cos(o.brg * rad)];
+    const dx = (q.lng - o.B.lng) * ML * Math.cos(o.B.lat * rad), dy = (q.lat - o.B.lat) * ML, ahead = dx * u[0] + dy * u[1];
+    if (ahead <= max + 0.01) return q;
+    const back = ahead - max; return { ...q, lng: q.lng - (back * u[0]) / (ML * Math.cos(o.B.lat * rad)), lat: q.lat - (back * u[1]) / ML };
+  }
+  function frame(ts) {
+    raf = 0; if (!st.active || document.hidden) return; raf = requestAnimationFrame(frame);
+    if (!anim.f) return;
+    const now = ts ?? performance.now(), dtf = lastFrame ? clamp((now - lastFrame) / 1000, 0, 0.1) : 0; lastFrame = now;
+    const q = capLead(anim.f(now)); anim.cur = { lng: q.lng, lat: q.lat };
+    anim.shown = anim.shown == null ? q.brg : (anim.shown + angDiff(anim.shown, q.brg) * (1 - Math.exp(-dtf / 0.22)) + 360) % 360;
+    if (follow && camT && !map.isMoving()) { const h = map.getContainer().clientHeight, z = map.getZoom(), pi = map.getPitch(), kz = 1 - Math.exp(-dtf / 0.8);
+      map.jumpTo({ center: [anim.cur.lng, anim.cur.lat], bearing: headingUp ? anim.shown : 0, zoom: z + (camT.zoom - z) * kz, pitch: pi + (camT.pitch - pi) * kz, padding: { top: h * 0.42, bottom: 90, left: 0, right: 0 } }); }
     puck.setLngLat(anim.cur); puck.setRotation(anim.shown);
-    if (follow && camT && !map.isMoving()) { const h = map.getContainer().clientHeight, z = map.getZoom(), pi = map.getPitch();
-      map.jumpTo({ center: [anim.cur.lng, anim.cur.lat], bearing: headingUp ? anim.shown : 0, zoom: z + (camT.zoom - z) * 0.05, pitch: pi + (camT.pitch - pi) * 0.08, padding: { top: h * 0.42, bottom: 90, left: 0, right: 0 } }); }
+    if (now - lastTrim > 66) { lastTrim = now; trim(anim.cur); } // ~15 Hz; the line end stays under the arrow
   }
+  const onVis = () => { if (document.hidden || !st.active) return; lastFrame = 0; if (anim.last) anim.f = anim.last; if (!raf) raf = requestAnimationFrame(frame); };
+  document.addEventListener?.('visibilitychange', onVis);
   function trim(p) { // hide the already-driven part of the highlighted route
     const src = map.getSource('route'), c = route.geometry.coordinates; if (!src || c.length < 2) return;
     const pr = project(p, c, segHint); if (pr.d > 40) return; segHint = pr.i;
@@ -104,16 +159,15 @@ export function startNavigation({ map, S, setMe, makePuck, reroute, drawRoutes, 
     // Android can deliver delayed/batched callbacks after resume. Never treat an
     // old fix as "now", or count duplicates as successive off-route evidence.
     if (!Number.isFinite(time) || Date.now() - time > 10000 || time > Date.now() + 2000 || time <= lastFixTime) return;
-    lastFixTime = time; st.gpsLostSaid = 0;
+    const prevFixTime = lastFixTime; lastFixTime = time; st.gpsLostSaid = 0;
+    const rawSpeed = Number.isFinite(p.speed) && p.speed >= 0 ? p.speed : null;
     p = { ...p, timestamp: time, heading: Number.isFinite(p.heading) && p.heading >= 0 ? p.heading : null, speed: Math.max(0, p.speed || 0) };
     const prev = lastPos, moved = prev ? haversine(prev, p) : 0;
     const course = p.heading ?? (moved > 3 ? bearingOf(prev, p) : null);
     if (course != null && (p.speed > 1 || moved > 3)) smBearing = (smBearing + angDiff(smBearing, course) * 0.35 + 360) % 360;
     lastPos = p;
-    // Keep authoritative GPS separate from the displayed marker; no route snap
-    // that could drag a driver back onto a route they have actually left.
-    anim.fix = { lng: p.lng, lat: p.lat }; anim.cur = { ...anim.fix }; anim.brg = smBearing;
-    setMe(p); if (!raf) raf = requestAnimationFrame(frame);
+    // Authoritative position = the measured fix (S.me); the drawn arrow is the smoothed display state.
+    setMe(p);
     if (follow) camera(p);
     const c = route.geometry.coordinates, pr = project(p, c, 0, c.length);
     const acc = Number.isFinite(p.acc) ? p.acc : 15;
@@ -130,7 +184,19 @@ export function startNavigation({ map, S, setMe, makePuck, reroute, drawRoutes, 
     const along = cumulative[pr.i] + (cumulative[pr.i + 1] - cumulative[pr.i]) * pr.t;
     // Do not announce a turn as passed merely because GPS is within 18 m of it.
     if (pr.d < threshold && wrong === 0) while (step < route.steps.length - 1 && along >= progress[step] + 5) step++;
-    trim(p);
+    { // display trajectory for this fix
+      const nowT = performance.now(); if (lastArrival) { const iv = (nowT - lastArrival) / 1000; if (iv > 0.1 && iv < 5) { gpsJitter = gpsJitter * 0.8 + Math.abs(iv - gpsInterval) * 0.2; gpsInterval = gpsInterval * 0.7 + iv * 0.3; } } lastArrival = nowT;
+      const v = rawSpeed ?? (prev && prevFixTime && time > prevFixTime && moved < 100 ? moved / ((time - prevFixTime) / 1000) : 0);
+      const predict = v >= 2 && acc <= 30 && Date.now() - time <= 2000 && course != null;
+      const segB = a && b ? bearingOf({ lng: a[0], lat: a[1] }, { lng: b[0], lat: b[1] }) : null;
+      let R = null;
+      if (predict && pr.d < threshold && wrong === 0 && segB != null && Math.abs(angDiff(segB, smBearing)) < 45) {
+        let limit = cumulative[cumulative.length - 1]; for (let i = step; i < progress.length; i++) if (progress[i] > along + 0.5) { limit = progress[i]; break; }
+        R = { c, cum: cumulative, along, limit, off: [p.lng - pr.pt[0], p.lat - pr.pt[1]] };
+      }
+      setTraj(makeTraj({ at: nowT, B: { lng: p.lng, lat: p.lat }, v: Math.min(v, 70), brg: R ? segB : smBearing, lag: clamp(gpsInterval + 2 * gpsJitter + 0.02 - PRED_MAX, 0, 0.6), predict, route: R }), nowT);
+      if (!raf && !document.hidden) raf = requestAnimationFrame(frame);
+    }
     const s = route.steps[step], toNext = haversine(p, s.loc);
     let rem = toNext; for (let i = step; i < route.steps.length; i++) rem += route.steps[i].distance;
     const eta = rem / Math.max(route.distance / route.duration, 1); etaNow = eta;
@@ -221,7 +287,7 @@ export function startNavigation({ map, S, setMe, makePuck, reroute, drawRoutes, 
   sayEv('step', { st: route.steps[0] });
 
   function end() {
-    st.active = false; ++requestSeq; window.removeEventListener('online', online); if (raf) cancelAnimationFrame(raf); raf = 0; document.body.classList.remove('navon'); b3('none'); map.off('style.load', onSd); clearInterval(simTimer); if (watchId != null) navigator.geolocation.clearWatch(watchId); st.lock?.release?.();
+    st.active = false; ++requestSeq; window.removeEventListener('online', online); document.removeEventListener?.('visibilitychange', onVis); if (raf) cancelAnimationFrame(raf); raf = 0; document.body.classList.remove('navon'); b3('none'); accV('visible'); map.off('style.load', onSd); clearInterval(simTimer); if (watchId != null) navigator.geolocation.clearWatch(watchId); st.lock?.release?.();
     for (const ev of ['dragstart', 'rotatestart', 'pitchstart', 'zoomstart']) map.off(ev, userMove);
     banner.classList.add('hidden'); banner.classList.remove('objective'); destMarker.remove(); foot.remove(); then.remove(); spd.remove(); rc.remove(); puck.getElement().classList.remove('nav'); puck.setRotation(0);
     map.easeTo({ pitch: 0, bearing: 0, padding: { top: 0, bottom: 0, left: 0, right: 0 }, duration: 600 });
