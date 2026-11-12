@@ -21,7 +21,8 @@ const AR = { 左: 'M17 21V11.5Q17 7 12.5 7H5.5M9.5 3 5 7l4.5 4', 右: 'M7 21V11.
 const inkArrow = s => `<svg class="ika" viewBox="0 0 24 24" aria-hidden="true"><path d="${AR[turnZ(s)]}"/></svg>`;
 
 export function startNavigation({ map, S, setMe, makePuck, reroute, drawRoutes, onEnd }) {
-  let route = S.routes[S.routeIdx], step = 1, spoken = new Set(), off = 0, rerouting = false, lastSwitch = Date.now(), lastCheck = Date.now(), etaNow = route.duration;
+  let route = S.routes[S.routeIdx], step = 1, spoken = new Set(), off = 0, wrong = 0, rerouting = false, lastSwitch = Date.now(), lastCheck = Date.now(), etaNow = route.duration;
+  let requestSeq = 0, pendingKind = null, retryAt = 0, failures = 0, lastFixTime = 0;
   let follow = true, headingUp = true, smBearing = map.getBearing(), lastPos = null;
   const st = { active: true };
   const sim = new URLSearchParams(location.search).has('sim') || !navigator.geolocation;
@@ -40,6 +41,10 @@ export function startNavigation({ map, S, setMe, makePuck, reroute, drawRoutes, 
   // static buttons (never re-rendered, so taps can't be lost to the 1 Hz refresh)
   banner.innerHTML = `<button id="navX" title="${t('nav_end')}">✕</button><div id="navBody"></div>`; const navBody = banner.querySelector('#navBody');
   foot.innerHTML = `<div class="eta"></div><button class="ctl" id="hdgBtn" title="${t('compass')}">⬆</button><button class="btn red" id="endBtn"><span class="stopg" aria-hidden="true"></span>${t('nav_end')}</button>`;
+  const status = document.createElement('div'); status.id = 'navStatus'; status.setAttribute?.('role', 'status');
+  foot.appendChild(status);
+  const setStatus = text => { status.textContent = text; };
+  const unavailable = () => lang === 'zh' ? '路线服务暂不可用，正在重试；请勿继续依赖旧路线' : 'Routing unavailable; retrying. Do not rely on the old route.';
   const footEta = foot.querySelector('.eta'), hdgBtn = foot.querySelector('#hdgBtn');
   const then = document.createElement('div'); then.id = 'inkThen'; then.className = 'hidden'; const spd = document.createElement('div'); spd.id = 'inkSpd'; spd.className = 'hidden';
   if (INK()) { banner.after(then); (document.querySelector('.navw') || document.body).appendChild(spd); }
@@ -57,23 +62,20 @@ export function startNavigation({ map, S, setMe, makePuck, reroute, drawRoutes, 
     const remainingToTurn = haversine(p, route.steps[Math.min(step, route.steps.length - 1)].loc);
     const spd = Math.max(0, p.speed || 0);
     let zoom = 18 - Math.min(2.5, spd / 12); if (remainingToTurn < 250) zoom = Math.max(zoom, 17.5);
-    camT = { zoom, pitch: headingUp ? 55 : 0 }; if (duration <= 700) { const h = map.getContainer().clientHeight; map.easeTo({ center: [anim.cur.lng, anim.cur.lat], bearing: headingUp ? anim.brg : 0, ...camT, padding: { top: h * 0.42, bottom: 90, left: 0, right: 0 }, duration }); }
+    camT = { zoom, pitch: headingUp ? 55 : 0 }; if (duration <= 700) { const h = map.getContainer().clientHeight; map.easeTo({ center: [(anim.cur || p).lng, (anim.cur || p).lat], bearing: headingUp ? anim.brg : 0, ...camT, padding: { top: h * 0.42, bottom: 90, left: 0, right: 0 }, duration }); }
   }
-  // v0.9.13 smooth follow: GPS fixes (~1 Hz) become targets; every animation frame the puck glides from where it is drawn toward the
-  // fix + dead-reckoned motion (speed × heading, capped at 1.5 s), snapped onto the route when on it. Camera follows with jumpTo per
-  // frame (no queued easeTo animations → no stutter), and the driven part of the route is trimmed ~5×/s.
-  let camT = null, raf = 0, lastTrim = 0, segHint = 0;
-  const anim = { cur: null, fix: null, fixT: 0, v: 0, brg: smBearing };
-  function frame(now) {
-    raf = st.active ? requestAnimationFrame(frame) : 0; const f = anim.fix; if (!f) return;
-    const dt = Math.min(1.5, (now - anim.fixT) / 1000), mv = anim.v * dt, br = anim.brg * Math.PI / 180;
-    const tgt = { lat: f.lat + (mv * Math.cos(br)) / 111320, lng: f.lng + (mv * Math.sin(br)) / (111320 * Math.cos(f.lat * Math.PI / 180)) };
-    if (!anim.cur || haversine(anim.cur, tgt) > 120) anim.cur = tgt; else { const k = 0.18; anim.cur = { lat: anim.cur.lat + (tgt.lat - anim.cur.lat) * k, lng: anim.cur.lng + (tgt.lng - anim.cur.lng) * k }; }
+  // Render only measured fixes. Prediction by speed × time used to put the arrow
+  // up to 1.5 seconds ahead (42 m at 100 km/h), including across unmade turns.
+  // Keep rotation/camera animation, but never invent forward position or trim to it.
+  let camT = null, raf = 0, segHint = 0;
+  const anim = { cur: null, fix: null, brg: smBearing };
+  function frame() {
+    raf = st.active ? requestAnimationFrame(frame) : 0; if (!anim.fix) return;
+    anim.cur = { ...anim.fix };
     anim.shown = (anim.shown ?? anim.brg) + angDiff(anim.shown ?? anim.brg, anim.brg) * 0.12;
     puck.setLngLat(anim.cur); puck.setRotation(anim.shown);
     if (follow && camT && !map.isMoving()) { const h = map.getContainer().clientHeight, z = map.getZoom(), pi = map.getPitch();
       map.jumpTo({ center: [anim.cur.lng, anim.cur.lat], bearing: headingUp ? anim.shown : 0, zoom: z + (camT.zoom - z) * 0.05, pitch: pi + (camT.pitch - pi) * 0.08, padding: { top: h * 0.42, bottom: 90, left: 0, right: 0 } }); }
-    if (now - lastTrim > 200) { lastTrim = now; trim(anim.cur); }
   }
   function trim(p) { // hide the already-driven part of the highlighted route
     const src = map.getSource('route'), c = route.geometry.coordinates; if (!src || c.length < 2) return;
@@ -82,21 +84,53 @@ export function startNavigation({ map, S, setMe, makePuck, reroute, drawRoutes, 
   }
 
   let carRoute = null;
+  let progress = [];
+  function indexSteps() {
+    const c = route.geometry.coordinates, cum = [0];
+    for (let i = 1; i < c.length; i++) cum.push(cum[i - 1] + haversine({ lng: c[i - 1][0], lat: c[i - 1][1] }, { lng: c[i][0], lat: c[i][1] }));
+    // OSRM manoeuvres are geometry vertices; search forward to disambiguate loops.
+    let lo = 0;
+    progress = route.steps.map(s => {
+      let at = lo, d = Infinity;
+      for (let i = lo; i < c.length; i++) { const x = haversine(s.loc, { lng: c[i][0], lat: c[i][1] }); if (x < d) { d = x; at = i; } }
+      lo = at; return cum[at];
+    });
+    return cum;
+  }
+  let cumulative = indexSteps();
   function onPos(p) {
-    if (!st.active) return; st.gpsLostSaid = 0;
-    if (lastPos && haversine(lastPos, p) > 1.5) { const brg = p.heading ?? bearingOf(lastPos, p); smBearing = (smBearing + angDiff(smBearing, brg) * 0.35 + 360) % 360; }
-    else if (p.heading != null) smBearing = (smBearing + angDiff(smBearing, p.heading) * 0.35 + 360) % 360;
+    if (!st.active || !Number.isFinite(p.lat) || !Number.isFinite(p.lng)) return;
+    const time = p.timestamp ?? Date.now();
+    // Android can deliver delayed/batched callbacks after resume. Never treat an
+    // old fix as "now", or count duplicates as successive off-route evidence.
+    if (!Number.isFinite(time) || Date.now() - time > 10000 || time > Date.now() + 2000 || time <= lastFixTime) return;
+    lastFixTime = time; st.gpsLostSaid = 0;
+    p = { ...p, timestamp: time, heading: Number.isFinite(p.heading) && p.heading >= 0 ? p.heading : null, speed: Math.max(0, p.speed || 0) };
+    const prev = lastPos, moved = prev ? haversine(prev, p) : 0;
+    const course = p.heading ?? (moved > 3 ? bearingOf(prev, p) : null);
+    if (course != null && (p.speed > 1 || moved > 3)) smBearing = (smBearing + angDiff(smBearing, course) * 0.35 + 360) % 360;
     lastPos = p;
-    { const c = route.geometry.coordinates, pr = project(p, c, segHint), snap = pr.d < Math.max(15, Math.min(30, p.acc || 15));
-      anim.fix = snap ? { lng: pr.pt[0], lat: pr.pt[1] } : p; anim.fixT = performance.now(); anim.v = Math.max(0, p.speed || 0) < 0.7 ? 0 : p.speed; anim.brg = smBearing;
-      if (snap && pr.i < c.length - 1) { const sb = bearingOf({ lng: c[pr.i][0], lat: c[pr.i][1] }, { lng: c[pr.i + 1][0], lat: c[pr.i + 1][1] }); if (Math.abs(angDiff(sb, smBearing)) < 50) anim.brg = sb; } }
-    setMe(anim.cur || anim.fix); if (!raf) raf = requestAnimationFrame(frame);
+    // Keep authoritative GPS separate from the displayed marker; no route snap
+    // that could drag a driver back onto a route they have actually left.
+    anim.fix = { lng: p.lng, lat: p.lat }; anim.cur = { ...anim.fix }; anim.brg = smBearing;
+    setMe(p); if (!raf) raf = requestAnimationFrame(frame);
     if (follow) camera(p);
-    // progress
-    const d = distToLine(p, route.geometry.coordinates);
-    if (d > 30 + Math.min(20, p.acc || 10)) { if (++off >= 2 && !rerouting) doReroute(p); } else off = 0;
-    if (!rerouting && Date.now() - lastCheck > 150000) { lastCheck = Date.now(); checkBetter(p); }
-    while (step < route.steps.length - 1 && haversine(p, route.steps[step].loc) < 18) step++;
+    const c = route.geometry.coordinates, pr = project(p, c, 0, c.length);
+    const acc = Number.isFinite(p.acc) ? p.acc : 15;
+    const threshold = Math.max(18, Math.min(35, acc * 1.5));
+    const a = c[pr.i], b = c[pr.i + 1];
+    const backwards = a && b && course != null && (p.speed > 2 || moved > 5) && Math.abs(angDiff(course, bearingOf({ lng: a[0], lat: a[1] }, { lng: b[0], lat: b[1] }))) > 110;
+    wrong = acc <= 50 && backwards ? wrong + 1 : 0;
+    off = acc <= 50 && (pr.d > threshold || wrong >= 3) ? off + 1 : 0;
+    if (acc > 50) setStatus(lang === 'zh' ? '定位精度不足，请确认实际道路' : 'Low GPS accuracy; confirm your road.');
+    else if (!rerouting && !off) { failures = 0; retryAt = 0; setStatus(''); }
+    else if (!failures && !rerouting) setStatus('');
+    if (off >= 2 && Date.now() >= retryAt && (!rerouting || pendingKind === 'better')) doReroute(p);
+    if (!rerouting && !off && Date.now() - lastCheck > 60000) { lastCheck = Date.now(); checkBetter(p); }
+    const along = cumulative[pr.i] + (cumulative[pr.i + 1] - cumulative[pr.i]) * pr.t;
+    // Do not announce a turn as passed merely because GPS is within 18 m of it.
+    if (pr.d < threshold && wrong === 0) while (step < route.steps.length - 1 && along >= progress[step] + 5) step++;
+    trim(p);
     const s = route.steps[step], toNext = haversine(p, s.loc);
     let rem = toNext; for (let i = step; i < route.steps.length; i++) rem += route.steps[i].distance;
     const eta = rem / Math.max(route.distance / route.duration, 1); etaNow = eta;
@@ -123,23 +157,46 @@ export function startNavigation({ map, S, setMe, makePuck, reroute, drawRoutes, 
         sayEv('step', { st: s, dist: th === 40 ? 0 : toNext }); break; }
     }
   }
-  async function doReroute(p) {
-    rerouting = true; sayEv('reroute');
-    try { route = (await reroute(p))[0]; lastSwitch = Date.now(); S.routes = [route]; S.routeIdx = 0; drawRoutes(); step = 1; spoken.clear(); if (simState) { simState.coords = route.geometry.coordinates; simState.i = 0; simState.frac = 0; } } catch {}
-    off = 0; rerouting = false;
+  function installRoute(next) {
+    route = next; S.routes = [route]; S.routeIdx = 0; step = 1;
+    spoken.clear(); off = 0; wrong = 0; segHint = 0; cumulative = indexSteps();
+    lastSwitch = Date.now(); lastCheck = Date.now(); failures = 0; retryAt = 0;
+    drawRoutes(); setStatus('');
+    if (simState) { simState.coords = route.geometry.coordinates; simState.i = 0; simState.frac = 0; }
   }
-  // Periodic re-evaluation from the current position; switch only if clearly better (anti-flapping).
-  async function checkBetter(p) {
+  async function requestRoute(p, kind) {
+    const id = ++requestSeq; pendingKind = kind; rerouting = true;
+    let timer;
     try {
-      const best = (await reroute(p))[0];
-      const gain = etaNow - best.duration;
-      if (gain > Math.max(60, etaNow * 0.1) && Date.now() - lastSwitch > 120000 && st.active) {
-        route = best; S.routes = [route]; S.routeIdx = 0; drawRoutes(); step = 1; spoken.clear(); lastSwitch = Date.now();
-        if (simState) { simState.coords = route.geometry.coordinates; simState.i = 0; simState.frac = 0; }
-        sayEv('better', { min: Math.round(gain / 60) });
+      const routes = await Promise.race([Promise.resolve().then(() => reroute(p)), new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('routing timeout')), 16000); })]);
+      if (!st.active || id !== requestSeq) return;
+      const valid = routes?.filter(r => r?.geometry?.coordinates?.length >= 2 && r.steps?.length >= 2 && Number.isFinite(r.duration) && Number.isFinite(r.distance));
+      const best = valid?.reduce((a, b) => !a || b.duration < a.duration ? b : a, null);
+      if (!best) throw new Error('no route');
+      if (Date.now() - lastFixTime > 10000) throw new Error('GPS is stale');
+      if (lastPos && haversine(p, lastPos) > 40 && distToLine(lastPos, best.geometry.coordinates) > 45) throw new Error('route origin is stale');
+      if (kind === 'off') installRoute(best);
+      else {
+        const gain = etaNow - best.duration;
+        if (gain > Math.max(60, etaNow * 0.1) && Date.now() - lastSwitch > 120000) { installRoute(best); sayEv('better', { min: Math.round(gain / 60) }); }
       }
-    } catch {}
+    } catch (e) {
+      if (st.active && id === requestSeq) {
+        if (kind === 'off') { failures++; retryAt = Date.now() + Math.min(30000, 5000 * 2 ** Math.min(failures - 1, 3)); setStatus(unavailable()); }
+      }
+    } finally {
+      clearTimeout(timer);
+      if (id === requestSeq) { rerouting = false; pendingKind = null; }
+    }
   }
+  function doReroute(p) {
+    setStatus(lang === 'zh' ? '正在重新规划路线…' : 'Recalculating route…'); sayEv('reroute');
+    return requestRoute(p, 'off');
+  }
+  // No live traffic feed: this compares the routing service's estimated duration.
+  function checkBetter(p) { if (!st.active || rerouting) return; return requestRoute(p, 'better'); }
+  const online = () => { if (st.active && off >= 2 && lastPos && Date.now() - lastFixTime < 10000 && !rerouting) { retryAt = 0; doReroute(lastPos); } };
+  window.addEventListener('online', online);
   function toggleHeading() { headingUp = !headingUp; follow = true; rc.classList.add('hidden'); if (lastPos) camera(lastPos, 700); }
 
   // GPS source: real watchPosition or simulated route replay
@@ -158,13 +215,13 @@ export function startNavigation({ map, S, setMe, makePuck, reroute, drawRoutes, 
       onPos({ lng: a[0] + (b[0] - a[0]) * f, lat: a[1] + (b[1] - a[1]) * f, speed, heading: bearingOf({ lng: a[0], lat: a[1] }, { lng: b[0], lat: b[1] }), acc: 5 });
     }, 1000);
   } else {
-    watchId = navigator.geolocation.watchPosition(g => onPos({ lat: g.coords.latitude, lng: g.coords.longitude, speed: g.coords.speed, heading: g.coords.heading ?? S.compassHdg ?? null, acc: g.coords.accuracy }),
+    watchId = navigator.geolocation.watchPosition(g => onPos({ lat: g.coords.latitude, lng: g.coords.longitude, speed: g.coords.speed, heading: g.coords.heading ?? null, acc: g.coords.accuracy, timestamp: g.timestamp }),
       () => { if (!st.gpsLostSaid) { st.gpsLostSaid = 1; sayEv('gpslost'); } }, { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 });
   }
   sayEv('step', { st: route.steps[0] });
 
   function end() {
-    st.active = false; if (raf) cancelAnimationFrame(raf); raf = 0; document.body.classList.remove('navon'); b3('none'); map.off('style.load', onSd); clearInterval(simTimer); if (watchId != null) navigator.geolocation.clearWatch(watchId); st.lock?.release?.();
+    st.active = false; ++requestSeq; window.removeEventListener('online', online); if (raf) cancelAnimationFrame(raf); raf = 0; document.body.classList.remove('navon'); b3('none'); map.off('style.load', onSd); clearInterval(simTimer); if (watchId != null) navigator.geolocation.clearWatch(watchId); st.lock?.release?.();
     for (const ev of ['dragstart', 'rotatestart', 'pitchstart', 'zoomstart']) map.off(ev, userMove);
     banner.classList.add('hidden'); banner.classList.remove('objective'); destMarker.remove(); foot.remove(); then.remove(); spd.remove(); rc.remove(); puck.getElement().classList.remove('nav'); puck.setRotation(0);
     map.easeTo({ pitch: 0, bearing: 0, padding: { top: 0, bottom: 0, left: 0, right: 0 }, duration: 600 });

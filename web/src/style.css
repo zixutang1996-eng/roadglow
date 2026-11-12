@@ -330,3 +330,10 @@ html body.ncc #navBanner .objsub{border-top:1px dashed currentColor}
 .skrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:4px 0}.skrow .s{flex:1;min-width:120px;font-size:calc(12.5px * var(--ts,1));color:var(--muted)}.skrow.on>.btn:first-child{font-weight:700}
 .skin-add{display:flex;gap:6px;margin-top:8px}.skin-add input{flex:1;min-width:0;padding:8px;border-radius:8px;border:1px solid var(--muted);background:transparent;color:inherit;font:inherit}
 .skfile{display:inline-block;margin-top:6px;cursor:pointer}
+
+/* Navigation position is the centre dot, not the decorative arrow tip. */
+.puck.nav svg{transform:scale(var(--is,1))}
+.puck.nav::after{content:"";position:absolute;left:50%;top:50%;width:6px;height:6px;margin:-3px;border-radius:50%;background:#fff;box-shadow:0 0 0 2px #173c50;pointer-events:none}
+#navStatus:empty{display:none}
+#navFoot{flex-wrap:wrap}
+#navStatus{font-size:13px;flex-basis:100%;color:inherit;padding:4px 0 0;border-top:1px solid currentColor}
